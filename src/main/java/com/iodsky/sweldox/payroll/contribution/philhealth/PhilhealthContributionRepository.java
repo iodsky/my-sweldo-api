@@ -8,9 +8,10 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface PhilhealthContributionRepository extends JpaRepository<PhilhealthContribution, String>, JpaSpecificationExecutor<PhilhealthContribution> {
+public interface PhilhealthContributionRepository extends JpaRepository<PhilhealthContribution, UUID>, JpaSpecificationExecutor<PhilhealthContribution> {
 
     @Query("SELECT p FROM PhilhealthContribution p WHERE p.effectiveDate <= :date AND p.deletedAt IS NULL ORDER BY p.effectiveDate DESC LIMIT 1")
     Optional<PhilhealthContribution> findLatestByEffectiveDate(@Param("date") LocalDate date);

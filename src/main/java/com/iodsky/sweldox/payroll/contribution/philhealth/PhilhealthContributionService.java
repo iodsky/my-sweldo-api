@@ -12,6 +12,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -59,7 +60,7 @@ public class PhilhealthContributionService {
         );
     }
 
-    public PhilhealthContribution getPhilhealthContributionById(String id) {
+    public PhilhealthContribution getPhilhealthContributionById(UUID id) {
         return philhealthContributionRepository.findById(id)
                 .filter(config -> config.getDeletedAt() == null)
                 .orElseThrow(() -> new ResponseStatusException(
@@ -77,7 +78,7 @@ public class PhilhealthContributionService {
     }
 
     @Transactional
-    public PhilhealthContribution updatePhilhealthContribution(String id, PhilhealthContributionRequest request) {
+    public PhilhealthContribution updatePhilhealthContribution(UUID id, PhilhealthContributionRequest request) {
         PhilhealthContribution contribution = getPhilhealthContributionById(id);
 
         contribution.setPremiumRate(request.getPremiumRate());
@@ -88,7 +89,7 @@ public class PhilhealthContributionService {
     }
 
     @Transactional
-    public void deletePhilhealthContribution(String id) {
+    public void deletePhilhealthContribution(UUID id) {
         PhilhealthContribution contribution = getPhilhealthContributionById(id);
         contribution.setDeletedAt(Instant.now());
         philhealthContributionRepository.save(contribution);

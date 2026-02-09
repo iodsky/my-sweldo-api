@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/payroll-config/philhealth")
@@ -64,7 +65,7 @@ public class PhilhealthContributionController {
     @GetMapping("/{id}")
     @Operation(summary = "Get PhilHealth configuration by ID", description = "Retrieve a specific PhilHealth contribution configuration. Requires PAYROLL role.")
     public ResponseEntity<ApiResponse<PhilhealthContributionDto>> getPhilhealthContributionById(
-            @Parameter(description = "Configuration ID") @PathVariable String id) {
+            @Parameter(description = "Configuration ID") @PathVariable UUID id) {
         PhilhealthContribution contribution = philhealthContributionService.getPhilhealthContributionById(id);
         return ResponseFactory.ok(
                 "PhilHealth contribution configuration retrieved successfully",
@@ -88,7 +89,7 @@ public class PhilhealthContributionController {
     @PutMapping("/{id}")
     @Operation(summary = "Update PhilHealth configuration", description = "Update an existing PhilHealth contribution configuration. Requires PAYROLL role.")
     public ResponseEntity<ApiResponse<PhilhealthContributionDto>> updatePhilhealthContribution(
-            @Parameter(description = "Configuration ID") @PathVariable String id,
+            @Parameter(description = "Configuration ID") @PathVariable UUID id,
             @Valid @RequestBody PhilhealthContributionRequest request) {
         PhilhealthContribution contribution = philhealthContributionService.updatePhilhealthContribution(id, request);
         return ResponseFactory.ok(
@@ -100,7 +101,7 @@ public class PhilhealthContributionController {
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete PhilHealth configuration", description = "Soft delete a PhilHealth contribution configuration. Requires PAYROLL role.")
     public ResponseEntity<ApiResponse<DeleteResponse>> deletePhilhealthContribution(
-            @Parameter(description = "Configuration ID") @PathVariable String id) {
+            @Parameter(description = "Configuration ID") @PathVariable UUID id) {
         philhealthContributionService.deletePhilhealthContribution(id);
         return ResponseFactory.ok(
                 "PhilHealth contribution configuration deleted successfully",
