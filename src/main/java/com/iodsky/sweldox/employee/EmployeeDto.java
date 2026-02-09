@@ -1,11 +1,13 @@
 package com.iodsky.sweldox.employee;
 
+import com.iodsky.sweldox.benefit.BenefitDto;
 import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -31,6 +33,7 @@ public class EmployeeDto {
     private BigDecimal basicSalary;
     private BigDecimal hourlyRate;
     private BigDecimal semiMonthlyRate;
-    private Map<String, BigDecimal> benefits;
+//    private Map<String, BigDecimal> benefits;
+    private List<BenefitDto> benefits;
 
 }

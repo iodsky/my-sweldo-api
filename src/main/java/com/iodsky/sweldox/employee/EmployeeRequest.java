@@ -1,5 +1,6 @@
 package com.iodsky.sweldox.employee;
 
+import com.iodsky.sweldox.benefit.BenefitRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Data;
@@ -7,7 +8,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.Map;
+import java.util.List;
 
 @Data
 public class EmployeeRequest {
@@ -44,8 +45,6 @@ public class EmployeeRequest {
     private String departmentId;
 
     @NotNull(message = "Status is required")
-    @Pattern(regexp = "PROBATIONARY|REGULAR|PART_TIME|CONTRACTUAL|TERMINATED|RESIGNED",
-             message = "Status must be one of: PROBATIONARY, REGULAR, PART_TIME, CONTRACTUAL, TERMINATED, RESIGNED")
     private Status status;
 
     @NotNull(message = "Start shift is required")
@@ -59,6 +58,6 @@ public class EmployeeRequest {
     private BigDecimal basicSalary;
 
     @NotNull
-    private Map<String, BigDecimal> benefits;
+    private List<BenefitRequest> benefits;
 
 }

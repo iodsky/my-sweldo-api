@@ -1,17 +1,16 @@
 package com.iodsky.sweldox.employee;
 
 
-import com.iodsky.sweldox.payroll.benefit.Benefit;
-import com.iodsky.sweldox.payroll.benefit.BenefitDto;
-import com.iodsky.sweldox.payroll.benefit.BenefitMapper;
+import com.iodsky.sweldox.benefit.Benefit;
+import com.iodsky.sweldox.benefit.BenefitDto;
+import com.iodsky.sweldox.benefit.BenefitMapper;
+import com.iodsky.sweldox.benefit.BenefitRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -24,7 +23,13 @@ public class EmployeeMapper  {
         Employee supervisor = employee.getSupervisor();
         String supervisorName = supervisor != null ? supervisor.getFirstName() + " " + supervisor.getLastName() : "N/A";
 
-        var benefits = employee.getBenefits().stream().collect(Collectors.toMap(b -> b.getBenefitType().getId(), Benefit::getAmount));
+        List<BenefitDto> benefits = employee.getBenefits()
+                .stream()
+                .map(b -> BenefitDto.builder()
+                        .benefit(b.getBenefitType().getId().toLowerCase())
+                        .amount(b.getAmount())
+                        .build())
+                .toList();
 
         return EmployeeDto.builder()
                 .id(employee.getId())
@@ -33,10 +38,10 @@ public class EmployeeMapper  {
                 .birthday(employee.getBirthday())
                 .address(employee.getAddress())
                 .phoneNumber(employee.getPhoneNumber())
-                .sssNumber(employee.getGovernmentId().getSssNumber())
-                .tinNumber(employee.getGovernmentId().getTinNumber())
-                .philhealthNumber(employee.getGovernmentId().getPhilhealthNumber())
-                .pagIbigNumber(employee.getGovernmentId().getPagIbigNumber())
+                .sssNumber(employee.getGovernmentId() == null ? null : employee.getGovernmentId().getSssNumber())
+                .tinNumber((employee.getGovernmentId() == null ? null : employee.getGovernmentId().getTinNumber()))
+                .philhealthNumber((employee.getGovernmentId() == null ? null : employee.getGovernmentId().getPhilhealthNumber()))
+                .pagIbigNumber((employee.getGovernmentId() == null ? null : employee.getGovernmentId().getPagIbigNumber()))
                 .status(employee.getStatus().toString())
                 .supervisor(supervisorName)
                 .department(employee.getDepartment().getTitle())
@@ -49,6 +54,7 @@ public class EmployeeMapper  {
                 .benefits(benefits)
                 .build();
     }
+
 
     public Employee toEntity(EmployeeRequest request) {
         Employee employee = Employee.builder()
@@ -79,12 +85,11 @@ public class EmployeeMapper  {
         employee.setHourlyRate(hourlyRate);
 
         List<Benefit> benefits = request.getBenefits()
-                .entrySet()
                 .stream()
                 .map( b -> benefitMapper.toEntity(
-                        BenefitDto.builder()
-                                .benefit(b.getKey())
-                                .amount(b.getValue())
+                        BenefitRequest.builder()
+                                .benefitTypeId(b.getBenefitTypeId())
+                                .amount(b.getAmount())
                                 .build()
                 )).
                 toList();
@@ -107,15 +112,17 @@ public class EmployeeMapper  {
         existing.setPhoneNumber(request.getPhoneNumber());
 
         // --- GOVERNMENT IDs ---
-        if (existing.getGovernmentId() == null) {
-            existing.setGovernmentId(new GovernmentId());
-            existing.getGovernmentId().setEmployee(existing);
+        if (request.getGovernmentId() != null) {
+            if (existing.getGovernmentId() == null) {
+                existing.setGovernmentId(new GovernmentId());
+                existing.getGovernmentId().setEmployee(existing);
+            }
+            GovernmentId gov = existing.getGovernmentId();
+            gov.setSssNumber(request.getGovernmentId().getSssNumber());
+            gov.setTinNumber(request.getGovernmentId().getTinNumber());
+            gov.setPhilhealthNumber(request.getGovernmentId().getPhilhealthNumber());
+            gov.setPagIbigNumber(request.getGovernmentId().getPagIbigNumber());
         }
-        GovernmentId gov = existing.getGovernmentId();
-        gov.setSssNumber(request.getGovernmentId().getSssNumber());
-        gov.setTinNumber(request.getGovernmentId().getTinNumber());
-        gov.setPhilhealthNumber(request.getGovernmentId().getPhilhealthNumber());
-        gov.setPagIbigNumber(request.getGovernmentId().getPagIbigNumber());
 
         existing.setStatus(request.getStatus());
         existing.setStartShift(request.getStartShift());
@@ -130,12 +137,11 @@ public class EmployeeMapper  {
         existing.setHourlyRate(hourlyRate);
 
         List<Benefit> benefits = request.getBenefits()
-                .entrySet()
                 .stream()
                 .map( b -> benefitMapper.toEntity(
-                        BenefitDto.builder()
-                                .benefit(b.getKey())
-                                .amount(b.getValue())
+                        BenefitRequest.builder()
+                                .benefitTypeId(b.getBenefitTypeId())
+                                .amount(b.getAmount())
                                 .build()
                 )).
                 toList();
