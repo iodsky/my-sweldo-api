@@ -1,16 +1,13 @@
 package com.iodsky.sweldox.employee;
 
-import com.iodsky.sweldox.common.DuplicateField;
-import com.iodsky.sweldox.common.exception.DuplicateFieldException;
 import com.iodsky.sweldox.department.Department;
 import com.iodsky.sweldox.department.DepartmentService;
 import com.iodsky.sweldox.position.Position;
 import com.iodsky.sweldox.position.PositionService;
-import com.iodsky.sweldox.payroll.benefit.Benefit;
-import com.iodsky.sweldox.payroll.benefit.BenefitService;
+import com.iodsky.sweldox.benefit.Benefit;
+import com.iodsky.sweldox.benefit.BenefitService;
 import com.iodsky.sweldox.security.user.User;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,8 +19,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +32,6 @@ public class EmployeeService {
 
     @Transactional
     public Employee createEmployee(EmployeeRequest request) {
-        try {
             Employee employee = employeeMapper.toEntity(request);
 
             Employee supervisor = null;
@@ -53,14 +47,12 @@ public class EmployeeService {
             employee.setPosition(position);
 
             List<Benefit> benefits = employee.getBenefits();
+
             benefits.forEach(b -> {
                 b.setBenefitType(benefitService.getBenefitTypeById(b.getBenefitType().getId()));
             });
 
             return employeeRepository.save(employee);
-        } catch (DataIntegrityViolationException ex) {
-            throw handleDataIntegrityViolation(ex);
-        }
     }
 
     public Page<Employee> getAllEmployees(int page, int limit, String departmentId, Long supervisorId, String status) {
@@ -95,7 +87,6 @@ public class EmployeeService {
     public Employee updateEmployeeById(Long id, EmployeeRequest request) {
         Employee employee = this.getEmployeeById(id);
 
-        try {
             Employee supervisor = null;
             if (request.getSupervisorId() != null) {
                 supervisor = getEmployeeById(request.getSupervisorId());
@@ -112,9 +103,6 @@ public class EmployeeService {
 
             return employeeRepository.save(employee);
 
-        } catch (DataIntegrityViolationException ex) {
-            throw handleDataIntegrityViolation(ex);
-        }
     }
 
     @Transactional
@@ -148,32 +136,5 @@ public class EmployeeService {
 
     public List<Long> getAllActiveEmployeeIds() {
         return employeeRepository.findAllActiveEmployeeIds();
-    }
-
-    private DuplicateFieldException handleDataIntegrityViolation(DataIntegrityViolationException ex) {
-        String message = "Field validation error";
-        DuplicateField duplicateField = null;
-
-        Throwable rootCause = ex.getMostSpecificCause();
-        String errorMessage = rootCause.getMessage();
-
-        if (errorMessage != null) {
-            Pattern pattern = java.util.regex.Pattern.compile("Key \\(([^)]+)\\)=\\(([^)]+)\\)");
-            Matcher matcher = pattern.matcher(errorMessage);
-
-            if (matcher.find()) {
-                String field = matcher.group(1);
-                String value = matcher.group(2);
-
-                duplicateField = DuplicateField.builder()
-                        .field(field)
-                        .value(value)
-                        .build();
-
-                message = String.format("Duplicate value '%s' for field '%s'", value, field);
-            }
-        }
-
-        return new DuplicateFieldException(message, duplicateField);
     }
 }

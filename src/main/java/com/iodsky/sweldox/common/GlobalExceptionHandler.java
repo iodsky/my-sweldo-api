@@ -1,12 +1,12 @@
-package com.iodsky.sweldox.common.exception;
+package com.iodsky.sweldox.common;
 
 import com.iodsky.sweldox.common.response.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -14,24 +14,61 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    @ExceptionHandler(DuplicateFieldException.class)
-    public ResponseEntity<ErrorResponse> handleDuplicateFieldException(DuplicateFieldException ex, HttpServletRequest request) {
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(DataIntegrityViolationException ex, HttpServletRequest request) {
+        logger.warn("Data integrity violation: {}", ex.getMessage());
 
-        logger.warn("Field validation error");
+        String message = "Data validation error";
+        DuplicateField duplicateField = null;
+
+        Throwable rootCause = ex.getMostSpecificCause();
+        String errorMessage = rootCause.getMessage();
+
+        if (errorMessage != null) {
+            Pattern pgPattern = Pattern.compile("Key \\(([^)]+)\\)=\\(([^)]+)\\)");
+            Matcher pgMatcher = pgPattern.matcher(errorMessage);
+
+            if (pgMatcher.find()) {
+                String field = pgMatcher.group(1);
+                String value = pgMatcher.group(2);
+
+                duplicateField = DuplicateField.builder()
+                        .field(field)
+                        .value(value)
+                        .build();
+
+                message = String.format("Duplicate value '%s' for field '%s'", value, field);
+            } else {
+                Pattern altPattern = Pattern.compile("duplicate key value.*constraint \"([^\"]+)\"");
+                Matcher altMatcher = altPattern.matcher(errorMessage);
+
+                if (altMatcher.find()) {
+                    String constraint = altMatcher.group(1);
+                    String field = constraint.replace("_key", "").replace("employee_", "");
+
+                    duplicateField = DuplicateField.builder()
+                            .field(field)
+                            .value("unknown")
+                            .build();
+
+                    message = String.format("Duplicate value for field '%s'", field);
+                }
+            }
+        }
 
         ErrorResponse error = ErrorResponse.builder()
                 .timestamp(Instant.now())
                 .status(HttpStatus.BAD_REQUEST.value())
-                .message(ex.getMessage())
-                .duplicateField(ex.getDuplicateField())
+                .message(message)
+                .duplicateField(duplicateField)
                 .path(request.getRequestURI())
                 .build();
 
@@ -55,14 +92,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex, HttpServletRequest request) {
 
-        Map<String, String> validationErrors = ex.getBindingResult()
+        List<ValidationError> validationErrors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
-                .collect(Collectors.toMap(
-                        FieldError::getField,
-                        FieldError::getDefaultMessage,
-                        (existing, replacement) -> existing
-                ));
+                .map(err -> ValidationError
+                        .builder()
+                        .field(err.getField())
+                        .message(err.getDefaultMessage())
+                        .build())
+                .toList();
 
         ErrorResponse error = ErrorResponse.builder()
                 .timestamp(Instant.now())
