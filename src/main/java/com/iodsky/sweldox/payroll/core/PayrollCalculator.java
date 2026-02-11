@@ -11,9 +11,7 @@ import com.iodsky.sweldox.payroll.contribution.sss.SssContributionRepository;
 import com.iodsky.sweldox.payroll.tax.IncomeTaxBracket;
 import com.iodsky.sweldox.payroll.tax.IncomeTaxBracketRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -31,27 +29,26 @@ public class PayrollCalculator {
 
     private static final BigDecimal SEMI_MONTHLY_DIVISOR = BigDecimal.valueOf(2);
     private static final BigDecimal OVERTIME_MULTIPLIER = BigDecimal.valueOf(1.25);
-    private static final int STANDARD_WORK_HOURS = 8;
+    private static final BigDecimal STANDARD_WORK_HOURS = BigDecimal.valueOf(8);
+    private static final BigDecimal PAY_PERIODS_PER_YEAR = BigDecimal.valueOf(24);
+
 
     public PayrollConfiguration loadConfiguration(LocalDate payrollDate) {
         PhilhealthContribution philhealth = philhealthContributionRepository
                 .findLatestByEffectiveDate(payrollDate)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> new PayrollRunException(
                         "PhilHealth contribution configuration not found for date: " + payrollDate
                 ));
 
         PagibigContribution pagibig = pagibigContributionRepository
                 .findLatestByEffectiveDate(payrollDate)
-            .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
+            .orElseThrow(() -> new PayrollRunException(
                         "Pag-IBIG contribution configuration not found for date: " + payrollDate
                 ));
 
         SssContribution sssContribution = sssContributionRepository
                 .findLatestByEffectiveDate(payrollDate)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> new PayrollRunException(
                         "SSS contribution configuration not found for date: " + payrollDate
                 ));
 
@@ -59,8 +56,7 @@ public class PayrollCalculator {
                 .findAllByEffectiveDate(payrollDate);
 
         if (taxBrackets.isEmpty()) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
+            throw new PayrollRunException(
                     "Income tax bracket configurations not found for date: " + payrollDate
             );
         }
@@ -86,7 +82,7 @@ public class PayrollCalculator {
     }
 
     public BigDecimal calculateDailyRate(BigDecimal hourlyRate) {
-        return hourlyRate.multiply(BigDecimal.valueOf(STANDARD_WORK_HOURS));
+        return hourlyRate.multiply(STANDARD_WORK_HOURS);
     }
 
     public BigDecimal calculateRegularPay(BigDecimal hourlyRate, BigDecimal regularHours) {
@@ -112,8 +108,7 @@ public class PayrollCalculator {
     public BigDecimal calculatePhilhealthDeduction(BigDecimal basicSalary, LocalDate payrollDate) {
         PhilhealthContribution config = philhealthContributionRepository
                 .findLatestByEffectiveDate(payrollDate)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> new PayrollRunException(
                         "PhilHealth contribution configuration not found for date: " + payrollDate
                 ));
 
@@ -138,8 +133,7 @@ public class PayrollCalculator {
     public BigDecimal calculatePagibigDeduction(BigDecimal basicSalary, LocalDate payrollDate) {
         PagibigContribution config = pagibigContributionRepository
                 .findLatestByEffectiveDate(payrollDate)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> new PayrollRunException(
                         "Pag-IBIG contribution configuration not found for date: " + payrollDate
                 ));
 
@@ -163,8 +157,7 @@ public class PayrollCalculator {
     public BigDecimal calculateSssDeduction(BigDecimal basicSalary, LocalDate payrollDate) {
         SssContribution config = sssContributionRepository
                 .findLatestByEffectiveDate(payrollDate)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> new PayrollRunException(
                         "SSS contribution configuration not found for date: " + payrollDate
                 ));
 
@@ -182,42 +175,61 @@ public class PayrollCalculator {
         return monthlyContribution.divide(SEMI_MONTHLY_DIVISOR, 2, RoundingMode.HALF_UP);
     }
 
-    public BigDecimal calculateWithholdingTax(BigDecimal taxableIncome, LocalDate payrollDate) {
+    public BigDecimal calculateWithholdingTax(BigDecimal semiMonthlyTaxableIncome, LocalDate payrollDate) {
+        // Convert semi-monthly taxable income to annual for bracket lookup
+        BigDecimal annualTaxableIncome = semiMonthlyTaxableIncome.multiply(PAY_PERIODS_PER_YEAR);
+
         IncomeTaxBracket bracket = incomeTaxBracketRepository
-                .findByIncomeAndEffectiveDate(taxableIncome, payrollDate);
+                .findByIncomeAndEffectiveDate(annualTaxableIncome, payrollDate);
 
         if (bracket == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "Income tax bracket not found for income: " + taxableIncome + " and date: " + payrollDate
+            throw new PayrollRunException(
+                    "Income tax bracket not found for annual income: " + annualTaxableIncome + " and date: " + payrollDate
             );
         }
 
-        return calculateWithholdingTaxFromBracket(taxableIncome, bracket);
+        return calculateWithholdingTaxFromBracket(annualTaxableIncome, bracket);
     }
 
 
-    public BigDecimal calculateWithholdingTax(BigDecimal taxableIncome, List<IncomeTaxBracket> taxBrackets) {
+    public BigDecimal calculateWithholdingTax(
+            BigDecimal semiMonthlyTaxableIncome,
+            List<IncomeTaxBracket> taxBrackets) {
+
+        BigDecimal annualTaxableIncome =
+                semiMonthlyTaxableIncome.multiply(PAY_PERIODS_PER_YEAR);
+
         IncomeTaxBracket bracket = taxBrackets.stream()
-                .filter(b -> taxableIncome.compareTo(b.getMinIncome()) >= 0
-                        && (b.getMaxIncome() == null || taxableIncome.compareTo(b.getMaxIncome()) <= 0))
+                .filter(b -> annualTaxableIncome.compareTo(b.getMinIncome()) >= 0
+                        && (b.getMaxIncome() == null
+                        || annualTaxableIncome.compareTo(b.getMaxIncome()) <= 0))
                 .findFirst()
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Income tax bracket not found for income: " + taxableIncome
+                .orElseThrow(() -> new PayrollRunException(
+                        "Income tax bracket not found for annual income: " + annualTaxableIncome
                 ));
 
-        return calculateWithholdingTaxFromBracket(taxableIncome, bracket);
+        return calculateWithholdingTaxFromBracket(
+                annualTaxableIncome,
+                bracket
+        );
     }
 
+    private BigDecimal calculateWithholdingTaxFromBracket(
+            BigDecimal annualTaxableIncome,
+            IncomeTaxBracket annualBracket) {
 
-    private BigDecimal calculateWithholdingTaxFromBracket(BigDecimal taxableIncome, IncomeTaxBracket bracket) {
-        BigDecimal excessAmount = taxableIncome.subtract(bracket.getThreshold()).max(BigDecimal.ZERO);
-        BigDecimal excessTax = excessAmount.multiply(bracket.getMarginalRate());
-        BigDecimal monthlyTax = bracket.getBaseTax().add(excessTax);
+        BigDecimal excessAmount =
+                annualTaxableIncome
+                        .subtract(annualBracket.getThreshold())
+                        .max(BigDecimal.ZERO);
 
-        return monthlyTax.divide(SEMI_MONTHLY_DIVISOR, 2, RoundingMode.HALF_UP);
+        BigDecimal annualTax =
+                annualBracket.getBaseTax()
+                        .add(excessAmount.multiply(annualBracket.getMarginalRate()));
+
+        return annualTax.divide(PAY_PERIODS_PER_YEAR, 2, RoundingMode.HALF_UP);
     }
+
 
     public BigDecimal calculateTotalStatutoryDeductions(
             BigDecimal sss, BigDecimal philhealth, BigDecimal pagibig) {

@@ -1,6 +1,7 @@
 package com.iodsky.sweldox.common;
 
 import com.iodsky.sweldox.common.response.ErrorResponse;
+import com.iodsky.sweldox.payroll.core.PayrollRunException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,6 +114,20 @@ public class GlobalExceptionHandler {
         logger.error("Validation failed: {}", validationErrors);
 
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(PayrollRunException.class)
+    public ResponseEntity<ErrorResponse> handlePayrollRunException(Exception ex, HttpServletRequest request) {
+        logger.error("An unexpected error has occured while payroll processing");
+
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(Instant.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+
+        return new ResponseEntity<>(error,HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(Exception.class)
