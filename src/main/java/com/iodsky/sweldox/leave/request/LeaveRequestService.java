@@ -1,5 +1,6 @@
 package com.iodsky.sweldox.leave.request;
 
+import com.iodsky.sweldox.common.RequestStatus;
 import com.iodsky.sweldox.leave.LeaveType;
 import com.iodsky.sweldox.leave.credit.LeaveCredit;
 import com.iodsky.sweldox.leave.credit.LeaveCreditService;
@@ -57,7 +58,7 @@ public class LeaveRequestService {
                 .startDate(dto.getStartDate())
                 .endDate(dto.getEndDate())
                 .note(dto.getNote())
-                .leaveStatus(LeaveStatus.PENDING)
+                .status(RequestStatus.PENDING)
                 .build();
 
         return leaveRequestRepository.save(leave);
@@ -90,7 +91,7 @@ public class LeaveRequestService {
             }
         }
 
-        if (!entity.getLeaveStatus().equals(LeaveStatus.PENDING)) {
+        if (!entity.getStatus().equals(RequestStatus.PENDING)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot delete processed leave request");
         }
 
@@ -100,16 +101,16 @@ public class LeaveRequestService {
     }
 
     @Transactional
-    public LeaveRequest updateLeaveStatus(String leaveRequestId, LeaveStatus newStatus) {
+    public LeaveRequest updateLeaveStatus(String leaveRequestId, RequestStatus newStatus) {
         LeaveRequest leaveRequest = getLeaveRequestById(leaveRequestId);
 
-        if (!leaveRequest.getLeaveStatus().equals(LeaveStatus.PENDING)) {
+        if (!leaveRequest.getStatus().equals(RequestStatus.PENDING)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Leave request " + leaveRequestId + " has already been processed");
         }
 
-        leaveRequest.setLeaveStatus(newStatus);
+        leaveRequest.setStatus(newStatus);
 
-        if (newStatus.equals(LeaveStatus.APPROVED)) {
+        if (newStatus.equals(RequestStatus.APPROVED)) {
             double daysToDeduct = calculateTotalDays(leaveRequest.getStartDate(), leaveRequest.getEndDate());
             LeaveCredit leaveCredit = leaveCreditService.getLeaveCreditByEmployeeIdAndType(leaveRequest.getEmployee().getId(), leaveRequest.getLeaveType());
 
@@ -145,7 +146,7 @@ public class LeaveRequestService {
             }
         }
 
-        if (!leaveRequest.getLeaveStatus().equals(LeaveStatus.PENDING)) {
+        if (!leaveRequest.getStatus().equals(RequestStatus.PENDING)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot delete processed leave request");
         }
 
@@ -190,9 +191,9 @@ public class LeaveRequestService {
 
         // Overlapping dates
         if (leaveRequestRepository
-                .existsByEmployee_IdAndLeaveStatusInAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+                .existsByEmployee_IdAndStatusInAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
                         employeeId,
-                        List.of(LeaveStatus.PENDING, LeaveStatus.APPROVED),
+                        List.of(RequestStatus.PENDING, RequestStatus.APPROVED),
                         endDate,
                         startDate
                 )

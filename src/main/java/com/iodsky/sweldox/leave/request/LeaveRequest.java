@@ -2,6 +2,7 @@ package com.iodsky.sweldox.leave.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.iodsky.sweldox.common.BaseModel;
+import com.iodsky.sweldox.common.RequestStatus;
 import com.iodsky.sweldox.employee.Employee;
 import com.iodsky.sweldox.leave.LeaveType;
 import jakarta.persistence.*;
@@ -42,7 +43,7 @@ public class LeaveRequest extends BaseModel {
     private String note;
 
     @Enumerated(value = EnumType.STRING)
-    private LeaveStatus leaveStatus;
+    private RequestStatus status;
 
 
 }

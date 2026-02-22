@@ -1,5 +1,6 @@
 package com.iodsky.sweldox.leave;
 
+import com.iodsky.sweldox.common.RequestStatus;
 import com.iodsky.sweldox.employee.Employee;
 import com.iodsky.sweldox.leave.credit.LeaveCredit;
 import com.iodsky.sweldox.leave.credit.LeaveCreditService;
@@ -93,7 +94,7 @@ class LeaveRequestServiceTest {
                 .startDate(leaveRequestDto.getStartDate())
                 .endDate(leaveRequestDto.getEndDate())
                 .note(leaveRequestDto.getNote())
-                .leaveStatus(LeaveStatus.PENDING)
+                .status(RequestStatus.PENDING)
                 .build();
 
         leaveCredit = LeaveCredit.builder()
@@ -115,7 +116,7 @@ class LeaveRequestServiceTest {
                     .thenReturn(leaveCredit);
             when(leaveRequestRepository.existsByEmployee_IdAndStartDateAndEndDate(eq(1L), any(), any()))
                     .thenReturn(false);
-            when(leaveRequestRepository.existsByEmployee_IdAndLeaveStatusInAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+            when(leaveRequestRepository.existsByEmployee_IdAndStatusInAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
                     eq(1L), anyList(), any(), any()))
                     .thenReturn(false);
             when(leaveRequestRepository.save(any(LeaveRequest.class))).thenReturn(leaveRequest);
@@ -125,7 +126,7 @@ class LeaveRequestServiceTest {
             assertNotNull(result);
             assertEquals(employee, result.getEmployee());
             assertEquals(LeaveType.VACATION, result.getLeaveType());
-            assertEquals(LeaveStatus.PENDING, result.getLeaveStatus());
+            assertEquals(RequestStatus.PENDING, result.getStatus());
             verify(leaveRequestRepository).save(any(LeaveRequest.class));
         }
 
@@ -148,7 +149,7 @@ class LeaveRequestServiceTest {
                     .thenReturn(leaveCredit);
             when(leaveRequestRepository.existsByEmployee_IdAndStartDateAndEndDate(eq(1L), any(), any()))
                     .thenReturn(false);
-            when(leaveRequestRepository.existsByEmployee_IdAndLeaveStatusInAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+            when(leaveRequestRepository.existsByEmployee_IdAndStatusInAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
                     eq(1L), anyList(), any(), any()))
                     .thenReturn(false);
 
@@ -220,7 +221,7 @@ class LeaveRequestServiceTest {
 
             when(leaveRequestRepository.existsByEmployee_IdAndStartDateAndEndDate(eq(1L), any(), any()))
                     .thenReturn(false);
-            when(leaveRequestRepository.existsByEmployee_IdAndLeaveStatusInAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+            when(leaveRequestRepository.existsByEmployee_IdAndStatusInAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
                     eq(1L), anyList(), any(), any()))
                     .thenReturn(true);
 
@@ -369,7 +370,7 @@ class LeaveRequestServiceTest {
         void shouldThrowBadRequestWhenUpdatingProcessedRequest() {
             when(userService.getAuthenticatedUser()).thenReturn(normalUser);
 
-            leaveRequest.setLeaveStatus(LeaveStatus.APPROVED);
+            leaveRequest.setStatus(RequestStatus.APPROVED);
             when(leaveRequestRepository.findById("LR-2025-001"))
                     .thenReturn(Optional.of(leaveRequest));
 
@@ -382,7 +383,7 @@ class LeaveRequestServiceTest {
     }
 
     @Nested
-    class UpdateLeaveStatusTests {
+    class UpdateRequestStatusTests {
 
         @Test
         void shouldApproveLeaveRequestAndDeductCredits() {
@@ -394,9 +395,9 @@ class LeaveRequestServiceTest {
                     .thenReturn(leaveCredit);
             when(leaveRequestRepository.save(any(LeaveRequest.class))).thenReturn(leaveRequest);
 
-            LeaveRequest result = leaveRequestService.updateLeaveStatus("LR-2025-001", LeaveStatus.APPROVED);
+            LeaveRequest result = leaveRequestService.updateLeaveStatus("LR-2025-001", RequestStatus.APPROVED);
 
-            assertEquals(LeaveStatus.APPROVED, result.getLeaveStatus());
+            assertEquals(RequestStatus.APPROVED, result.getStatus());
             verify(leaveCreditService).updateLeaveCredit(any(UUID.class), any(LeaveCredit.class));
             verify(leaveRequestRepository).save(leaveRequest);
         }
@@ -407,21 +408,21 @@ class LeaveRequestServiceTest {
                     .thenReturn(Optional.of(leaveRequest));
             when(leaveRequestRepository.save(any(LeaveRequest.class))).thenReturn(leaveRequest);
 
-            LeaveRequest result = leaveRequestService.updateLeaveStatus("LR-2025-001", LeaveStatus.REJECTED);
+            LeaveRequest result = leaveRequestService.updateLeaveStatus("LR-2025-001", RequestStatus.REJECTED);
 
-            assertEquals(LeaveStatus.REJECTED, result.getLeaveStatus());
+            assertEquals(RequestStatus.REJECTED, result.getStatus());
             verify(leaveCreditService, never()).updateLeaveCredit(any(), any());
             verify(leaveRequestRepository).save(leaveRequest);
         }
 
         @Test
         void shouldThrowBadRequestWhenAlreadyProcessed() {
-            leaveRequest.setLeaveStatus(LeaveStatus.APPROVED);
+            leaveRequest.setStatus(RequestStatus.APPROVED);
             when(leaveRequestRepository.findById("LR-2025-001"))
                     .thenReturn(Optional.of(leaveRequest));
 
             ResponseStatusException ex = assertThrows(ResponseStatusException.class, () ->
-                    leaveRequestService.updateLeaveStatus("LR-2025-001", LeaveStatus.APPROVED));
+                    leaveRequestService.updateLeaveStatus("LR-2025-001", RequestStatus.APPROVED));
 
             assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
             assertTrue(ex.getReason().contains("already been processed"));
@@ -436,7 +437,7 @@ class LeaveRequestServiceTest {
                     .thenReturn(leaveCredit);
 
             ResponseStatusException ex = assertThrows(ResponseStatusException.class, () ->
-                    leaveRequestService.updateLeaveStatus("LR-2025-001", LeaveStatus.APPROVED));
+                    leaveRequestService.updateLeaveStatus("LR-2025-001", RequestStatus.APPROVED));
 
             assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
             assertTrue(ex.getReason().contains("Insufficient credits"));
@@ -454,7 +455,7 @@ class LeaveRequestServiceTest {
                     .thenThrow(new OptimisticLockException());
 
             ResponseStatusException ex = assertThrows(ResponseStatusException.class, () ->
-                    leaveRequestService.updateLeaveStatus("LR-2025-001", LeaveStatus.APPROVED));
+                    leaveRequestService.updateLeaveStatus("LR-2025-001", RequestStatus.APPROVED));
 
             assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
             assertTrue(ex.getReason().contains("modified by another process"));
@@ -507,7 +508,7 @@ class LeaveRequestServiceTest {
         void shouldThrowBadRequestWhenDeletingProcessedRequest() {
             when(userService.getAuthenticatedUser()).thenReturn(normalUser);
 
-            leaveRequest.setLeaveStatus(LeaveStatus.APPROVED);
+            leaveRequest.setStatus(RequestStatus.APPROVED);
             when(leaveRequestRepository.findById("LR-2025-001"))
                     .thenReturn(Optional.of(leaveRequest));
 

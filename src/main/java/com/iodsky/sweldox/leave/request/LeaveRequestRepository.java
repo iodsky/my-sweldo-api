@@ -1,5 +1,6 @@
 package com.iodsky.sweldox.leave.request;
 
+import com.iodsky.sweldox.common.RequestStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,9 +16,9 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Stri
 
     boolean existsByEmployee_IdAndStartDateAndEndDate(Long employeeId, LocalDate startDate, LocalDate endDate);
 
-    boolean existsByEmployee_IdAndLeaveStatusInAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+    boolean existsByEmployee_IdAndStatusInAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
             Long employeeId,
-            List<LeaveStatus> statuses,
+            List<RequestStatus> statuses,
             LocalDate startDate,
             LocalDate endDate
     );
