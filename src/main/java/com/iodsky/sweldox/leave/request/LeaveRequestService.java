@@ -1,5 +1,6 @@
 package com.iodsky.sweldox.leave.request;
 
+import com.iodsky.sweldox.common.DateRange;
 import com.iodsky.sweldox.common.RequestStatus;
 import com.iodsky.sweldox.leave.LeaveType;
 import com.iodsky.sweldox.leave.credit.LeaveCredit;
@@ -64,9 +65,14 @@ public class LeaveRequestService {
         return repository.save(leave);
     }
 
-    public Page<LeaveRequest> getLeaveRequests(int pageNo, int limit) {
+    public Page<LeaveRequest> getLeaveRequests(LocalDate startDate, LocalDate endDate, int pageNo, int limit) {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable page = PageRequest.of(pageNo, limit, sort);
+
+        if (startDate != null || endDate != null) {
+            DateRange dateRange = new DateRange(startDate, endDate);
+            return repository.findAllByStartDateLessThanEqualAndEndDateGreaterThanEqual(dateRange.startDate(), dateRange.endDate(), page);
+        }
 
         return repository.findAll(page);
     }

@@ -24,4 +24,7 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Stri
     );
 
     Page<LeaveRequest> findAllByEmployee_Supervisor_Id(Long supervisorId, Pageable pageable);
+
+    Page<LeaveRequest> findAllByStartDateLessThanEqualAndEndDateGreaterThanEqual(LocalDate startDate, LocalDate endDate, Pageable pageable);
+
 }

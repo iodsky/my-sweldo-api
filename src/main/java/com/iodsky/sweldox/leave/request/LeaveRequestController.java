@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -37,9 +38,11 @@ public class LeaveRequestController {
     @Operation(summary = "Get leave requests", description = "Retrieve a paginated list of leave requests for the authenticated employee")
     public ResponseEntity<ApiResponse<List<LeaveRequestDto>>> getLeaveRequests(
             @Parameter(description = "Page number (0-indexed)") @RequestParam(defaultValue = "0") @Min(0) int pageNo,
-            @Parameter(description = "Number of items per page (1-100)") @RequestParam(defaultValue = "10") @Min(1) @Max(100) int limit
+            @Parameter(description = "Number of items per page (1-100)") @RequestParam(defaultValue = "10") @Min(1) @Max(100) int limit,
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate
     ) {
-        Page<LeaveRequest> page = service.getLeaveRequests(pageNo, limit);
+        Page<LeaveRequest> page = service.getLeaveRequests(startDate, endDate, pageNo, limit);
         List<LeaveRequestDto> leaveRequests = page.getContent().stream().map(mapper::toDto).toList();
         return ResponseFactory.ok("Leave requests retrieved successfully", leaveRequests, PaginationMeta.of(page));
     }
