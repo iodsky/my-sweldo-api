@@ -26,7 +26,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AttendanceService {
 
-    private final AttendanceRepository attendanceRepository;
+    private final AttendanceRepository repository;
     private final EmployeeService employeeService;
     private final UserService userService;
 
@@ -61,7 +61,6 @@ public class AttendanceService {
                 ? attendanceDto.getTimeIn()
                 : LocalTime.now();
 
-
         // Check for existing attendance record
         Attendance existing = getEmployeeAttendanceByDate(employeeId, attendanceDate);
         if (existing != null) {
@@ -80,11 +79,11 @@ public class AttendanceService {
                 .overtime(BigDecimal.ZERO)
                 .build();
 
-        return attendanceRepository.save(attendance);
+        return repository.save(attendance);
     }
 
     public Attendance getEmployeeAttendanceByDate(Long employeeId, LocalDate date) {
-        return attendanceRepository.findByEmployee_IdAndDate(employeeId, date).orElse(null);
+        return repository.findByEmployee_IdAndDate(employeeId, date).orElse(null);
     }
 
     public Attendance updateAttendance(UUID id, AttendanceDto attendanceDto) {
@@ -92,7 +91,7 @@ public class AttendanceService {
 
         boolean isHr = "HR".equalsIgnoreCase(user.getUserRole().getRole());
 
-        Attendance attendance = attendanceRepository.findById(id)
+        Attendance attendance = repository.findById(id)
                 // Not yet clocked in
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Attendance not found with id: " + id));
 
@@ -163,7 +162,7 @@ public class AttendanceService {
             attendance.setOvertime(overtime);
         }
 
-        return attendanceRepository.save(attendance);
+        return repository.save(attendance);
     }
 
     public Page<Attendance> getAllAttendances(int page, int limit, LocalDate date, LocalDate endDate) {
@@ -171,15 +170,15 @@ public class AttendanceService {
         Pageable pageable = PageRequest.of(page, limit, sort);
 
         if (date == null && endDate == null) {
-            return attendanceRepository.findAll(pageable);
+            return repository.findAll(pageable);
         }
 
         if (date != null && endDate == null) {
-            return attendanceRepository.findAllByDate(date, pageable);
+            return repository.findAllByDate(date, pageable);
         }
 
         DateRange dateRange = new DateRange(date, endDate);
-        return attendanceRepository.findAllByDateBetween(dateRange.startDate(), dateRange.endDate(), pageable);
+        return repository.findAllByDateBetween(dateRange.startDate(), dateRange.endDate(), pageable);
     }
 
     public Page<Attendance> getEmployeeAttendances(int page, int limit, Long employeeId, LocalDate startDate, LocalDate endDate) {
@@ -200,11 +199,15 @@ public class AttendanceService {
         Pageable pageable = PageRequest.of(page, limit);
         DateRange dateRange = new DateRange(startDate, endDate);
 
-        return attendanceRepository.findByEmployee_IdAndDateBetween(employeeId, dateRange.startDate(), dateRange.endDate(), pageable);
+        return repository.findByEmployee_IdAndDateBetween(employeeId, dateRange.startDate(), dateRange.endDate(), pageable);
     }
 
     public List<Attendance> getEmployeeAttendances(Long employeeId, LocalDate startDate, LocalDate endDate) {
-        return attendanceRepository.findByEmployee_IdAndDateBetween(employeeId, startDate, endDate);
+        return repository.findByEmployee_IdAndDateBetween(employeeId, startDate, endDate);
+    }
+
+    public BigDecimal calculateTotalHoursByEmployeeId(Long employeeId, LocalDate startDate, LocalDate endDate) {
+        return repository.sumTotalHoursByEmployee_IdAndDateBetween(employeeId, startDate, endDate);
     }
 
 }
