@@ -30,19 +30,20 @@ public class PayrollController {
     @PreAuthorize("hasRole('PAYROLL')")
     @PostMapping
     @Operation(summary = "Create payroll", description = "Generate payroll for a single employee. Requires PAYROLL role.")
-    public ResponseEntity<ApiResponse<PayrollDto>> createPayroll(@RequestBody PayrollRequest request) {
-        PayrollDto payroll = payrollMapper.toDto(payrollService.createPayroll(
+    public ResponseEntity<ApiResponse<PayrollDto>> createPayroll(@RequestBody CreatePayrollRequest request) {
+        Payroll entity = payrollService.createPayroll(
                 request.getEmployeeId(),
                 request.getPeriodStartDate(),
                 request.getPeriodEndDate(),
-                request.getPayDate()));
+                request.getPayDate());
+        PayrollDto dto = payrollMapper.toDto(entity);
 
-        return ResponseFactory.created("Payroll created successfully", payroll);
+        return ResponseFactory.created("Payroll created successfully", dto);
     }
 
-    @PreAuthorize("hasRole('PAYROLL')")
+    @PreAuthorize("hasAnyRole('PAYROLL', 'HR')")
     @GetMapping
-    @Operation(summary = "Get all payroll records", description = "Retrieve all payroll records with pagination and optional date filtering. Requires PAYROLL role.")
+    @Operation(summary = "Get all payroll records", description = "Retrieve all payroll records with pagination and optional date filtering. Requires PAYROLL or HR role.")
     public ResponseEntity<ApiResponse<List<PayrollDto>>> getAllPayroll(
             @Parameter(description = "Page number (0-indexed)") @RequestParam(defaultValue = "0") @Min(0) int pageNo,
             @Parameter(description = "Number of items per page (1-100)") @RequestParam(defaultValue = "10") @Min(1) @Max(100) int limit,
