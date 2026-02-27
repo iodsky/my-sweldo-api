@@ -48,7 +48,6 @@ public class PayrollService {
         return payrollRepository.save(payroll);
     }
 
-
     private Boolean payrollExistsForEmployeeAndPeriod(Long employeeId, LocalDate startDate, LocalDate endDate) {
         return payrollRepository.existsByEmployee_IdAndPeriodStartDateAndPeriodEndDate(employeeId, startDate, endDate);
     }
