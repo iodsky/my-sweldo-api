@@ -176,6 +176,10 @@ public class OvertimeRequestService {
         repository.save(existing);
     }
 
+    public BigDecimal calculateApprovedOvertimeHours(Long employeeId, LocalDate startDate, LocalDate endDate) {
+        return repository.sumOvertimeHoursByEmployeeI_IdAndDateBetweenAndStatus(employeeId, startDate, endDate, RequestStatus.APPROVED);
+    }
+
     private Attendance getEmployeeAttendanceByDate(Long employeeId, LocalDate date) {
         Attendance attendance = attendanceService.getEmployeeAttendanceByDate(employeeId, date);
 
