@@ -12,7 +12,6 @@ import java.util.List;
 @Getter
 @Builder
 public class PayrollContext {
-    private Long employeeId;
     private Employee employee;
     private List<Attendance> attendances;
     private List<Benefit> benefits;
