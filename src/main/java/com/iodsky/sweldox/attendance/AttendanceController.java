@@ -68,9 +68,9 @@ public class AttendanceController {
         return ResponseFactory.ok("Attendances retrieved successfully", data, PaginationMeta.of(page));
     }
 
-    @PreAuthorize("hasRole('HR')")
+    @PreAuthorize("hasAnyRole('HR', 'PAYROLL')")
     @GetMapping("/employee/{id}")
-    @Operation(summary = "Get employee attendances", description = "Retrieve attendance records for a specific employee. Requires HR role.")
+    @Operation(summary = "Get employee attendances", description = "Retrieve attendance records for a specific employee. Requires HR or Payroll role.")
     public ResponseEntity<ApiResponse<List<AttendanceDto>>> getEmployeeAttendancesForHR(
             @Parameter(description = "Employee ID") @PathVariable Long id,
             @Parameter(description = "Page number (0-indexed)") @RequestParam(defaultValue = "0") @Min(0) int pageNo,
