@@ -13,8 +13,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     Optional<User> findByEmail(String email);
 
-    Page<User> findUserByUserRole_Role(String role, Pageable pageable);
-
-    boolean existsByEmail(String email);
-
+    Page<User> findAllByRole_Name(String role, Pageable pageable);
+    
 }

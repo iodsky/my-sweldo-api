@@ -2,6 +2,9 @@ package com.iodsky.sweldox.security.user;
 
 import com.iodsky.sweldox.employee.EmployeeService;
 import com.iodsky.sweldox.employee.Employee;
+import com.iodsky.sweldox.security.role.Role;
+import com.iodsky.sweldox.security.role.RoleService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -15,13 +18,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
-    private final UserRoleRepository userRoleRepository;
+    private final RoleService roleService;
     private final UserMapper userMapper;
     private final EmployeeService employeeService;
     private final PasswordEncoder passwordEncoder;
@@ -32,32 +36,28 @@ public class UserService implements UserDetailsService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User " + username + " not found"));
     }
 
+    @Transactional
     public User createUser(UserRequest userRequest) {
-
         User user = userMapper.toEntity(userRequest);
 
         Employee employee = employeeService.getEmployeeById(userRequest.getEmployeeId());
         user.setEmployee(employee);
 
-        UserRole role = getUserRole(userRequest.getRole());
-        user.setUserRole(role);
+        Role role = getUserRole(userRequest.getRole());
+        user.setRole(role);
 
         user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
 
         return userRepository.save(user);
     }
 
-    public Page<User> getAllUsers(int size, int limit, String role) {
+    public Page<User> getAllUsers(int size, int limit, String roleName) {
         Pageable pageable = PageRequest.of(size, limit);
-        if (role == null) {
+        if (roleName == null) {
             return userRepository.findAll(pageable);
         }
 
-        if (!userRoleRepository.existsByRole(role)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid " + role);
-        }
-
-        return userRepository.findUserByUserRole_Role(role, pageable);
+        return userRepository.findAllByRole_Name(roleName, pageable);
     }
 
     public User getAuthenticatedUser() {
@@ -75,9 +75,22 @@ public class UserService implements UserDetailsService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User " + email + " not found"));
     }
 
-    private UserRole getUserRole(String role) {
-        return userRoleRepository.findById(role)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid role " + role));
+    @Transactional
+    public User updateUserRole(UUID userId, String role) {
+        User user = getUserById(userId);
+        Role userRole = getUserRole(role);
+
+        user.setRole(userRole);
+        return userRepository.save(user);
+    }
+
+    public User getUserById(UUID id) {
+       return userRepository.findById(id)
+               .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User " + id + " not found"));
+    }
+
+    private Role getUserRole(String roleName) {
+        return roleService.getRoleByName(roleName);
     }
 
 }

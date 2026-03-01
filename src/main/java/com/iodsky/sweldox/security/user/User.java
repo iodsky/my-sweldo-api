@@ -2,6 +2,7 @@ package com.iodsky.sweldox.security.user;
 
 import com.iodsky.sweldox.common.BaseModel;
 import com.iodsky.sweldox.employee.Employee;
+import com.iodsky.sweldox.security.role.Role;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -36,11 +37,11 @@ public class User extends BaseModel implements UserDetails {
 
     @ManyToOne
     @JoinColumn(name = "role_id")
-    private UserRole userRole;
+    private Role role;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + userRole.getRole()));
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role.getName()));
     }
 
     @Override

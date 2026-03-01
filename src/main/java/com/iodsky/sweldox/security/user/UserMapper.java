@@ -11,7 +11,7 @@ public class UserMapper  {
                 .id(user.getId())
                 .employeeId(user.getEmployee().getId())
                 .email(user.getEmail())
-                .role(user.getUserRole().getRole())
+                .role(user.getRole().getName())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .build();
