@@ -15,7 +15,7 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class SssContributionDto {
+public class SssRateTableDto {
     private UUID id;
     private BigDecimal totalSss;
     private BigDecimal employeeSss;

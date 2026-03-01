@@ -3,14 +3,14 @@ package com.iodsky.sweldox.payroll.contribution.pagIbig;
 import org.springframework.stereotype.Component;
 
 @Component
-public class PagibigContributionMapper {
+public class PagibigRateTableMapper {
 
-    public PagibigContributionDto toDto(PagibigContribution entity) {
+    public PagibigRateTableDto toDto(PagibigRateTable entity) {
         if (entity == null) {
             return null;
         }
 
-        return PagibigContributionDto.builder()
+        return PagibigRateTableDto.builder()
                 .id(entity.getId())
                 .employeeRate(entity.getEmployeeRate())
                 .employerRate(entity.getEmployerRate())

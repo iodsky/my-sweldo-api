@@ -9,13 +9,13 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
-@Table(name = "pagibig_contribution")
+@Table(name = "pagibig_rate_table")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class PagibigContribution extends BaseModel {
+public class PagibigRateTable extends BaseModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

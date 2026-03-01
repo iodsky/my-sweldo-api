@@ -1,12 +1,12 @@
 package com.iodsky.sweldox.payroll.core;
 
 import com.iodsky.sweldox.benefit.Benefit;
-import com.iodsky.sweldox.payroll.contribution.pagIbig.PagibigContribution;
-import com.iodsky.sweldox.payroll.contribution.pagIbig.PagibigContributionRepository;
-import com.iodsky.sweldox.payroll.contribution.philhealth.PhilhealthContribution;
-import com.iodsky.sweldox.payroll.contribution.philhealth.PhilhealthContributionRepository;
-import com.iodsky.sweldox.payroll.contribution.sss.SssContribution;
-import com.iodsky.sweldox.payroll.contribution.sss.SssContributionRepository;
+import com.iodsky.sweldox.payroll.contribution.pagIbig.PagibigRateTable;
+import com.iodsky.sweldox.payroll.contribution.pagIbig.PagibigRateTableRepository;
+import com.iodsky.sweldox.payroll.contribution.philhealth.PhilhealthRateTable;
+import com.iodsky.sweldox.payroll.contribution.philhealth.PhilhealthRateTableRepository;
+import com.iodsky.sweldox.payroll.contribution.sss.SssRateTable;
+import com.iodsky.sweldox.payroll.contribution.sss.SssRateTableRepository;
 import com.iodsky.sweldox.payroll.tax.IncomeTaxBracket;
 import com.iodsky.sweldox.payroll.tax.IncomeTaxBracketRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,9 +21,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PayrollCalculator {
 
-    private final PhilhealthContributionRepository philhealthContributionRepository;
-    private final PagibigContributionRepository pagibigContributionRepository;
-    private final SssContributionRepository sssContributionRepository;
+    private final PhilhealthRateTableRepository philhealthRateTableRepository;
+    private final PagibigRateTableRepository pagibigRateTableRepository;
+    private final SssRateTableRepository sssRateTableRepository;
     private final IncomeTaxBracketRepository incomeTaxBracketRepository;
 
     private static final BigDecimal SEMI_MONTHLY_DIVISOR = BigDecimal.valueOf(2);
@@ -32,22 +32,22 @@ public class PayrollCalculator {
     private static final BigDecimal PAY_PERIODS_PER_YEAR = BigDecimal.valueOf(24);
 
     public PayrollConfiguration loadConfiguration(LocalDate payrollDate) {
-        PhilhealthContribution philhealth = philhealthContributionRepository
+        PhilhealthRateTable philhealth = philhealthRateTableRepository
                 .findLatestByEffectiveDate(payrollDate)
                 .orElseThrow(() -> new PayrollRunException(
-                        "PhilHealth contribution configuration not found for date: " + payrollDate
+                        "PhilHealth rate table not found for date: " + payrollDate
                 ));
 
-        PagibigContribution pagibig = pagibigContributionRepository
+        PagibigRateTable pagibig = pagibigRateTableRepository
                 .findLatestByEffectiveDate(payrollDate)
             .orElseThrow(() -> new PayrollRunException(
-                        "Pag-IBIG contribution configuration not found for date: " + payrollDate
+                        "Pag-IBIG rate table not found for date: " + payrollDate
                 ));
 
-        SssContribution sssContribution = sssContributionRepository
+        SssRateTable sssRateTable = sssRateTableRepository
                 .findLatestByEffectiveDate(payrollDate)
                 .orElseThrow(() -> new PayrollRunException(
-                        "SSS contribution configuration not found for date: " + payrollDate
+                        "SSS rate table not found for date: " + payrollDate
                 ));
 
         List<IncomeTaxBracket> taxBrackets = incomeTaxBracketRepository
@@ -60,9 +60,9 @@ public class PayrollCalculator {
         }
 
         return PayrollConfiguration.builder()
-                .philhealthContribution(philhealth)
-                .pagibigContribution(pagibig)
-                .sssContribution(sssContribution)
+                .philhealthRateTable(philhealth)
+                .pagibigRateTable(pagibig)
+                .sssRateTable(sssRateTable)
                 .incomeTaxBrackets(taxBrackets)
                 .build();
     }
@@ -92,16 +92,16 @@ public class PayrollCalculator {
     }
 
     public BigDecimal calculatePhilhealthDeduction(BigDecimal basicSalary, LocalDate payrollDate) {
-        PhilhealthContribution config = philhealthContributionRepository
+        PhilhealthRateTable config = philhealthRateTableRepository
                 .findLatestByEffectiveDate(payrollDate)
                 .orElseThrow(() -> new PayrollRunException(
-                        "PhilHealth contribution configuration not found for date: " + payrollDate
+                        "PhilHealth rate table not found for date: " + payrollDate
                 ));
 
         return calculatePhilhealthDeduction(basicSalary, config);
     }
 
-    public BigDecimal calculatePhilhealthDeduction(BigDecimal basicSalary, PhilhealthContribution config) {
+    public BigDecimal calculatePhilhealthDeduction(BigDecimal basicSalary, PhilhealthRateTable config) {
         if (basicSalary.compareTo(config.getMinSalaryFloor()) <= 0) {
             BigDecimal employeeShare = config.getFixedContribution().divide(BigDecimal.valueOf(2), 2, RoundingMode.HALF_UP);
             return employeeShare.divide(SEMI_MONTHLY_DIVISOR, 2, RoundingMode.HALF_UP);
@@ -117,16 +117,16 @@ public class PayrollCalculator {
     }
 
     public BigDecimal calculatePagibigDeduction(BigDecimal basicSalary, LocalDate payrollDate) {
-        PagibigContribution config = pagibigContributionRepository
+        PagibigRateTable config = pagibigRateTableRepository
                 .findLatestByEffectiveDate(payrollDate)
                 .orElseThrow(() -> new PayrollRunException(
-                        "Pag-IBIG contribution configuration not found for date: " + payrollDate
+                        "Pag-IBIG rate table not found for date: " + payrollDate
                 ));
 
         return calculatePagibigDeduction(basicSalary, config);
     }
 
-    public BigDecimal calculatePagibigDeduction(BigDecimal basicSalary, PagibigContribution config) {
+    public BigDecimal calculatePagibigDeduction(BigDecimal basicSalary, PagibigRateTable config) {
         BigDecimal monthlySalary = basicSalary.min(config.getMaxSalaryCap());
         BigDecimal rate;
 
@@ -141,21 +141,21 @@ public class PayrollCalculator {
     }
 
     public BigDecimal calculateSssDeduction(BigDecimal basicSalary, LocalDate payrollDate) {
-        SssContribution config = sssContributionRepository
+        SssRateTable config = sssRateTableRepository
                 .findLatestByEffectiveDate(payrollDate)
                 .orElseThrow(() -> new PayrollRunException(
-                        "SSS contribution configuration not found for date: " + payrollDate
+                        "SSS rate table not found for date: " + payrollDate
                 ));
 
         return calculateSssDeduction(basicSalary, config);
     }
 
-    public BigDecimal calculateSssDeduction(BigDecimal basicSalary, SssContribution sssContribution) {
+    public BigDecimal calculateSssDeduction(BigDecimal basicSalary, SssRateTable sssRateTable) {
         // Find the appropriate salary bracket
-        SssContribution.SalaryBracket bracket = sssContribution.findBracket(basicSalary);
+        SssRateTable.SalaryBracket bracket = sssRateTable.findBracket(basicSalary);
 
         // Calculate the monthly contribution based on MSC
-        BigDecimal monthlyContribution = bracket.getMsc().multiply(sssContribution.getEmployeeRate());
+        BigDecimal monthlyContribution = bracket.getMsc().multiply(sssRateTable.getEmployeeRate());
 
         // Divide by 2 for semi-monthly payroll
         return monthlyContribution.divide(SEMI_MONTHLY_DIVISOR, 2, RoundingMode.HALF_UP);

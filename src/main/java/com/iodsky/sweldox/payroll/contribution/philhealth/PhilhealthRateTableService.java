@@ -16,21 +16,21 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class PhilhealthContributionService {
+public class PhilhealthRateTableService {
 
-    private final PhilhealthContributionRepository philhealthContributionRepository;
+    private final PhilhealthRateTableRepository philhealthRateTableRepository;
 
     @Transactional
-    public PhilhealthContribution createPhilhealthContribution(PhilhealthContributionRequest request) {
+    public PhilhealthRateTable createPhilhealthRateTable(PhilhealthRateTableRequest request) {
         // Check if configuration already exists for this effective date
-        if (philhealthContributionRepository.findLatestByEffectiveDate(request.getEffectiveDate()).isPresent()) {
+        if (philhealthRateTableRepository.findLatestByEffectiveDate(request.getEffectiveDate()).isPresent()) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "PhilHealth contribution configuration already exists for effective date: " + request.getEffectiveDate()
+                    "PhilHealth rate table already exists for effective date: " + request.getEffectiveDate()
             );
         }
 
-        PhilhealthContribution contribution = PhilhealthContribution.builder()
+        PhilhealthRateTable rateTable = PhilhealthRateTable.builder()
                 .premiumRate(request.getPremiumRate())
                 .maxSalaryCap(request.getMaxSalaryCap())
                 .minSalaryFloor(request.getMinSalaryFloor())
@@ -38,14 +38,14 @@ public class PhilhealthContributionService {
                 .effectiveDate(request.getEffectiveDate())
                 .build();
 
-        return philhealthContributionRepository.save(contribution);
+        return philhealthRateTableRepository.save(rateTable);
     }
 
-    public Page<PhilhealthContribution> getAllPhilhealthContributions(int page, int limit, LocalDate effectiveDate) {
+    public Page<PhilhealthRateTable> getAllPhilhealthRateTables(int page, int limit, LocalDate effectiveDate) {
         Pageable pageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.DESC, "effectiveDate"));
 
         if (effectiveDate != null) {
-            return philhealthContributionRepository.findAll(
+            return philhealthRateTableRepository.findAll(
                     (root, query, cb) -> cb.and(
                             cb.lessThanOrEqualTo(root.get("effectiveDate"), effectiveDate),
                             cb.isNull(root.get("deletedAt"))
@@ -54,44 +54,44 @@ public class PhilhealthContributionService {
             );
         }
 
-        return philhealthContributionRepository.findAll(
+        return philhealthRateTableRepository.findAll(
                 (root, query, cb) -> cb.isNull(root.get("deletedAt")),
                 pageable
         );
     }
 
-    public PhilhealthContribution getPhilhealthContributionById(UUID id) {
-        return philhealthContributionRepository.findById(id)
+    public PhilhealthRateTable getPhilhealthRateTableById(UUID id) {
+        return philhealthRateTableRepository.findById(id)
                 .filter(config -> config.getDeletedAt() == null)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "PhilHealth contribution configuration not found with ID: " + id
+                        "PhilHealth rate table not found with ID: " + id
                 ));
     }
 
-    public PhilhealthContribution getLatestPhilhealthContribution(LocalDate date) {
-        return philhealthContributionRepository.findLatestByEffectiveDate(date)
+    public PhilhealthRateTable getLatestPhilhealthRateTable(LocalDate date) {
+        return philhealthRateTableRepository.findLatestByEffectiveDate(date)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "No PhilHealth contribution configuration found for date: " + date
+                        "No PhilHealth rate table found for date: " + date
                 ));
     }
 
     @Transactional
-    public PhilhealthContribution updatePhilhealthContribution(UUID id, PhilhealthContributionRequest request) {
-        PhilhealthContribution contribution = getPhilhealthContributionById(id);
+    public PhilhealthRateTable updatePhilhealthRateTable(UUID id, PhilhealthRateTableRequest request) {
+        PhilhealthRateTable rateTable = getPhilhealthRateTableById(id);
 
-        contribution.setPremiumRate(request.getPremiumRate());
-        contribution.setMaxSalaryCap(request.getMaxSalaryCap());
-        contribution.setEffectiveDate(request.getEffectiveDate());
+        rateTable.setPremiumRate(request.getPremiumRate());
+        rateTable.setMaxSalaryCap(request.getMaxSalaryCap());
+        rateTable.setEffectiveDate(request.getEffectiveDate());
 
-        return philhealthContributionRepository.save(contribution);
+        return philhealthRateTableRepository.save(rateTable);
     }
 
     @Transactional
-    public void deletePhilhealthContribution(UUID id) {
-        PhilhealthContribution contribution = getPhilhealthContributionById(id);
-        contribution.setDeletedAt(Instant.now());
-        philhealthContributionRepository.save(contribution);
+    public void deletePhilhealthRateTable(UUID id) {
+        PhilhealthRateTable rateTable = getPhilhealthRateTableById(id);
+        rateTable.setDeletedAt(Instant.now());
+        philhealthRateTableRepository.save(rateTable);
     }
 }

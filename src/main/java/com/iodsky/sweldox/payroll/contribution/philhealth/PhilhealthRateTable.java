@@ -9,13 +9,13 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
-@Table(name = "philhealth_contribution")
+@Table(name = "philhealth_rate_table")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class PhilhealthContribution extends BaseModel {
+public class PhilhealthRateTable extends BaseModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

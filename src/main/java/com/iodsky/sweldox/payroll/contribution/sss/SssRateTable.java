@@ -12,13 +12,13 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "sss_contribution")
+@Table(name = "sss_rate_table")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class SssContribution extends BaseModel {
+public class SssRateTable extends BaseModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

@@ -19,21 +19,21 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class SssContributionService {
+public class SssRateTableService {
 
-    private final SssContributionRepository sssContributionRepository;
+    private final SssRateTableRepository sssRateTableRepository;
 
     @Transactional
-    public SssContribution createSssContribution(SssContributionRequest request) {
-        List<SssContribution.SalaryBracket> brackets = request.getSalaryBrackets().stream()
-                .map(req -> SssContribution.SalaryBracket.builder()
+    public SssRateTable createSssRateTable(SssRateTableRequest request) {
+        List<SssRateTable.SalaryBracket> brackets = request.getSalaryBrackets().stream()
+                .map(req -> SssRateTable.SalaryBracket.builder()
                         .minSalary(req.getMinSalary())
                         .maxSalary(req.getMaxSalary())
                         .msc(req.getMsc())
                         .build())
                 .collect(Collectors.toList());
 
-        SssContribution contribution = SssContribution.builder()
+        SssRateTable rateTable = SssRateTable.builder()
                 .totalSss(request.getTotalSss())
                 .employeeRate(request.getEmployeeRate())
                 .employerRate(request.getEmployerRate())
@@ -41,14 +41,14 @@ public class SssContributionService {
                 .effectiveDate(request.getEffectiveDate())
                 .build();
 
-        return sssContributionRepository.save(contribution);
+        return sssRateTableRepository.save(rateTable);
     }
 
-    public Page<SssContribution> getAllSssContributions(
+    public Page<SssRateTable> getAllSssRateTables(
             int page, int limit, LocalDate effectiveDate) {
         Pageable pageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.DESC, "effectiveDate"));
 
-        return sssContributionRepository.findAll((root, query, cb) -> {
+        return sssRateTableRepository.findAll((root, query, cb) -> {
             var predicates = cb.conjunction();
 
             predicates = cb.and(predicates, cb.isNull(root.get("deletedAt")));
@@ -61,20 +61,20 @@ public class SssContributionService {
         }, pageable);
     }
 
-    public SssContribution getSssContributionById(UUID id) {
-        return sssContributionRepository.findById(id)
+    public SssRateTable getSssRateTableById(UUID id) {
+        return sssRateTableRepository.findById(id)
                 .filter(config -> config.getDeletedAt() == null)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "SSS contribution configuration not found with ID: " + id
+                        "SSS rate table not found with ID: " + id
                 ));
     }
 
-    public SssContribution getSssContributionBySalaryAndDate(BigDecimal salary, LocalDate date) {
-        SssContribution config = sssContributionRepository.findLatestByEffectiveDate(date)
+    public SssRateTable getSssRateTableBySalaryAndDate(BigDecimal salary, LocalDate date) {
+        SssRateTable config = sssRateTableRepository.findLatestByEffectiveDate(date)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "No SSS contribution configuration found for date: " + date
+                        "No SSS rate table found for date: " + date
                 ));
 
         // Verify the salary falls within one of the brackets
@@ -83,7 +83,7 @@ public class SssContributionService {
         } catch (IllegalArgumentException e) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
-                    "No SSS contribution bracket found for salary: " + salary + " on date: " + date
+                    "No SSS bracket found for salary: " + salary + " on date: " + date
             );
         }
 
@@ -91,30 +91,30 @@ public class SssContributionService {
     }
 
     @Transactional
-    public SssContribution updateSssContribution(UUID id, SssContributionRequest request) {
-        SssContribution contribution = getSssContributionById(id);
+    public SssRateTable updateSssRateTable(UUID id, SssRateTableRequest request) {
+        SssRateTable rateTable = getSssRateTableById(id);
 
-        List<SssContribution.SalaryBracket> brackets = request.getSalaryBrackets().stream()
-                .map(req -> SssContribution.SalaryBracket.builder()
+        List<SssRateTable.SalaryBracket> brackets = request.getSalaryBrackets().stream()
+                .map(req -> SssRateTable.SalaryBracket.builder()
                         .minSalary(req.getMinSalary())
                         .maxSalary(req.getMaxSalary())
                         .msc(req.getMsc())
                         .build())
                 .collect(Collectors.toList());
 
-        contribution.setTotalSss(request.getTotalSss());
-        contribution.setEmployeeRate(request.getEmployeeRate());
-        contribution.setEmployerRate(request.getEmployerRate());
-        contribution.setSalaryBrackets(brackets);
-        contribution.setEffectiveDate(request.getEffectiveDate());
+        rateTable.setTotalSss(request.getTotalSss());
+        rateTable.setEmployeeRate(request.getEmployeeRate());
+        rateTable.setEmployerRate(request.getEmployerRate());
+        rateTable.setSalaryBrackets(brackets);
+        rateTable.setEffectiveDate(request.getEffectiveDate());
 
-        return sssContributionRepository.save(contribution);
+        return sssRateTableRepository.save(rateTable);
     }
 
     @Transactional
-    public void deleteSssContribution(UUID id) {
-        SssContribution contribution = getSssContributionById(id);
-        contribution.setDeletedAt(Instant.now());
-        sssContributionRepository.save(contribution);
+    public void deleteSssRateTable(UUID id) {
+        SssRateTable rateTable = getSssRateTableById(id);
+        rateTable.setDeletedAt(Instant.now());
+        sssRateTableRepository.save(rateTable);
     }
 }

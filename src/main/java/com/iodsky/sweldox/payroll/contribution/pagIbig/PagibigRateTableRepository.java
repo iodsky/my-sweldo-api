@@ -11,9 +11,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface PagibigContributionRepository extends JpaRepository<PagibigContribution, UUID>, JpaSpecificationExecutor<PagibigContribution> {
+public interface PagibigRateTableRepository extends JpaRepository<PagibigRateTable, UUID>, JpaSpecificationExecutor<PagibigRateTable> {
 
-    @Query("SELECT p FROM PagibigContribution p WHERE p.effectiveDate <= :date AND p.deletedAt IS NULL ORDER BY p.effectiveDate DESC LIMIT 1")
-    Optional<PagibigContribution> findLatestByEffectiveDate(@Param("date") LocalDate date);
+    @Query("SELECT p FROM PagibigRateTable p WHERE p.effectiveDate <= :date AND p.deletedAt IS NULL ORDER BY p.effectiveDate DESC LIMIT 1")
+    Optional<PagibigRateTable> findLatestByEffectiveDate(@Param("date") LocalDate date);
 
 }

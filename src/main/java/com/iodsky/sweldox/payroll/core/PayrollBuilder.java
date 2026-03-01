@@ -122,8 +122,8 @@ public class PayrollBuilder {
 
         // Calculate statutory deductions using preloaded configuration
         BigDecimal sss = payrollCalculator.calculateSssDeduction(basicSalary, payDate);
-        BigDecimal philhealth = payrollCalculator.calculatePhilhealthDeduction(basicSalary, config.getPhilhealthContribution());
-        BigDecimal pagibig = payrollCalculator.calculatePagibigDeduction(basicSalary, config.getPagibigContribution());
+        BigDecimal philhealth = payrollCalculator.calculatePhilhealthDeduction(basicSalary, config.getPhilhealthRateTable());
+        BigDecimal pagibig = payrollCalculator.calculatePagibigDeduction(basicSalary, config.getPagibigRateTable());
 
         // Calculate tax using pre-loaded configuration
         BigDecimal statutoryDeductions = payrollCalculator.calculateTotalStatutoryDeductions(sss, philhealth, pagibig);

@@ -3,14 +3,14 @@ package com.iodsky.sweldox.payroll.contribution.philhealth;
 import org.springframework.stereotype.Component;
 
 @Component
-public class PhilhealthContributionMapper {
+public class PhilhealthRateTableMapper {
 
-    public PhilhealthContributionDto toDto(PhilhealthContribution entity) {
+    public PhilhealthRateTableDto toDto(PhilhealthRateTable entity) {
         if (entity == null) {
             return null;
         }
 
-        return PhilhealthContributionDto.builder()
+        return PhilhealthRateTableDto.builder()
                 .id(entity.getId())
                 .premiumRate(entity.getPremiumRate())
                 .maxSalaryCap(entity.getMaxSalaryCap())

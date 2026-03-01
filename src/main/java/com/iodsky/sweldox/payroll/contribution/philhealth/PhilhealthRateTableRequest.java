@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class PhilhealthContributionRequest {
+public class PhilhealthRateTableRequest {
 
     @NotNull(message = "Premium rate is required")
     @DecimalMin(value = "0.0001", message = "Premium rate must be greater than 0")
