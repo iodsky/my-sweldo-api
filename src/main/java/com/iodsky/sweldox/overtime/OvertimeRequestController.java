@@ -5,6 +5,9 @@ import com.iodsky.sweldox.common.response.ApiResponse;
 import com.iodsky.sweldox.common.response.DeleteResponse;
 import com.iodsky.sweldox.common.response.PaginationMeta;
 import com.iodsky.sweldox.common.response.ResponseFactory;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -23,12 +26,14 @@ import java.util.UUID;
 @RequestMapping("overtime-requests")
 @Validated
 @RequiredArgsConstructor
+@Tag(name = "Overtime Requests", description = "Manage employee overtime requests")
 public class OvertimeRequestController {
 
     private final OvertimeRequestService service;
     private final OvertimeRequestMapper mapper;
 
     @PostMapping
+    @Operation(summary = "Create overtime request", description = "Create a new overtime request for the authenticated employee")
     public ResponseEntity<ApiResponse<OvertimeRequestDto>> createOvertimeRequest(@Valid @RequestBody  AddOvertimeRequest request) {
         OvertimeRequest entity = service.createOvertimeRequest(request);
         OvertimeRequestDto dto = mapper.toDto(entity);
@@ -37,12 +42,13 @@ public class OvertimeRequestController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('HR')")
+    @PreAuthorize("hasAnyRole('HR', 'SUPERUSER')")
+    @Operation(summary = "Get all overtime requests", description = "Retrieve all overtime requests with optional date filters and pagination. Requires HR or SUPERUSER role.")
     public ResponseEntity<ApiResponse<List<OvertimeRequestDto>>> getOvertimeRequests(
-            @RequestParam(required = false) LocalDate startDate,
-            @RequestParam(required = false) LocalDate endDate,
-            @RequestParam(defaultValue = "0") @Min(0) int pageNo,
-            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int limit
+            @Parameter(description = "Filter by start date") @RequestParam(required = false) LocalDate startDate,
+            @Parameter(description = "Filter by end date") @RequestParam(required = false) LocalDate endDate,
+            @Parameter(description = "Page number (0-indexed)") @RequestParam(defaultValue = "0") @Min(0) int pageNo,
+            @Parameter(description = "Number of items per page (1-100)") @RequestParam(defaultValue = "10") @Min(1) @Max(100) int limit
     ) {
         Page<OvertimeRequest> page = service.getOvertimeRequests(startDate, endDate, pageNo, limit);
         List<OvertimeRequestDto> requests = page.getContent().stream().map(mapper::toDto).toList();
@@ -51,7 +57,9 @@ public class OvertimeRequestController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<OvertimeRequestDto>> getOvertimeRequestById(@PathVariable UUID id) {
+    @Operation(summary = "Get overtime request by ID", description = "Retrieve a specific overtime request by its ID")
+    public ResponseEntity<ApiResponse<OvertimeRequestDto>> getOvertimeRequestById(
+            @Parameter(description = "Overtime request ID") @PathVariable UUID id) {
         OvertimeRequest entity = service.getOvertimeRequestById(id);
         OvertimeRequestDto dto = mapper.toDto(entity);
 
@@ -59,9 +67,10 @@ public class OvertimeRequestController {
     }
 
     @GetMapping("/me")
+    @Operation(summary = "Get my overtime requests", description = "Retrieve overtime requests for the authenticated employee with pagination")
     public ResponseEntity<ApiResponse<List<OvertimeRequestDto>>> getEmployeeOvertimeRequests(
-            @RequestParam(defaultValue = "0") @Min(0) int pageNo,
-            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int limit
+            @Parameter(description = "Page number (0-indexed)") @RequestParam(defaultValue = "0") @Min(0) int pageNo,
+            @Parameter(description = "Number of items per page (1-100)") @RequestParam(defaultValue = "10") @Min(1) @Max(100) int limit
     ) {
         Page<OvertimeRequest> page = service.getEmployeeOvertimeRequest(pageNo, limit);
         List<OvertimeRequestDto> requests = page.getContent().stream().map(mapper::toDto).toList();
@@ -71,9 +80,10 @@ public class OvertimeRequestController {
 
     @GetMapping("/subordinates")
     @PreAuthorize("hasRole('SUPERVISOR')")
+    @Operation(summary = "Get subordinates' overtime requests", description = "Retrieve overtime requests for employees supervised by the authenticated user. Requires SUPERVISOR role.")
     public ResponseEntity<ApiResponse<List<OvertimeRequestDto>>> getSubordinatesOvertimeRequests(
-            @RequestParam(defaultValue = "0") @Min(0) int pageNo,
-            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int limit
+            @Parameter(description = "Page number (0-indexed)") @RequestParam(defaultValue = "0") @Min(0) int pageNo,
+            @Parameter(description = "Number of items per page (1-100)") @RequestParam(defaultValue = "10") @Min(1) @Max(100) int limit
     ) {
         Page<OvertimeRequest> page = service.getSubordinatesOvertimeRequests(pageNo, limit);
         List<OvertimeRequestDto> requests = page.getContent().stream().map(mapper::toDto).toList();
@@ -82,7 +92,10 @@ public class OvertimeRequestController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<OvertimeRequestDto>> updateOvertimeRequest(@PathVariable UUID id, @RequestBody @Valid UpdateOvertimeRequest request) {
+    @Operation(summary = "Update overtime request", description = "Update an existing overtime request")
+    public ResponseEntity<ApiResponse<OvertimeRequestDto>> updateOvertimeRequest(
+            @Parameter(description = "Overtime request ID") @PathVariable UUID id,
+            @Valid @RequestBody UpdateOvertimeRequest request) {
         OvertimeRequest entity = service.updateOvertimeRequest(id, request);
         OvertimeRequestDto dto = mapper.toDto(entity);
 
@@ -90,8 +103,11 @@ public class OvertimeRequestController {
     }
 
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('HR', 'SUPERVISOR')")
-    public ResponseEntity<ApiResponse<OvertimeRequestDto>> updateOvertimeRequestStatus(@PathVariable UUID id, @RequestParam RequestStatus status) {
+    @PreAuthorize("hasAnyRole('HR', 'SUPERVISOR', 'SUPERUSER')")
+    @Operation(summary = "Update overtime request status", description = "Update the status of an overtime request (PENDING, APPROVED, REJECTED). Requires HR, SUPERVISOR, or SUPERUSER role.")
+    public ResponseEntity<ApiResponse<OvertimeRequestDto>> updateOvertimeRequestStatus(
+            @Parameter(description = "Overtime request ID") @PathVariable UUID id,
+            @Parameter(description = "New status (PENDING, APPROVED, REJECTED)") @RequestParam RequestStatus status) {
         OvertimeRequest entity = service.updateOvertimeRequestStatus(id, status);
         OvertimeRequestDto dto = mapper.toDto(entity);
 
@@ -99,7 +115,9 @@ public class OvertimeRequestController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<DeleteResponse>> deleteOvertimeRequest(@PathVariable UUID id) {
+    @Operation(summary = "Delete overtime request", description = "Soft delete an overtime request")
+    public ResponseEntity<ApiResponse<DeleteResponse>> deleteOvertimeRequest(
+            @Parameter(description = "Overtime request ID") @PathVariable UUID id) {
         service.deleteOvertimeRequest(id);
 
         DeleteResponse res = DeleteResponse.builder()

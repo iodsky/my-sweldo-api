@@ -99,7 +99,7 @@ public class LeaveRequestService {
 
     public LeaveRequest getLeaveRequestById(String id) {
         User authenticatedUser = userService.getAuthenticatedUser();
-        boolean isHR = authenticatedUser.getUserRole().getRole().equals("HR");
+        boolean isHR = authenticatedUser.getRole().getName().equals("HR");
         Long employeeId = authenticatedUser.getEmployee().getId();
 
         LeaveRequest leaveRequest = repository.findById(id)
@@ -122,7 +122,7 @@ public class LeaveRequestService {
 
         LeaveRequest entity = getLeaveRequestById(id);
         if (!entity.getEmployee().getId().equals(user.getEmployee().getId())) {
-            if (!user.getUserRole().getRole().equals("HR")) {
+            if (!user.getRole().getName().equals("HR")) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You don't have permission to access this resource");
             }
         }
@@ -141,7 +141,7 @@ public class LeaveRequestService {
         User authenticatedUser = userService.getAuthenticatedUser();
         LeaveRequest leaveRequest = getLeaveRequestById(id);
 
-        boolean isHR = authenticatedUser.getUserRole().getRole().equals("HR");
+        boolean isHR = authenticatedUser.getRole().getName().equals("HR");
 
         boolean isSupervisor = leaveRequest.getEmployee().getSupervisor() != null &&
                 leaveRequest.getEmployee().getSupervisor().getId().equals(authenticatedUser.getEmployee().getId());
@@ -188,7 +188,7 @@ public class LeaveRequestService {
 
         LeaveRequest leaveRequest = getLeaveRequestById(id);
         if (!leaveRequest.getEmployee().getId().equals(user.getEmployee().getId())) {
-            if (!user.getUserRole().getRole().equals("HR")) {
+            if (!user.getRole().getName().equals("HR")) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You don't have permission to access this resource");
             }
         }

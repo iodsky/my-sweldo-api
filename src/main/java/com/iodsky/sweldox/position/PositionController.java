@@ -18,7 +18,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/positions")
-@PreAuthorize("hasRole('HR')")
+@PreAuthorize("hasAnyRole('HR', 'SUPERUSER')")
 @Validated
 @RequiredArgsConstructor
 @Tag(name = "Positions", description = "Position management endpoints")

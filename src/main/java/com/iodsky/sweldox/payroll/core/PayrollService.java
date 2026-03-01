@@ -1,6 +1,5 @@
 package com.iodsky.sweldox.payroll.core;
 
-import com.iodsky.sweldox.common.DateRange;
 import com.iodsky.sweldox.security.user.User;
 import com.iodsky.sweldox.security.user.UserService;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.UUID;
 
 @Service
@@ -58,7 +58,7 @@ public class PayrollService {
         Payroll payroll = payrollRepository.findById(payrollId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Payroll " + payrollId + " not found"));
 
-        if (!user.getUserRole().getRole().equals("PAYROLL") ||
+        if (!user.getRole().getName().equals("PAYROLL") ||
                 !payroll.getEmployee().getId().equals(user.getEmployee().getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You don't have permission to access this resource");
         }
@@ -66,46 +66,44 @@ public class PayrollService {
         return payroll;
     }
 
-    public Page<Payroll> getAllPayroll(int page, int limit, LocalDate periodStartDate, LocalDate periodEndDate) {
+    public Page<Payroll> getAllPayroll(int page, int limit, YearMonth period) {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(page, limit, sort);
 
-        if (periodStartDate != null && periodEndDate != null) {
-            DateRange dateRange = new DateRange(periodStartDate, periodEndDate);
+        if (period != null) {
+            LocalDate startDate = period.atDay(1);
+            LocalDate endDate = period.atEndOfMonth();
+
             return payrollRepository
                     .findAllByPeriodStartDateLessThanEqualAndPeriodEndDateGreaterThanEqual(
-                            dateRange.endDate(),
-                            dateRange.startDate(),
+                            endDate,
+                            startDate,
                             pageable
                     );
-        }
-
-        if (periodStartDate != null) {
-            return payrollRepository.findAllByPeriodStartDateGreaterThanEqual(
-                    periodStartDate, pageable);
-        }
-
-        if (periodEndDate != null) {
-            return payrollRepository.findAllByPeriodEndDateLessThanEqual(
-                    periodEndDate, pageable);
         }
 
         return payrollRepository.findAll(pageable);
     }
 
-    public Page<Payroll> getAllEmployeePayroll(int page, int limit, LocalDate periodStartDate, LocalDate periodEndDate) {
+    public Page<Payroll> getAllEmployeePayroll(int page, int limit, YearMonth period) {
         User user = userService.getAuthenticatedUser();
-
         Pageable pageable = PageRequest.of(page, limit);
-        DateRange range = new DateRange(periodStartDate, periodEndDate);
 
         Long id = user.getEmployee().getId();
-        return payrollRepository.findAllByEmployee_IdAndPeriodStartDateLessThanEqualAndPeriodEndDateGreaterThanEqual(
-                id,
-                range.endDate(),
-                range.startDate(),
-                pageable
-        );
+
+        if (period != null) {
+            LocalDate startDate = period.atDay(1);
+            LocalDate endDate = period.atEndOfMonth();
+
+            return payrollRepository.findAllByEmployee_IdAndPeriodStartDateLessThanEqualAndPeriodEndDateGreaterThanEqual(
+                    id,
+                    endDate,
+                    startDate,
+                    pageable
+            );
+        }
+
+        return payrollRepository.findAllByEmployee_Id(id, pageable);
     }
 
 }

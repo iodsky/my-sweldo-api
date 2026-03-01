@@ -22,7 +22,7 @@ public class LeaveCreditController {
     private final LeaveCreditService leaveCreditService;
     private final LeaveCreditMapper leaveCreditMapper;
 
-    @PreAuthorize("hasRole('HR')")
+    @PreAuthorize("hasAnyRole('HR', 'SUPERUSER')")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(
             summary = "Creates employee leave credits",
@@ -45,7 +45,7 @@ public class LeaveCreditController {
         return ResponseFactory.ok("Leave credits retrieved successfully", credits);
     }
 
-    @PreAuthorize("hasRole('HR')")
+    @PreAuthorize("hasAnyRole('HR', 'SUPERUSER')")
     @DeleteMapping("/employee/{employeeId}")
     @Operation(summary = "Delete employee leave credits", description = "Delete all leave credits for a specific employee. Requires HR role.")
     public ResponseEntity<ApiResponse<DeleteResponse>> deleteLeaveCreditsByEmployeeId(@Parameter(description = "Employee ID") @PathVariable Long employeeId) {

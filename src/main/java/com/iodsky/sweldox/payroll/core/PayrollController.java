@@ -14,7 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,7 +27,7 @@ public class PayrollController {
     private final PayrollService payrollService;
     private final PayrollMapper payrollMapper;
 
-    @PreAuthorize("hasRole('PAYROLL')")
+    @PreAuthorize("hasAnyRole('PAYROLL', 'SUPERUSER')")
     @PostMapping
     @Operation(summary = "Create payroll", description = "Generate payroll for a single employee. Requires PAYROLL role.")
     public ResponseEntity<ApiResponse<PayrollDto>> createPayroll(@RequestBody CreatePayrollRequest request) {
@@ -41,17 +41,16 @@ public class PayrollController {
         return ResponseFactory.created("Payroll created successfully", dto);
     }
 
-    @PreAuthorize("hasAnyRole('PAYROLL', 'HR')")
+    @PreAuthorize("hasAnyRole('PAYROLL', 'HR', 'SUPERUSER')")
     @GetMapping
     @Operation(summary = "Get all payroll records", description = "Retrieve all payroll records with pagination and optional date filtering. Requires PAYROLL or HR role.")
     public ResponseEntity<ApiResponse<List<PayrollDto>>> getAllPayroll(
             @Parameter(description = "Page number (0-indexed)") @RequestParam(defaultValue = "0") @Min(0) int pageNo,
             @Parameter(description = "Number of items per page (1-100)") @RequestParam(defaultValue = "10") @Min(1) @Max(100) int limit,
-            @Parameter(description = "Filter by period start date") @RequestParam(required = false) LocalDate periodStartDate,
-            @Parameter(description = "Filter by period end date") @RequestParam(required = false) LocalDate periodEndDate
-    ) {
+            @Parameter(description = "Filter by year and month") @RequestParam(required = false) YearMonth period
+            ) {
 
-        Page<Payroll> page = payrollService.getAllPayroll(pageNo, limit, periodStartDate, periodEndDate);
+        Page<Payroll> page = payrollService.getAllPayroll(pageNo, limit, period);
 
         List<PayrollDto> payroll = page.getContent().stream().map(payrollMapper::toDto).toList();
 
@@ -63,10 +62,9 @@ public class PayrollController {
     public ResponseEntity<ApiResponse<List<PayrollDto>>> getAllEmployeePayroll(
             @Parameter(description = "Page number (0-indexed)") @RequestParam(defaultValue = "0") @Min(0) int pageNo,
             @Parameter(description = "Number of items per page (1-100)") @RequestParam(defaultValue = "10") @Min(1) @Max(100) int limit,
-            @Parameter(description = "Filter by period start date") @RequestParam(required = false) LocalDate periodStartDate,
-            @Parameter(description = "Filter by period end date") @RequestParam(required = false) LocalDate periodEndDate
+            @Parameter(description = "Filter by year and month") @RequestParam(required = false) YearMonth period
     ) {
-        Page<Payroll> page = payrollService.getAllEmployeePayroll(pageNo, limit, periodStartDate, periodEndDate);
+        Page<Payroll> page = payrollService.getAllEmployeePayroll(pageNo, limit, period);
 
         List<PayrollDto> payroll = page.getContent().stream().map(payrollMapper::toDto).toList();
 

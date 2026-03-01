@@ -23,13 +23,13 @@ import java.util.List;
 @RequestMapping("/benefit-types")
 @Validated
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('HR', 'PAYROLL', 'SUPERUSER')")
 @Tag(name = "Benefit Types", description = "Manage benefit type configurations")
 public class BenefitTypeController {
 
     private final BenefitTypeService benefitTypeService;
     private final BenefitTypeMapper benefitTypeMapper;
 
-    @PreAuthorize("hasRole('PAYROLL')")
     @PostMapping
     @Operation(summary = "Create benefit type", description = "Create a new benefit type. Requires PAYROLL role.")
     public ResponseEntity<ApiResponse<BenefitTypeDto>> createBenefitType(
@@ -41,7 +41,6 @@ public class BenefitTypeController {
         );
     }
 
-    @PreAuthorize("hasAnyRole('PAYROLL', 'HR')")
     @GetMapping
     @Operation(summary = "Get all benefit types", description = "Retrieve all benefit types with pagination. Requires PAYROLL or HR role.")
     public ResponseEntity<ApiResponse<List<BenefitTypeDto>>> getAllBenefitTypes(
@@ -60,7 +59,6 @@ public class BenefitTypeController {
         );
     }
 
-    @PreAuthorize("hasAnyRole('PAYROLL', 'HR')")
     @GetMapping("/{id}")
     @Operation(summary = "Get benefit type by ID", description = "Retrieve a specific benefit type. Requires PAYROLL or HR role.")
     public ResponseEntity<ApiResponse<BenefitTypeDto>> getBenefitTypeById(
@@ -72,7 +70,6 @@ public class BenefitTypeController {
         );
     }
 
-    @PreAuthorize("hasRole('PAYROLL')")
     @PutMapping("/{id}")
     @Operation(summary = "Update benefit type", description = "Update an existing benefit type. Requires PAYROLL role.")
     public ResponseEntity<ApiResponse<BenefitTypeDto>> updateBenefitType(
@@ -85,7 +82,6 @@ public class BenefitTypeController {
         );
     }
 
-    @PreAuthorize("hasRole('PAYROLL')")
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete benefit type", description = "Soft delete a benefit type. Requires PAYROLL role.")
     public ResponseEntity<ApiResponse<DeleteResponse>> deleteBenefitType(

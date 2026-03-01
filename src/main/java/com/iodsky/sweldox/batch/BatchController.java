@@ -42,7 +42,7 @@ public class BatchController {
     @Value("${batch.upload.directory}")
     private String uploadDirectory;
 
-    @PreAuthorize("hasAnyRole('HR', 'IT')")
+    @PreAuthorize("hasAnyRole('HR', 'IT', 'SUPERUSER')")
     @PostMapping(value = "/import-employees", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
             summary = "Import employees from CSV file",
@@ -69,7 +69,7 @@ public class BatchController {
         }
     }
 
-    @PreAuthorize("hasRole('IT')")
+    @PreAuthorize("hasAnyRole('IT', 'SUPERUSER')")
     @PostMapping(value = "/import-users", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
             summary = "Import users from CSV file",
@@ -96,7 +96,7 @@ public class BatchController {
         }
     }
 
-    @PreAuthorize("hasAnyRole('HR', 'PAYROLL')")
+    @PreAuthorize("hasAnyRole('HR', 'PAYROLL', 'SUPERUSER')")
     @PostMapping("/generate-payroll")
     @Operation(
             summary = "Generate payroll for all active employees",
@@ -130,7 +130,7 @@ public class BatchController {
         }
     }
 
-    @PreAuthorize("hasAnyRole('HR', 'IT', 'PAYROLL')")
+    @PreAuthorize("hasAnyRole('HR', 'IT', 'PAYROLL', 'SUPERUSER')")
     @GetMapping("/{jobExecutionId}")
     @Operation(
             summary = "Get job execution details",

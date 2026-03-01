@@ -8,7 +8,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Map;
 
 @Data
 @Builder
@@ -33,7 +32,6 @@ public class EmployeeDto {
     private BigDecimal basicSalary;
     private BigDecimal hourlyRate;
     private BigDecimal semiMonthlyRate;
-//    private Map<String, BigDecimal> benefits;
     private List<BenefitDto> benefits;
 
 }

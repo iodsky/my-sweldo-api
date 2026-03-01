@@ -3,8 +3,8 @@ package com.iodsky.sweldox.batch.user;
 import com.iodsky.sweldox.employee.Employee;
 import com.iodsky.sweldox.employee.EmployeeService;
 import com.iodsky.sweldox.security.user.User;
-import com.iodsky.sweldox.security.user.UserRole;
-import com.iodsky.sweldox.security.user.UserRoleRepository;
+import com.iodsky.sweldox.security.role.Role;
+import com.iodsky.sweldox.security.role.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemProcessor;
@@ -25,10 +25,10 @@ import java.util.Map;
 public class UserImportProcessor implements ItemProcessor<UserImportRecord, User> {
 
     private final EmployeeService employeeService;
-    private final UserRoleRepository userRoleRepository;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
-    private Map<String, UserRole> userRoleCache;
+    private Map<String, Role> userRoleCache;
 
     @Override
     public User process(UserImportRecord item) throws Exception {
@@ -47,11 +47,11 @@ public class UserImportProcessor implements ItemProcessor<UserImportRecord, User
         user.setEmployee(employee);
 
         // Validate and set role using cache
-        UserRole role = userRoleCache.get(item.getRole());
+        Role role = userRoleCache.get(item.getRole());
         if (role == null) {
             throw new IllegalArgumentException("Invalid user role: " + item.getRole());
         }
-        user.setUserRole(role);
+        user.setRole(role);
 
         // Encode password
         String password = passwordEncoder.encode(item.getPassword());
@@ -70,9 +70,9 @@ public class UserImportProcessor implements ItemProcessor<UserImportRecord, User
             log.info("Initializing user role cache...");
 
             userRoleCache = new HashMap<>();
-            List<UserRole> userRoles = userRoleRepository.findAll();
-            for (UserRole userRole : userRoles) {
-                userRoleCache.put(userRole.getRole(), userRole);
+            List<Role> userRoles = roleRepository.findAll();
+            for (Role role : userRoles) {
+                userRoleCache.put(role.getName(), role);
             }
             log.info("Loaded {} user roles into cache", userRoles.size());
         }

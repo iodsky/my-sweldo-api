@@ -34,7 +34,7 @@ public class LeaveRequestController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('HR')")
+    @PreAuthorize("hasAnyRole('HR', 'SUPERUSER')")
     @Operation(summary = "Get leave requests", description = "Retrieve a paginated list of leave requests for the authenticated employee")
     public ResponseEntity<ApiResponse<List<LeaveRequestDto>>> getLeaveRequests(
             @Parameter(description = "Page number (0-indexed)") @RequestParam(defaultValue = "0") @Min(0) int pageNo,
@@ -86,7 +86,7 @@ public class LeaveRequestController {
     }
 
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('HR', 'SUPERVISOR')")
+    @PreAuthorize("hasAnyRole('HR', 'SUPERVISOR', 'SUPERUSER')")
     @Operation(summary = "Update leave status", description = "Approve or reject a leave request. Requires HR role.")
     public ResponseEntity<ApiResponse<LeaveRequestDto>> updateLeaveStatus(
             @Parameter(description = "Leave request ID") @PathVariable String id,

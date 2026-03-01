@@ -28,7 +28,7 @@ public class EmployeeController {
     private final EmployeeService employeeService;
     private final EmployeeMapper employeeMapper;
 
-    @PreAuthorize("hasRole('HR')")
+    @PreAuthorize("hasAnyRole('HR', 'SUPERUSER')")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(
             summary = "Create a new employee",
@@ -40,7 +40,7 @@ public class EmployeeController {
         return ResponseFactory.created("Employee created successfully", employee);
     }
 
-    @PreAuthorize("hasAnyRole('HR', 'IT', 'PAYROLL')")
+    @PreAuthorize("hasAnyRole('HR', 'IT', 'PAYROLL', 'SUPERUSER')")
     @GetMapping
     @Operation(summary = "Get all employees", description = "Retrieve a paginated list of employees with optional filters. Requires HR, IT, or PAYROLL role.")
     public ResponseEntity<ApiResponse<List<EmployeeDto>>> getAllEmployees(
@@ -69,7 +69,7 @@ public class EmployeeController {
         return ResponseFactory.ok("Employee retrieved successfully", employee);
     }
 
-    @PreAuthorize("hasAnyRole('HR', 'IT', 'PAYROLL')")
+    @PreAuthorize("hasAnyRole('HR', 'IT', 'PAYROLL', 'SUPERUSER')")
     @GetMapping("/{id}")
     @Operation(summary = "Get employee by ID", description = "Retrieve a specific employee by their ID. Requires HR, IT, or PAYROLL role.")
     public ResponseEntity<ApiResponse<EmployeeDto>> getEmployeeById(@Parameter(description = "Employee ID") @PathVariable long id) {
@@ -77,7 +77,7 @@ public class EmployeeController {
         return ResponseFactory.ok("Employee retrieved successfully", employee);
     }
 
-    @PreAuthorize("hasRole('HR')")
+    @PreAuthorize("hasAnyRole('HR', 'SUPERUSER')")
     @PutMapping("/{id}")
     @Operation(summary = "Update employee", description = "Update an existing employee's information. Requires HR role.")
     public ResponseEntity<ApiResponse<EmployeeDto>> updateEmployee(@Parameter(description = "Employee ID") @PathVariable long id, @Valid @RequestBody EmployeeRequest request) {

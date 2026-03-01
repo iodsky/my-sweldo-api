@@ -1,7 +1,5 @@
 package com.iodsky.sweldox.position;
 
-import com.iodsky.sweldox.department.Department;
-import com.iodsky.sweldox.department.DepartmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

@@ -36,16 +36,16 @@ public class AttendanceController {
         return ResponseFactory.created("Attendance created successfully", dto);
     }
 
-    @PreAuthorize("hasRole('HR')")
+    @PreAuthorize("hasAnyRole('HR', 'SUPERUSER')")
     @GetMapping
     @Operation(summary = "Get all attendances", description = "Retrieve all attendance records with pagination and optional date filtering. Requires HR role.")
     public ResponseEntity<ApiResponse<List<AttendanceDto>>> getAllAttendances(
             @Parameter(description = "Page number (0-indexed)") @RequestParam(defaultValue = "0") @Min(0) int pageNo,
             @Parameter(description = "Number of items per page (1-100)") @RequestParam(defaultValue = "10") @Min(1) @Max(100) int limit,
-            @Parameter(description = "Filter by date (specific date if endDate is null, or start of range if endDate is provided)") @RequestParam(required = false) LocalDate date,
-            @Parameter(description = "Filter by end date (creates a date range when used with date parameter)") @RequestParam(required = false) LocalDate endDate
+            @Parameter(description = "Filter by start date") @RequestParam(required = false) LocalDate startDate,
+            @Parameter(description = "Filter by end date") @RequestParam(required = false) LocalDate endDate
     ) {
-        Page<Attendance> page = attendanceService.getAllAttendances(pageNo, limit, date, endDate);
+        Page<Attendance> page = attendanceService.getAllAttendances(pageNo, limit, startDate, endDate);
 
         List<AttendanceDto> data = page.getContent().stream().map(attendanceMapper::toDto).toList();
 
@@ -68,7 +68,7 @@ public class AttendanceController {
         return ResponseFactory.ok("Attendances retrieved successfully", data, PaginationMeta.of(page));
     }
 
-    @PreAuthorize("hasAnyRole('HR', 'PAYROLL')")
+    @PreAuthorize("hasAnyRole('HR', 'PAYROLL', 'SUPERUSER')")
     @GetMapping("/employee/{id}")
     @Operation(summary = "Get employee attendances", description = "Retrieve attendance records for a specific employee. Requires HR or Payroll role.")
     public ResponseEntity<ApiResponse<List<AttendanceDto>>> getEmployeeAttendancesForHR(

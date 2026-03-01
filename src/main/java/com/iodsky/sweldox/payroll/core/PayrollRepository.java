@@ -24,9 +24,8 @@ public interface PayrollRepository extends JpaRepository<Payroll, UUID> {
             Pageable pageable
     );
 
+    Page<Payroll> findAllByEmployee_Id(Long employeeId, Pageable pageable);
+
     boolean existsByEmployee_IdAndPeriodStartDateAndPeriodEndDate(Long employeeId, LocalDate startDate, LocalDate endDate);
 
-    Page<Payroll> findAllByPeriodStartDateGreaterThanEqual(LocalDate periodStartDate, Pageable pageable);
-
-    Page<Payroll> findAllByPeriodEndDateLessThanEqual(LocalDate periodEndDate, Pageable pageable);
 }
