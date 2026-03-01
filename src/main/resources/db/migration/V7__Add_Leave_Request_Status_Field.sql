@@ -1,3 +1,0 @@
-ALTER TABLE leave_request DROP COLUMN leave_status;
-
-ALTER TABLE leave_request ADD COLUMN status VARCHAR(50) NOT NULL DEFAULT 'PENDING';
