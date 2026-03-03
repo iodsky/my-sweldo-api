@@ -19,8 +19,8 @@ import java.util.List;
 @Tag(name = "Leave Credits", description = "Leave credit management endpoints")
 public class LeaveCreditController {
 
-    private final LeaveCreditService leaveCreditService;
-    private final LeaveCreditMapper leaveCreditMapper;
+    private final LeaveCreditService service;
+    private final LeaveCreditMapper mapper;
 
     @PreAuthorize("hasAnyRole('HR', 'SUPERUSER')")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -30,9 +30,9 @@ public class LeaveCreditController {
             operationId = "initializeEmployeeLeaveCredits"
     )
     public ResponseEntity<ApiResponse<List<LeaveCreditDto>>> createLeaveCredits(@Valid @RequestBody LeaveCreditRequest dto) {
-        List<LeaveCreditDto> leaveCredits = leaveCreditService.createLeaveCredits(dto)
+        List<LeaveCreditDto> leaveCredits = service.createLeaveCredits(dto)
                 .stream()
-                .map(leaveCreditMapper::toDto)
+                .map(mapper::toDto)
                 .toList();
         return ResponseFactory.created("Leave credits created successfully", leaveCredits);
     }
@@ -40,8 +40,8 @@ public class LeaveCreditController {
     @GetMapping
     @Operation(summary = "Get my leave credits", description = "Retrieve leave credits for the authenticated employee")
     public ResponseEntity<ApiResponse<List<LeaveCreditDto>>> getLeaveCredits() {
-        List<LeaveCreditDto> credits = leaveCreditService.getLeaveCreditsByEmployeeId()
-                .stream().map(leaveCreditMapper::toDto).toList();
+        List<LeaveCreditDto> credits = service.getLeaveCreditsByEmployeeId()
+                .stream().map(mapper::toDto).toList();
         return ResponseFactory.ok("Leave credits retrieved successfully", credits);
     }
 
@@ -49,7 +49,7 @@ public class LeaveCreditController {
     @DeleteMapping("/employee/{employeeId}")
     @Operation(summary = "Delete employee leave credits", description = "Delete all leave credits for a specific employee. Requires HR role.")
     public ResponseEntity<ApiResponse<DeleteResponse>> deleteLeaveCreditsByEmployeeId(@Parameter(description = "Employee ID") @PathVariable Long employeeId) {
-        leaveCreditService.deleteLeaveCreditsByEmployeeId(employeeId);
+        service.deleteLeaveCreditsByEmployeeId(employeeId);
         DeleteResponse res = new DeleteResponse("Leave Credits", employeeId);
         return ResponseFactory.ok("Employee leave credits deleted successfully", res);
     }

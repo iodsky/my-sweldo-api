@@ -20,7 +20,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class IncomeTaxBracketService {
 
-    private final IncomeTaxBracketRepository incomeTaxBracketRepository;
+    private final IncomeTaxBracketRepository repository;
 
     @Transactional
     public IncomeTaxBracket createIncomeTaxBracket(IncomeTaxBracketRequest request) {
@@ -33,14 +33,14 @@ public class IncomeTaxBracketService {
                 .effectiveDate(request.getEffectiveDate())
                 .build();
 
-        return incomeTaxBracketRepository.save(bracket);
+        return repository.save(bracket);
     }
 
     public Page<IncomeTaxBracket> getAllIncomeTaxBrackets(
             int page, int limit, LocalDate effectiveDate, BigDecimal minIncome, BigDecimal maxIncome) {
         Pageable pageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.ASC, "minIncome"));
 
-        return incomeTaxBracketRepository.findAll((root, query, cb) -> {
+        return repository.findAll((root, query, cb) -> {
             var predicates = cb.conjunction();
 
             predicates = cb.and(predicates, cb.isNull(root.get("deletedAt")));
@@ -62,11 +62,11 @@ public class IncomeTaxBracketService {
     }
 
     public List<IncomeTaxBracket> getAllIncomeTaxBracketsByDate(LocalDate effectiveDate) {
-        return incomeTaxBracketRepository.findAllByEffectiveDate(effectiveDate);
+        return repository.findAllByEffectiveDate(effectiveDate);
     }
 
     public IncomeTaxBracket getIncomeTaxBracketById(UUID id) {
-        return incomeTaxBracketRepository.findById(id)
+        return repository.findById(id)
                 .filter(bracket -> bracket.getDeletedAt() == null)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
@@ -75,7 +75,7 @@ public class IncomeTaxBracketService {
     }
 
     public IncomeTaxBracket getIncomeTaxBracketByIncomeAndDate(BigDecimal income, LocalDate date) {
-        IncomeTaxBracket bracket = incomeTaxBracketRepository.findByIncomeAndEffectiveDate(income, date);
+        IncomeTaxBracket bracket = repository.findByIncomeAndEffectiveDate(income, date);
         if (bracket == null) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
@@ -96,13 +96,13 @@ public class IncomeTaxBracketService {
         bracket.setThreshold(request.getThreshold());
         bracket.setEffectiveDate(request.getEffectiveDate());
 
-        return incomeTaxBracketRepository.save(bracket);
+        return repository.save(bracket);
     }
 
     @Transactional
     public void deleteIncomeTaxBracket(UUID id) {
         IncomeTaxBracket bracket = getIncomeTaxBracketById(id);
         bracket.setDeletedAt(Instant.now());
-        incomeTaxBracketRepository.save(bracket);
+        repository.save(bracket);
     }
 }

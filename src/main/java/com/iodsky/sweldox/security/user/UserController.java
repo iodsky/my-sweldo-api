@@ -25,8 +25,8 @@ import java.util.UUID;
 @Tag(name = "Users", description = "User account management endpoints")
 public class UserController {
 
-    private final UserService userService;
-    private final UserMapper userMapper;
+    private final UserService service;
+    private final UserMapper mapper;
 
     @PostMapping
     @Operation(
@@ -35,7 +35,7 @@ public class UserController {
             operationId = "createUser"
     )
     public ResponseEntity<ApiResponse<UserDto>> createUser(@Valid @RequestBody UserRequest userRequest) {
-        UserDto user = userMapper.toDto(userService.createUser(userRequest));
+        UserDto user = mapper.toDto(service.createUser(userRequest));
         return ResponseFactory.created("User created successfully", user);
     }
 
@@ -46,23 +46,23 @@ public class UserController {
             @Parameter(description = "Number of items per page (1-100)") @RequestParam(defaultValue = "10") @Min(1) @Max(100) int limit,
             @Parameter(description = "Filter by role") @RequestParam(required = false) String roleName
     ) {
-        Page<User> page  = userService.getAllUsers(pageNo, limit, roleName);
-        List<UserDto> data = page.getContent().stream().map(userMapper::toDto).toList();
+        Page<User> page  = service.getAllUsers(pageNo, limit, roleName);
+        List<UserDto> data = page.getContent().stream().map(mapper::toDto).toList();
 
         return ResponseFactory.ok("Users retrieved successfully", data, PaginationMeta.of(page));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<UserDto>> getUserById(@PathVariable UUID id) {
-        User user = userService.getUserById(id);
-        UserDto res = userMapper.toDto(user);
+        User user = service.getUserById(id);
+        UserDto res = mapper.toDto(user);
         return ResponseFactory.ok("User retrieved successfully successfully", res);
     }
 
     @PatchMapping("/{id}/role")
     public ResponseEntity<ApiResponse<UserDto>> updateUserRole(@PathVariable UUID id, @RequestParam String role) {
-        User user = userService.updateUserRole(id, role);
-        UserDto res = userMapper.toDto(user);
+        User user = service.updateUserRole(id, role);
+        UserDto res = mapper.toDto(user);
         return ResponseFactory.ok("User's role updated successfully", res);
     }
 

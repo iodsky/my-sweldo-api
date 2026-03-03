@@ -29,17 +29,17 @@ import java.util.UUID;
 @Tag(name = "Payroll Configuration - Pag-IBIG", description = "Manage Pag-IBIG rate table configurations")
 public class PagibigRateTableController {
 
-    private final PagibigRateTableService pagibigRateTableService;
-    private final PagibigRateTableMapper pagibigRateTableMapper;
+    private final PagibigRateTableService service;
+    private final PagibigRateTableMapper mapper;
 
     @PostMapping
     @Operation(summary = "Create Pag-IBIG rate table", description = "Create a new Pag-IBIG rate table. Requires PAYROLL role.")
     public ResponseEntity<ApiResponse<PagibigRateTableDto>> createPagibigRateTable(
             @Valid @RequestBody PagibigRateTableRequest request) {
-        PagibigRateTable rateTable = pagibigRateTableService.createPagibigRateTable(request);
+        PagibigRateTable rateTable = service.createPagibigRateTable(request);
         return ResponseFactory.created(
                 "Pag-IBIG rate table created successfully",
-                pagibigRateTableMapper.toDto(rateTable)
+                mapper.toDto(rateTable)
         );
     }
 
@@ -50,9 +50,9 @@ public class PagibigRateTableController {
             @Parameter(description = "Number of items per page (1-100)") @RequestParam(defaultValue = "10") @Min(1) @Max(100) int limit,
             @Parameter(description = "Filter by effective date (on or before)") @RequestParam(required = false) LocalDate effectiveDate
     ) {
-        Page<PagibigRateTable> page = pagibigRateTableService.getAllPagibigRateTables(pageNo, limit, effectiveDate);
+        Page<PagibigRateTable> page = service.getAllPagibigRateTables(pageNo, limit, effectiveDate);
         List<PagibigRateTableDto> rateTables = page.getContent().stream()
-                .map(pagibigRateTableMapper::toDto)
+                .map(mapper::toDto)
                 .toList();
 
         return ResponseFactory.ok(
@@ -66,10 +66,10 @@ public class PagibigRateTableController {
     @Operation(summary = "Get Pag-IBIG rate table by ID", description = "Retrieve a specific Pag-IBIG rate table. Requires PAYROLL role.")
     public ResponseEntity<ApiResponse<PagibigRateTableDto>> getPagibigRateTableById(
             @Parameter(description = "Rate table ID") @PathVariable UUID id) {
-        PagibigRateTable rateTable = pagibigRateTableService.getPagibigRateTableById(id);
+        PagibigRateTable rateTable = service.getPagibigRateTableById(id);
         return ResponseFactory.ok(
                 "Pag-IBIG rate table retrieved successfully",
-                pagibigRateTableMapper.toDto(rateTable)
+                mapper.toDto(rateTable)
         );
     }
 
@@ -79,10 +79,10 @@ public class PagibigRateTableController {
             @Parameter(description = "Date to check (defaults to today)") @RequestParam(required = false) LocalDate date
     ) {
         LocalDate effectiveDate = date != null ? date : LocalDate.now();
-        PagibigRateTable rateTable = pagibigRateTableService.getLatestPagibigRateTable(effectiveDate);
+        PagibigRateTable rateTable = service.getLatestPagibigRateTable(effectiveDate);
         return ResponseFactory.ok(
                 "Latest Pag-IBIG rate table retrieved successfully",
-                pagibigRateTableMapper.toDto(rateTable)
+                mapper.toDto(rateTable)
         );
     }
 
@@ -91,10 +91,10 @@ public class PagibigRateTableController {
     public ResponseEntity<ApiResponse<PagibigRateTableDto>> updatePagibigRateTable(
             @Parameter(description = "Rate table ID") @PathVariable UUID id,
             @Valid @RequestBody PagibigRateTableRequest request) {
-        PagibigRateTable rateTable = pagibigRateTableService.updatePagibigRateTable(id, request);
+        PagibigRateTable rateTable = service.updatePagibigRateTable(id, request);
         return ResponseFactory.ok(
                 "Pag-IBIG rate table updated successfully",
-                pagibigRateTableMapper.toDto(rateTable)
+                mapper.toDto(rateTable)
         );
     }
 
@@ -102,7 +102,7 @@ public class PagibigRateTableController {
     @Operation(summary = "Delete Pag-IBIG rate table", description = "Soft delete a Pag-IBIG rate table. Requires PAYROLL role.")
     public ResponseEntity<ApiResponse<DeleteResponse>> deletePagibigRateTable(
             @Parameter(description = "Rate table ID") @PathVariable UUID id) {
-        pagibigRateTableService.deletePagibigRateTable(id);
+        service.deletePagibigRateTable(id);
         return ResponseFactory.ok(
                 "Pag-IBIG rate table deleted successfully",
                 new DeleteResponse("PagibigRateTable", id)

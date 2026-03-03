@@ -24,8 +24,8 @@ import java.util.List;
 @Tag(name = "Departments", description = "Department management endpoints")
 public class DepartmentController {
 
-    private final DepartmentService departmentService;
-    private final DepartmentMapper departmentMapper;
+    private final DepartmentService service;
+    private final DepartmentMapper mapper;
 
     @PostMapping
     @Operation(
@@ -34,7 +34,7 @@ public class DepartmentController {
             operationId = "createDepartment"
     )
     public ResponseEntity<ApiResponse<DepartmentDto>> createDepartment(@Valid @RequestBody DepartmentRequest request) {
-        DepartmentDto department = departmentMapper.toDto(departmentService.createDepartment(request));
+        DepartmentDto department = mapper.toDto(service.createDepartment(request));
         return ResponseFactory.created("Department created successfully", department);
     }
 
@@ -44,10 +44,10 @@ public class DepartmentController {
             @Parameter(description = "Page number (0-indexed)") @RequestParam(defaultValue = "0") @Min(0) int pageNo,
             @Parameter(description = "Number of items per page (1-100)") @RequestParam(defaultValue = "10") @Min(1) @Max(100) int limit
     ) {
-        Page<Department> page = departmentService.getAllDepartments(pageNo, limit);
+        Page<Department> page = service.getAllDepartments(pageNo, limit);
 
         List<DepartmentDto> departments = page.getContent().stream()
-                .map(departmentMapper::toDto)
+                .map(mapper::toDto)
                 .toList();
 
         return ResponseFactory.ok(
@@ -62,7 +62,7 @@ public class DepartmentController {
     public ResponseEntity<ApiResponse<DepartmentDto>> getDepartmentById(
             @Parameter(description = "Department ID") @PathVariable String id
     ) {
-        DepartmentDto department = departmentMapper.toDto(departmentService.getDepartmentById(id));
+        DepartmentDto department = mapper.toDto(service.getDepartmentById(id));
         return ResponseFactory.ok("Department retrieved successfully", department);
     }
 
@@ -73,7 +73,7 @@ public class DepartmentController {
             @Parameter(description = "Department ID") @PathVariable String id,
             @Valid @RequestBody DepartmentUpdateRequest request
     ) {
-        DepartmentDto department = departmentMapper.toDto(departmentService.updateDepartment(id, request));
+        DepartmentDto department = mapper.toDto(service.updateDepartment(id, request));
         return ResponseFactory.ok("Department updated successfully", department);
     }
 
@@ -82,7 +82,7 @@ public class DepartmentController {
     public ResponseEntity<ApiResponse<DeleteResponse>> deleteDepartment(
             @Parameter(description = "Department ID") @PathVariable String id
     ) {
-        departmentService.deleteDepartment(id);
+        service.deleteDepartment(id);
         DeleteResponse res = new DeleteResponse("Department", id);
         return ResponseFactory.ok("Department deleted successfully", res);
     }

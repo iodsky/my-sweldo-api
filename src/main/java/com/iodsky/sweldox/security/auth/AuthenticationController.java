@@ -19,13 +19,13 @@ import java.util.Map;
 @Tag(name = "Authentication", description = "Authentication endpoints")
 public class AuthenticationController {
 
-    private final AuthenticationService authenticationService;
+    private final AuthenticationService service;
 
     @PostMapping("/login")
     @Operation(summary = "Login to get JWT token", description = "Authenticate with email and password to receive a JWT token for accessing protected endpoints")
     @SecurityRequirements() // This endpoint doesn't require authentication
     public ResponseEntity<Map<String, String>> authenticate(@Valid @RequestBody  LoginRequest loginRequest) {
-        String token = authenticationService.authenticate(loginRequest);
+        String token = service.authenticate(loginRequest);
         return ResponseEntity.ok(Map.of("token", token));
     }
 

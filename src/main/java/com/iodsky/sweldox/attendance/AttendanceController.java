@@ -25,14 +25,14 @@ import java.util.UUID;
 @Tag(name = "Attendance", description = "Attendance tracking and management endpoints")
 public class AttendanceController {
 
-    private final AttendanceService attendanceService;
-    private final AttendanceMapper attendanceMapper;
+    private final AttendanceService service;
+    private final AttendanceMapper mapper;
 
     @PostMapping
     @Operation(summary = "Create attendance record", description = "Create a new attendance record for the authenticated employee")
     public ResponseEntity<ApiResponse<AttendanceDto>> createAttendance(@Valid @RequestBody(required = false) AttendanceDto attendanceDto) {
-        Attendance attendance = attendanceService.createAttendance(attendanceDto);
-        AttendanceDto dto = attendanceMapper.toDto(attendance);
+        Attendance attendance = service.createAttendance(attendanceDto);
+        AttendanceDto dto = mapper.toDto(attendance);
         return ResponseFactory.created("Attendance created successfully", dto);
     }
 
@@ -45,9 +45,9 @@ public class AttendanceController {
             @Parameter(description = "Filter by start date") @RequestParam(required = false) LocalDate startDate,
             @Parameter(description = "Filter by end date") @RequestParam(required = false) LocalDate endDate
     ) {
-        Page<Attendance> page = attendanceService.getAllAttendances(pageNo, limit, startDate, endDate);
+        Page<Attendance> page = service.getAllAttendances(pageNo, limit, startDate, endDate);
 
-        List<AttendanceDto> data = page.getContent().stream().map(attendanceMapper::toDto).toList();
+        List<AttendanceDto> data = page.getContent().stream().map(mapper::toDto).toList();
 
         return ResponseFactory.ok("Attendances retrieved successfully", data, PaginationMeta.of(page));
     }
@@ -60,10 +60,10 @@ public class AttendanceController {
             @Parameter(description = "Filter by start date") @RequestParam(required = false) LocalDate startDate,
             @Parameter(description = "Filter by end date") @RequestParam(required = false) LocalDate endDate
     ) {
-        Page<Attendance> page = attendanceService
+        Page<Attendance> page = service
                 .getEmployeeAttendances(pageNo, limit, null, startDate, endDate);
 
-        List<AttendanceDto> data = page.getContent().stream().map(attendanceMapper::toDto).toList();
+        List<AttendanceDto> data = page.getContent().stream().map(mapper::toDto).toList();
 
         return ResponseFactory.ok("Attendances retrieved successfully", data, PaginationMeta.of(page));
     }
@@ -78,10 +78,10 @@ public class AttendanceController {
             @Parameter(description = "Filter by start date") @RequestParam(required = false) LocalDate startDate,
             @Parameter(description = "Filter by end date") @RequestParam(required = false) LocalDate endDate
     ) {
-        Page<Attendance> page = attendanceService
+        Page<Attendance> page = service
                 .getEmployeeAttendances(pageNo, limit, id, startDate, endDate);
 
-        List<AttendanceDto> data = page.getContent().stream().map(attendanceMapper::toDto).toList();
+        List<AttendanceDto> data = page.getContent().stream().map(mapper::toDto).toList();
 
         return ResponseFactory.ok("Attendances retrieved successfully", data,  PaginationMeta.of(page));
     }
@@ -89,8 +89,8 @@ public class AttendanceController {
     @PatchMapping("/{id}")
     @Operation(summary = "Update attendance", description = "Update an existing attendance record")
     public ResponseEntity<ApiResponse<AttendanceDto>> updateAttendance(@Parameter(description = "Attendance ID") @PathVariable UUID id, @Valid @RequestBody(required = false) AttendanceDto attendanceDto) {
-        Attendance attendance = attendanceService.updateAttendance(id, attendanceDto);
-        AttendanceDto dto = attendanceMapper.toDto(attendance);
+        Attendance attendance = service.updateAttendance(id, attendanceDto);
+        AttendanceDto dto = mapper.toDto(attendance);
         return ResponseFactory.ok("Attendance updated successfully", dto);
     }
 }

@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.DayOfWeek;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -185,8 +186,8 @@ public class LeaveRequestService {
 
     public void deleteLeaveRequest(String id) {
         User user = userService.getAuthenticatedUser();
-
         LeaveRequest leaveRequest = getLeaveRequestById(id);
+
         if (!leaveRequest.getEmployee().getId().equals(user.getEmployee().getId())) {
             if (!user.getRole().getName().equals("HR")) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You don't have permission to access this resource");
@@ -197,7 +198,8 @@ public class LeaveRequestService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot delete processed leave request");
         }
 
-        repository.delete(leaveRequest);
+        leaveRequest.setDeletedAt(Instant.now());
+        repository.save(leaveRequest);
     }
 
     private double calculateTotalDays(LocalDate startDate, LocalDate endDate) {

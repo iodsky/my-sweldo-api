@@ -60,11 +60,11 @@ public class EmployeeService {
         Pageable pageable = PageRequest.of(page, limit);
 
         if (departmentId != null) {
-            return employeeRepository.findByEmploymentDetails_Department_Id(departmentId, pageable);
+            return employeeRepository.findAllByDepartment_Id(departmentId, pageable);
         } else if (supervisorId != null) {
-            return employeeRepository.findByEmploymentDetails_Supervisor_Id(supervisorId, pageable);
+            return employeeRepository.findAllBySupervisor_Id(supervisorId, pageable);
         } else if (status != null) {
-            return  employeeRepository.findByEmploymentDetails_Status(Status.valueOf(status.toUpperCase()), pageable);
+            return  employeeRepository.findAllByStatus(Status.valueOf(status.toUpperCase()), pageable);
         }
 
         return employeeRepository.findAll(pageable);
@@ -106,35 +106,28 @@ public class EmployeeService {
     }
 
     @Transactional
-    public void deleteEmployeeById(Long id, String status) {
+    public void deleteEmployeeById(Long id, Status finalStatus) {
         Employee employee = getEmployeeById(id);
         if (employee.isDeleted()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Employee already deleted");
         }
 
-        Status status_;
-        try {
-            status_ = Status.valueOf(status.toUpperCase());
-            if (status_ != Status.TERMINATED && status_ != Status.RESIGNED) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status must be either TERMINATED or RESIGNED");
-            }
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status must be either TERMINATED or RESIGNED");
+        if (finalStatus != Status.TERMINATED && finalStatus != Status.RESIGNED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Final status must be TERMINATED or RESIGNED");
         }
 
-        List<Employee> subordinates = employeeRepository.findAllBySupervisor_Id(employee.getId());
-        if (!subordinates.isEmpty()) {
-            subordinates.forEach(subordinate -> subordinate.setSupervisor(null));
-            employeeRepository.saveAll(subordinates);
-        }
+        employeeRepository.findAllBySupervisor_Id(id).forEach(sub -> {
+            sub.setSupervisor(null);
+        });
 
+        employee.setStatus(finalStatus);
         employee.setDeletedAt(Instant.now());
-        employee.setStatus(status_);
-
         employeeRepository.save(employee);
     }
 
     public List<Long> getAllActiveEmployeeIds() {
         return employeeRepository.findAllActiveEmployeeIds();
     }
+    
 }

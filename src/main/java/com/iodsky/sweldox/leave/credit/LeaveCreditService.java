@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,7 +19,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class LeaveCreditService {
 
-    private final LeaveCreditRepository leaveCreditRepository;
+    private final LeaveCreditRepository repository;
     private final EmployeeService employeeService;
     private final UserService userService;
 
@@ -30,7 +31,7 @@ public class LeaveCreditService {
     public List<LeaveCredit> createLeaveCredits(LeaveCreditRequest dto) {
         Employee employee = employeeService.getEmployeeById(dto.getEmployeeId());
 
-        boolean exists = leaveCreditRepository.existsByEmployee_IdAndEffectiveDate(employee.getId(), dto.getEffectiveDate());
+        boolean exists = repository.existsByEmployee_IdAndEffectiveDate(employee.getId(), dto.getEffectiveDate());
         if (exists) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Leave credits already exists for employee " + employee.getId());
         }
@@ -56,11 +57,11 @@ public class LeaveCreditService {
                         .build()
         );
 
-        return leaveCreditRepository.saveAll(leaveCredits);
+        return repository.saveAll(leaveCredits);
     }
 
     public LeaveCredit getLeaveCreditByEmployeeIdAndType(Long employeeId, LeaveType type) {
-        return leaveCreditRepository.findByEmployee_IdAndType(employeeId, type)
+        return repository.findByEmployee_IdAndType(employeeId, type)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No " + type + " leave credits found for employeeId: " + employeeId));
     }
 
@@ -68,21 +69,23 @@ public class LeaveCreditService {
         User user = userService.getAuthenticatedUser();
 
         Long employeeId = user.getEmployee().getId();
-        return leaveCreditRepository.findAllByEmployee_Id(employeeId);
+        return repository.findAllByEmployee_Id(employeeId);
     }
 
     public LeaveCredit updateLeaveCredit (UUID targetId, LeaveCredit updated) {
-        LeaveCredit existing = leaveCreditRepository.findById(targetId)
+        LeaveCredit existing = repository.findById(targetId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Leave credit not found: " + targetId));
 
         existing.setCredits(updated.getCredits());
 
-        return leaveCreditRepository.save(existing);
+        return repository.save(existing);
     }
 
     public void deleteLeaveCreditsByEmployeeId(Long employeeId) {
-        List<LeaveCredit> credits = leaveCreditRepository.findAllByEmployee_Id(employeeId);
-        leaveCreditRepository.deleteAll(credits);
+        List<LeaveCredit> credits = repository.findAllByEmployee_Id(employeeId);
+        Instant now = Instant.now();
+        credits.forEach(credit -> credit.setDeletedAt(now));
+        repository.saveAll(credits);
     }
 
 }

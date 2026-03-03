@@ -24,7 +24,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserService implements UserDetailsService {
 
-    private final UserRepository userRepository;
+    private final UserRepository repository;
     private final RoleService roleService;
     private final UserMapper userMapper;
     private final EmployeeService employeeService;
@@ -32,7 +32,7 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByEmail(username)
+        return repository.findByEmail(username)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User " + username + " not found"));
     }
 
@@ -48,16 +48,16 @@ public class UserService implements UserDetailsService {
 
         user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
 
-        return userRepository.save(user);
+        return repository.save(user);
     }
 
     public Page<User> getAllUsers(int size, int limit, String roleName) {
         Pageable pageable = PageRequest.of(size, limit);
         if (roleName == null) {
-            return userRepository.findAll(pageable);
+            return repository.findAll(pageable);
         }
 
-        return userRepository.findAllByRole_Name(roleName, pageable);
+        return repository.findAllByRole_Name(roleName, pageable);
     }
 
     public User getAuthenticatedUser() {
@@ -71,7 +71,7 @@ public class UserService implements UserDetailsService {
     }
 
     public User getUserByEmail(String email) {
-        return userRepository.findByEmail(email)
+        return repository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User " + email + " not found"));
     }
 
@@ -81,11 +81,11 @@ public class UserService implements UserDetailsService {
         Role userRole = getUserRole(role);
 
         user.setRole(userRole);
-        return userRepository.save(user);
+        return repository.save(user);
     }
 
     public User getUserById(UUID id) {
-       return userRepository.findById(id)
+       return repository.findById(id)
                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User " + id + " not found"));
     }
 

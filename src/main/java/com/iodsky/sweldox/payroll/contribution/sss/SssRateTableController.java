@@ -30,17 +30,17 @@ import java.util.UUID;
 @Tag(name = "Payroll Configuration - SSS", description = "Manage SSS rate table configurations")
 public class SssRateTableController {
 
-    private final SssRateTableService sssRateTableService;
-    private final SssRateTableMapper sssRateTableMapper;
+    private final SssRateTableService service;
+    private final SssRateTableMapper mapper;
 
     @PostMapping
     @Operation(summary = "Create SSS rate table", description = "Create a new SSS rate table with salary brackets. Requires PAYROLL role.")
     public ResponseEntity<ApiResponse<SssRateTableDto>> createSssRateTable(
             @Valid @RequestBody SssRateTableRequest request) {
-        SssRateTable rateTable = sssRateTableService.createSssRateTable(request);
+        SssRateTable rateTable = service.createSssRateTable(request);
         return ResponseFactory.created(
                 "SSS rate table created successfully",
-                sssRateTableMapper.toDto(rateTable)
+                mapper.toDto(rateTable)
         );
     }
 
@@ -51,10 +51,10 @@ public class SssRateTableController {
             @Parameter(description = "Number of items per page (1-100)") @RequestParam(defaultValue = "50") @Min(1) @Max(100) int limit,
             @Parameter(description = "Filter by effective date") @RequestParam(required = false) LocalDate effectiveDate
     ) {
-        Page<SssRateTable> page = sssRateTableService.getAllSssRateTables(
+        Page<SssRateTable> page = service.getAllSssRateTables(
                 pageNo, limit, effectiveDate);
         List<SssRateTableDto> rateTables = page.getContent().stream()
-                .map(sssRateTableMapper::toDto)
+                .map(mapper::toDto)
                 .toList();
 
         return ResponseFactory.ok(
@@ -68,10 +68,10 @@ public class SssRateTableController {
     @Operation(summary = "Get SSS rate table by ID", description = "Retrieve a specific SSS rate table. Requires PAYROLL role.")
     public ResponseEntity<ApiResponse<SssRateTableDto>> getSssRateTableById(
             @Parameter(description = "Rate table ID") @PathVariable UUID id) {
-        SssRateTable rateTable = sssRateTableService.getSssRateTableById(id);
+        SssRateTable rateTable = service.getSssRateTableById(id);
         return ResponseFactory.ok(
                 "SSS rate table retrieved successfully",
-                sssRateTableMapper.toDto(rateTable)
+                mapper.toDto(rateTable)
         );
     }
 
@@ -82,10 +82,10 @@ public class SssRateTableController {
             @Parameter(description = "Date to check (defaults to today)") @RequestParam(required = false) LocalDate date
     ) {
         LocalDate effectiveDate = date != null ? date : LocalDate.now();
-        SssRateTable rateTable = sssRateTableService.getSssRateTableBySalaryAndDate(salary, effectiveDate);
+        SssRateTable rateTable = service.getSssRateTableBySalaryAndDate(salary, effectiveDate);
         return ResponseFactory.ok(
                 "SSS rate table found for salary",
-                sssRateTableMapper.toDto(rateTable)
+                mapper.toDto(rateTable)
         );
     }
 
@@ -94,10 +94,10 @@ public class SssRateTableController {
     public ResponseEntity<ApiResponse<SssRateTableDto>> updateSssRateTable(
             @Parameter(description = "Rate table ID") @PathVariable UUID id,
             @Valid @RequestBody SssRateTableRequest request) {
-        SssRateTable rateTable = sssRateTableService.updateSssRateTable(id, request);
+        SssRateTable rateTable = service.updateSssRateTable(id, request);
         return ResponseFactory.ok(
                 "SSS rate table updated successfully",
-                sssRateTableMapper.toDto(rateTable)
+                mapper.toDto(rateTable)
         );
     }
 
@@ -105,7 +105,7 @@ public class SssRateTableController {
     @Operation(summary = "Delete SSS rate table", description = "Soft delete an SSS rate table. Requires PAYROLL role.")
     public ResponseEntity<ApiResponse<DeleteResponse>> deleteSssRateTable(
             @Parameter(description = "Rate table ID") @PathVariable UUID id) {
-        sssRateTableService.deleteSssRateTable(id);
+        service.deleteSssRateTable(id);
         return ResponseFactory.ok(
                 "SSS rate table deleted successfully",
                 new DeleteResponse("SssRateTable", id.toString())

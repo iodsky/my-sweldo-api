@@ -25,8 +25,8 @@ import java.util.List;
 @Tag(name = "Employees", description = "Employee management endpoints")
 public class EmployeeController {
 
-    private final EmployeeService employeeService;
-    private final EmployeeMapper employeeMapper;
+    private final EmployeeService service;
+    private final EmployeeMapper mapper;
 
     @PreAuthorize("hasAnyRole('HR', 'SUPERUSER')")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -36,7 +36,7 @@ public class EmployeeController {
             operationId = "createEmployee"
     )
     public ResponseEntity<ApiResponse<EmployeeDto>> createEmployee(@Valid @RequestBody EmployeeRequest request) {
-        EmployeeDto employee = employeeMapper.toDto(employeeService.createEmployee(request));
+        EmployeeDto employee = mapper.toDto(service.createEmployee(request));
         return ResponseFactory.created("Employee created successfully", employee);
     }
 
@@ -50,9 +50,9 @@ public class EmployeeController {
             @Parameter(description = "Filter by supervisor ID") @RequestParam(required = false) @Positive Long supervisor,
             @Parameter(description = "Filter by employment status") @RequestParam(required = false) String status
     ) {
-        Page<Employee> page = employeeService.getAllEmployees(pageNo, limit, department, supervisor, status);
+        Page<Employee> page = service.getAllEmployees(pageNo, limit, department, supervisor, status);
 
-        List<EmployeeDto> employees = page.getContent().stream().map(employeeMapper::toDto).toList();
+        List<EmployeeDto> employees = page.getContent().stream().map(mapper::toDto).toList();
 
         return ResponseFactory.ok(
                 "Employees retrieved successfully",
@@ -65,7 +65,7 @@ public class EmployeeController {
     @GetMapping("/me")
     @Operation(summary = "Get current employee", description = "Retrieve the authenticated employee's information")
     public ResponseEntity<ApiResponse<EmployeeDto>> getAuthenticatedEmployee() {
-        EmployeeDto employee =  employeeMapper.toDto(employeeService.getAuthenticatedEmployee());
+        EmployeeDto employee =  mapper.toDto(service.getAuthenticatedEmployee());
         return ResponseFactory.ok("Employee retrieved successfully", employee);
     }
 
@@ -73,7 +73,7 @@ public class EmployeeController {
     @GetMapping("/{id}")
     @Operation(summary = "Get employee by ID", description = "Retrieve a specific employee by their ID. Requires HR, IT, or PAYROLL role.")
     public ResponseEntity<ApiResponse<EmployeeDto>> getEmployeeById(@Parameter(description = "Employee ID") @PathVariable long id) {
-        EmployeeDto employee = employeeMapper.toDto(employeeService.getEmployeeById(id));
+        EmployeeDto employee = mapper.toDto(service.getEmployeeById(id));
         return ResponseFactory.ok("Employee retrieved successfully", employee);
     }
 
@@ -81,15 +81,15 @@ public class EmployeeController {
     @PutMapping("/{id}")
     @Operation(summary = "Update employee", description = "Update an existing employee's information. Requires HR role.")
     public ResponseEntity<ApiResponse<EmployeeDto>> updateEmployee(@Parameter(description = "Employee ID") @PathVariable long id, @Valid @RequestBody EmployeeRequest request) {
-        EmployeeDto employee = employeeMapper.toDto(employeeService.updateEmployeeById(id, request));
+        EmployeeDto employee = mapper.toDto(service.updateEmployeeById(id, request));
         return ResponseFactory.ok("Employee updated successfully", employee);
     }
 
     @PreAuthorize("hasRole('HR')")
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete employee", description = "Delete or deactivate an employee. Requires HR role.")
-    public ResponseEntity<ApiResponse<DeleteResponse>> deleteEmployee(@Parameter(description = "Employee ID") @PathVariable long id, @Parameter(description = "Status to set (INACTIVE or TERMINATED)") @RequestParam String status) {
-        employeeService.deleteEmployeeById(id, status);
+    public ResponseEntity<ApiResponse<DeleteResponse>> deleteEmployee(@Parameter(description = "Employee ID") @PathVariable long id, @Parameter(description = "Status to set (INACTIVE or TERMINATED)") @RequestParam Status status) {
+        service.deleteEmployeeById(id, status);
         DeleteResponse res = new DeleteResponse("Employee", id);
         return ResponseFactory.ok("Employee deleted successfully", res);
     }
