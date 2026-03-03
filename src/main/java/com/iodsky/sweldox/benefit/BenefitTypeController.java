@@ -27,17 +27,17 @@ import java.util.List;
 @Tag(name = "Benefit Types", description = "Manage benefit type configurations")
 public class BenefitTypeController {
 
-    private final BenefitTypeService benefitTypeService;
-    private final BenefitTypeMapper benefitTypeMapper;
+    private final BenefitTypeService service;
+    private final BenefitTypeMapper mapper;
 
     @PostMapping
     @Operation(summary = "Create benefit type", description = "Create a new benefit type. Requires PAYROLL role.")
     public ResponseEntity<ApiResponse<BenefitTypeDto>> createBenefitType(
             @Valid @RequestBody BenefitTypeRequest request) {
-        BenefitType benefitType = benefitTypeService.createBenefitType(request);
+        BenefitType benefitType = service.createBenefitType(request);
         return ResponseFactory.created(
                 "Benefit type created successfully",
-                benefitTypeMapper.toDto(benefitType)
+                mapper.toDto(benefitType)
         );
     }
 
@@ -47,9 +47,9 @@ public class BenefitTypeController {
             @Parameter(description = "Page number (0-indexed)") @RequestParam(defaultValue = "0") @Min(0) int pageNo,
             @Parameter(description = "Number of items per page (1-100)") @RequestParam(defaultValue = "20") @Min(1) @Max(100) int limit
     ) {
-        Page<BenefitType> page = benefitTypeService.getAllBenefitTypes(pageNo, limit);
+        Page<BenefitType> page = service.getAllBenefitTypes(pageNo, limit);
         List<BenefitTypeDto> benefitTypes = page.getContent().stream()
-                .map(benefitTypeMapper::toDto)
+                .map(mapper::toDto)
                 .toList();
 
         return ResponseFactory.ok(
@@ -63,10 +63,10 @@ public class BenefitTypeController {
     @Operation(summary = "Get benefit type by ID", description = "Retrieve a specific benefit type. Requires PAYROLL or HR role.")
     public ResponseEntity<ApiResponse<BenefitTypeDto>> getBenefitTypeById(
             @Parameter(description = "Benefit type ID") @PathVariable String id) {
-        BenefitType benefitType = benefitTypeService.getBenefitTypeById(id);
+        BenefitType benefitType = service.getBenefitTypeById(id);
         return ResponseFactory.ok(
                 "Benefit type retrieved successfully",
-                benefitTypeMapper.toDto(benefitType)
+                mapper.toDto(benefitType)
         );
     }
 
@@ -75,10 +75,10 @@ public class BenefitTypeController {
     public ResponseEntity<ApiResponse<BenefitTypeDto>> updateBenefitType(
             @Parameter(description = "Benefit type ID") @PathVariable String id,
             @Valid @RequestBody BenefitTypeRequest request) {
-        BenefitType benefitType = benefitTypeService.updateBenefitType(id, request);
+        BenefitType benefitType = service.updateBenefitType(id, request);
         return ResponseFactory.ok(
                 "Benefit type updated successfully",
-                benefitTypeMapper.toDto(benefitType)
+                mapper.toDto(benefitType)
         );
     }
 
@@ -86,7 +86,7 @@ public class BenefitTypeController {
     @Operation(summary = "Delete benefit type", description = "Soft delete a benefit type. Requires PAYROLL role.")
     public ResponseEntity<ApiResponse<DeleteResponse>> deleteBenefitType(
             @Parameter(description = "Benefit type ID") @PathVariable String id) {
-        benefitTypeService.deleteBenefitType(id);
+        service.deleteBenefitType(id);
         return ResponseFactory.ok(
                 "Benefit type deleted successfully",
                 new DeleteResponse("BenefitType", id)

@@ -24,19 +24,19 @@ import java.util.UUID;
 @Tag(name = "Payroll", description = "Payroll processing and management endpoints")
 public class PayrollController {
 
-    private final PayrollService payrollService;
-    private final PayrollMapper payrollMapper;
+    private final PayrollService service;
+    private final PayrollMapper mapper;
 
     @PreAuthorize("hasAnyRole('PAYROLL', 'SUPERUSER')")
     @PostMapping
     @Operation(summary = "Create payroll", description = "Generate payroll for a single employee. Requires PAYROLL role.")
     public ResponseEntity<ApiResponse<PayrollDto>> createPayroll(@RequestBody CreatePayrollRequest request) {
-        Payroll entity = payrollService.createPayroll(
+        Payroll entity = service.createPayroll(
                 request.getEmployeeId(),
                 request.getPeriodStartDate(),
                 request.getPeriodEndDate(),
                 request.getPayDate());
-        PayrollDto dto = payrollMapper.toDto(entity);
+        PayrollDto dto = mapper.toDto(entity);
 
         return ResponseFactory.created("Payroll created successfully", dto);
     }
@@ -50,9 +50,9 @@ public class PayrollController {
             @Parameter(description = "Filter by year and month") @RequestParam(required = false) YearMonth period
             ) {
 
-        Page<Payroll> page = payrollService.getAllPayroll(pageNo, limit, period);
+        Page<Payroll> page = service.getAllPayroll(pageNo, limit, period);
 
-        List<PayrollDto> payroll = page.getContent().stream().map(payrollMapper::toDto).toList();
+        List<PayrollDto> payroll = page.getContent().stream().map(mapper::toDto).toList();
 
         return ResponseFactory.ok("Payroll retrieved successfully", payroll, PaginationMeta.of(page));
     }
@@ -64,9 +64,9 @@ public class PayrollController {
             @Parameter(description = "Number of items per page (1-100)") @RequestParam(defaultValue = "10") @Min(1) @Max(100) int limit,
             @Parameter(description = "Filter by year and month") @RequestParam(required = false) YearMonth period
     ) {
-        Page<Payroll> page = payrollService.getAllEmployeePayroll(pageNo, limit, period);
+        Page<Payroll> page = service.getAllEmployeePayroll(pageNo, limit, period);
 
-        List<PayrollDto> payroll = page.getContent().stream().map(payrollMapper::toDto).toList();
+        List<PayrollDto> payroll = page.getContent().stream().map(mapper::toDto).toList();
 
         return ResponseFactory.ok("Payroll retrieved successfully", payroll, PaginationMeta.of(page));
     }
@@ -74,7 +74,7 @@ public class PayrollController {
     @GetMapping("/{id}")
     @Operation(summary = "Get payroll by ID", description = "Retrieve a specific payroll record by its ID")
     public ResponseEntity<ApiResponse<PayrollDto>> getPayrollById(@Parameter(description = "Payroll ID") @PathVariable("id") UUID id) {
-        PayrollDto dto = payrollMapper.toDto(payrollService.getPayrollById(id));
+        PayrollDto dto = mapper.toDto(service.getPayrollById(id));
         return ResponseFactory.ok("Payroll retrieved successfully", dto);
     }
 }

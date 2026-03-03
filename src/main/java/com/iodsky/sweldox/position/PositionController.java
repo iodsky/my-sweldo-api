@@ -24,8 +24,8 @@ import java.util.List;
 @Tag(name = "Positions", description = "Position management endpoints")
 public class PositionController {
 
-    private final PositionService positionService;
-    private final PositionMapper positionMapper;
+    private final PositionService service;
+    private final PositionMapper mapper;
 
     @PostMapping
     @Operation(
@@ -34,7 +34,7 @@ public class PositionController {
             operationId = "createPosition"
     )
     public ResponseEntity<ApiResponse<PositionDto>> createPosition(@Valid @RequestBody PositionRequest request) {
-        PositionDto position = positionMapper.toDto(positionService.createPosition(request));
+        PositionDto position = mapper.toDto(service.createPosition(request));
         return ResponseFactory.created("Position created successfully", position);
     }
 
@@ -44,10 +44,10 @@ public class PositionController {
             @Parameter(description = "Page number (0-indexed)") @RequestParam(defaultValue = "0") @Min(0) int pageNo,
             @Parameter(description = "Number of items per page (1-100)") @RequestParam(defaultValue = "10") @Min(1) @Max(100) int limit
     ) {
-        Page<Position> page = positionService.getAllPositions(pageNo, limit);
+        Page<Position> page = service.getAllPositions(pageNo, limit);
 
         List<PositionDto> positions = page.getContent().stream()
-                .map(positionMapper::toDto)
+                .map(mapper::toDto)
                 .toList();
 
         return ResponseFactory.ok(
@@ -62,7 +62,7 @@ public class PositionController {
     public ResponseEntity<ApiResponse<PositionDto>> getPositionById(
             @Parameter(description = "Position ID") @PathVariable String id
     ) {
-        PositionDto position = positionMapper.toDto(positionService.getPositionById(id));
+        PositionDto position = mapper.toDto(service.getPositionById(id));
         return ResponseFactory.ok("Position retrieved successfully", position);
     }
 
@@ -72,7 +72,7 @@ public class PositionController {
             @Parameter(description = "Position ID") @PathVariable String id,
             @Valid @RequestBody PositionUpdateRequest request
     ) {
-        PositionDto position = positionMapper.toDto(positionService.updatePosition(id, request));
+        PositionDto position = mapper.toDto(service.updatePosition(id, request));
         return ResponseFactory.ok("Position updated successfully", position);
     }
 
@@ -81,7 +81,7 @@ public class PositionController {
     public ResponseEntity<ApiResponse<DeleteResponse>> deletePosition(
             @Parameter(description = "Position ID") @PathVariable String id
     ) {
-        positionService.deletePosition(id);
+        service.deletePosition(id);
         DeleteResponse res = new DeleteResponse("Position", id);
         return ResponseFactory.ok("Position deleted successfully", res);
     }
