@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SssRateTableService {
 
-    private final SssRateTableRepository sssRateTableRepository;
+    private final SssRateTableRepository repositiry;
 
     @Transactional
     public SssRateTable createSssRateTable(SssRateTableRequest request) {
@@ -41,14 +41,14 @@ public class SssRateTableService {
                 .effectiveDate(request.getEffectiveDate())
                 .build();
 
-        return sssRateTableRepository.save(rateTable);
+        return repositiry.save(rateTable);
     }
 
     public Page<SssRateTable> getAllSssRateTables(
             int page, int limit, LocalDate effectiveDate) {
         Pageable pageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.DESC, "effectiveDate"));
 
-        return sssRateTableRepository.findAll((root, query, cb) -> {
+        return repositiry.findAll((root, query, cb) -> {
             var predicates = cb.conjunction();
 
             predicates = cb.and(predicates, cb.isNull(root.get("deletedAt")));
@@ -62,7 +62,7 @@ public class SssRateTableService {
     }
 
     public SssRateTable getSssRateTableById(UUID id) {
-        return sssRateTableRepository.findById(id)
+        return repositiry.findById(id)
                 .filter(config -> config.getDeletedAt() == null)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
@@ -71,7 +71,7 @@ public class SssRateTableService {
     }
 
     public SssRateTable getSssRateTableBySalaryAndDate(BigDecimal salary, LocalDate date) {
-        SssRateTable config = sssRateTableRepository.findLatestByEffectiveDate(date)
+        SssRateTable config = repositiry.findLatestByEffectiveDate(date)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "No SSS rate table found for date: " + date
@@ -108,13 +108,13 @@ public class SssRateTableService {
         rateTable.setSalaryBrackets(brackets);
         rateTable.setEffectiveDate(request.getEffectiveDate());
 
-        return sssRateTableRepository.save(rateTable);
+        return repositiry.save(rateTable);
     }
 
     @Transactional
     public void deleteSssRateTable(UUID id) {
         SssRateTable rateTable = getSssRateTableById(id);
         rateTable.setDeletedAt(Instant.now());
-        sssRateTableRepository.save(rateTable);
+        repositiry.save(rateTable);
     }
 }

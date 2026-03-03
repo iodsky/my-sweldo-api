@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
+
 @Service
 @RequiredArgsConstructor
 public class RoleService {
@@ -56,7 +58,8 @@ public class RoleService {
 
         if (repository.isRoleUsedById(role.getId())) throw new ResponseStatusException(HttpStatus.CONFLICT, "Role " + id + " is still used");
 
-        repository.delete(role);
+        role.setDeletedAt(Instant.now());
+        repository.save(role);
     }
 
 }
