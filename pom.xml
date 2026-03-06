@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.iodsky</groupId>
-	<artifactId>my-sweldo-api</artifactId>
+	<artifactId>mysweldo-api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>my-sweldo-api</name>
+	<name>mysweldo-api</name>
 	<description>HRIS RESTful API for employee, attendance, leave, overtime, and payroll management</description>
 	<url/>
 	<licenses>

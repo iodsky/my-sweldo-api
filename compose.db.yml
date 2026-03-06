@@ -1,6 +1,6 @@
 services:
   postgresql:
-    container_name: my-sweldo-db
+    container_name: mysweldo-db
     image: "postgres:latest"
     restart: unless-stopped
     environment:
@@ -10,7 +10,7 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - my-sweldo-postgres-data:/var/lib/postgresql/data
+      - mysweldo-postgres-data:/var/lib/postgresql/data
 
 volumes:
-  my-sweldo-postgres-data:
+  mysweldo-postgres-data:
