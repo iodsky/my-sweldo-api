@@ -22,9 +22,9 @@ CREATE TABLE IF NOT EXISTS position (
     CONSTRAINT fk_position_department FOREIGN KEY (department_id) REFERENCES department(id)
 );
 
-CREATE TABLE IF NOT EXISTS deduction_type (
+CREATE TABLE IF NOT EXISTS deduction (
     code VARCHAR(255) PRIMARY KEY,
-    type VARCHAR(255),
+    description VARCHAR(255),
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP,
     deleted_at TIMESTAMP,
@@ -171,9 +171,9 @@ ALTER TABLE users
     ADD CONSTRAINT fk_users_last_modified_by FOREIGN KEY (last_modified_by) REFERENCES users(id);
 
 -- Add foreign keys for created_by and last_modified_by in deduction_type
-ALTER TABLE deduction_type
-    ADD CONSTRAINT fk_deduction_type_created_by FOREIGN KEY (created_by) REFERENCES users(id),
-    ADD CONSTRAINT fk_deduction_type_last_modified_by FOREIGN KEY (last_modified_by) REFERENCES users(id);
+ALTER TABLE deduction
+    ADD CONSTRAINT fk_deduction_created_by FOREIGN KEY (created_by) REFERENCES users(id),
+    ADD CONSTRAINT fk_deduction_last_modified_by FOREIGN KEY (last_modified_by) REFERENCES users(id);
 
 -- Add foreign keys for created_by and last_modified_by in benefit
 ALTER TABLE benefit
@@ -264,7 +264,7 @@ CREATE TABLE IF NOT EXISTS payroll (
     CONSTRAINT uk_payroll_employee_period UNIQUE (employee_id, period_start_date, period_end_date)
 );
 
-CREATE TABLE IF NOT EXISTS deduction (
+CREATE TABLE IF NOT EXISTS payroll_deduction (
     id UUID PRIMARY KEY,
     payroll_id UUID NOT NULL,
     deduction_code VARCHAR(255) NOT NULL,
@@ -275,10 +275,10 @@ CREATE TABLE IF NOT EXISTS deduction (
     created_by UUID,
     last_modified_by UUID,
     version BIGINT,
-    CONSTRAINT fk_deduction_payroll FOREIGN KEY (payroll_id) REFERENCES payroll(id),
-    CONSTRAINT fk_deduction_type FOREIGN KEY (deduction_code) REFERENCES deduction_type(code),
-    CONSTRAINT fk_deduction_created_by FOREIGN KEY (created_by) REFERENCES users(id),
-    CONSTRAINT fk_deduction_last_modified_by FOREIGN KEY (last_modified_by) REFERENCES users(id)
+    CONSTRAINT fk_payroll_deduction_payroll FOREIGN KEY (payroll_id) REFERENCES payroll(id),
+    CONSTRAINT fk_payroll_deduction_deduction FOREIGN KEY (deduction_code) REFERENCES deduction (code),
+    CONSTRAINT fk_payroll_deduction_created_by FOREIGN KEY (created_by) REFERENCES users(id),
+    CONSTRAINT fk_payroll_deduction_last_modified_by FOREIGN KEY (last_modified_by) REFERENCES users(id)
 );
 
 CREATE TABLE IF NOT EXISTS payroll_benefit (
@@ -508,7 +508,7 @@ INSERT INTO position (id, title, department_id, created_at, updated_at, version)
     ('SCL', 'Supply Chain and Logistics', 'LOG', NOW(), NOW(), 0),
     ('SLMKT', 'Sales and Marketing', 'SAL', NOW(), NOW(), 0);
 
-INSERT INTO deduction_type (code, type, created_at, updated_at, version) VALUES
+INSERT INTO deduction (code, description, created_at, updated_at, version) VALUES
     ('SSS', 'Social Security System', NOW(), NOW(), 0),
     ('PHIC', 'PhilHealth', NOW(), NOW(), 0),
     ('HDMF', 'Pag-IBIG', NOW(), NOW(), 0),
