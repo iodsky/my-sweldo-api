@@ -2,7 +2,7 @@ package com.iodsky.mysweldo.payroll.core;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.iodsky.mysweldo.common.BaseModel;
-import com.iodsky.mysweldo.benefit.BenefitType;
+import com.iodsky.mysweldo.benefit.Benefit;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
-@Table(name = "payroll_benefits")
+@Table(name = "payroll_benefit")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -28,8 +28,8 @@ public class PayrollBenefit extends BaseModel {
     private Payroll payroll;
 
     @ManyToOne
-    @JoinColumn(name = "benefit_type_id")
-    private BenefitType benefitType;
+    @JoinColumn(name = "benefit_code")
+    private Benefit benefit;
 
     private BigDecimal amount;
 
