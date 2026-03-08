@@ -1,11 +1,11 @@
 package com.iodsky.mysweldo.employee;
 
+import com.iodsky.mysweldo.benefit.BenefitService;
 import com.iodsky.mysweldo.department.Department;
 import com.iodsky.mysweldo.department.DepartmentService;
 import com.iodsky.mysweldo.position.Position;
 import com.iodsky.mysweldo.position.PositionService;
-import com.iodsky.mysweldo.benefit.Benefit;
-import com.iodsky.mysweldo.benefit.BenefitService;
+import com.iodsky.mysweldo.benefit.EmployeeBenefit;
 import com.iodsky.mysweldo.security.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,6 +28,7 @@ public class EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final DepartmentService departmentService;
     private final PositionService positionService;
+//    private final EmployeeBenefitService benefitService;
     private final BenefitService benefitService;
 
     @Transactional
@@ -46,10 +47,10 @@ public class EmployeeService {
             employee.setDepartment(department);
             employee.setPosition(position);
 
-            List<Benefit> benefits = employee.getBenefits();
+            List<EmployeeBenefit> benefits = employee.getBenefits();
 
             benefits.forEach(b -> {
-                b.setBenefitType(benefitService.getBenefitTypeById(b.getBenefitType().getId()));
+                b.setBenefit(benefitService.getBenefitByCode(b.getBenefit().getCode()));
             });
 
             return employeeRepository.save(employee);

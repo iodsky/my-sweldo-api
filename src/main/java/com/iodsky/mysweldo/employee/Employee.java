@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.iodsky.mysweldo.common.BaseModel;
 import com.iodsky.mysweldo.department.Department;
 import com.iodsky.mysweldo.position.Position;
-import com.iodsky.mysweldo.benefit.Benefit;
+import com.iodsky.mysweldo.benefit.EmployeeBenefit;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLRestriction;
@@ -83,6 +83,6 @@ public class Employee extends BaseModel {
 
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JsonIgnore
-    private List<Benefit> benefits;
+    private List<EmployeeBenefit> benefits;
 
 }

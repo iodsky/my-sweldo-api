@@ -1,8 +1,8 @@
 package com.iodsky.mysweldo.employee;
 
-import com.iodsky.mysweldo.benefit.Benefit;
 import com.iodsky.mysweldo.benefit.BenefitService;
-import com.iodsky.mysweldo.benefit.BenefitType;
+import com.iodsky.mysweldo.benefit.EmployeeBenefit;
+import com.iodsky.mysweldo.benefit.Benefit;
 import com.iodsky.mysweldo.department.Department;
 import com.iodsky.mysweldo.department.DepartmentService;
 import com.iodsky.mysweldo.position.Position;
@@ -55,7 +55,7 @@ class EmployeeServiceTest {
     private PositionService positionService;
 
     @Mock
-    private BenefitService benefitService;
+        private BenefitService benefitService;
 
     private Department department;
     private Position position;
@@ -127,9 +127,9 @@ class EmployeeServiceTest {
             when(request.getDepartmentId()).thenReturn("DEPT-001");
             when(request.getPositionId()).thenReturn("POS-001");
 
-            BenefitType benefitType = BenefitType.builder().id("BT-001").build();
-            Benefit benefit = new Benefit();
-            benefit.setBenefitType(benefitType);
+            Benefit benefitType = Benefit.builder().code("BT-001").build();
+            EmployeeBenefit benefit = new EmployeeBenefit();
+            benefit.setBenefit(benefitType);
 
             Employee mappedEmployee = Employee.builder().id(1L).build();
             mappedEmployee.setBenefits(new ArrayList<>(List.of(benefit)));
@@ -137,13 +137,13 @@ class EmployeeServiceTest {
             when(employeeMapper.toEntity(request)).thenReturn(mappedEmployee);
             when(departmentService.getDepartmentById("DEPT-001")).thenReturn(department);
             when(positionService.getPositionById("POS-001")).thenReturn(position);
-            when(benefitService.getBenefitTypeById("BT-001")).thenReturn(benefitType);
+            when(benefitService.getBenefitByCode("BT-001")).thenReturn(benefitType);
             when(employeeRepository.save(mappedEmployee)).thenReturn(savedEmployee);
 
             Employee result = service.createEmployee(request);
 
             assertThat(result).isNotNull();
-            verify(benefitService).getBenefitTypeById("BT-001");
+            verify(benefitService).getBenefitByCode("BT-001");
         }
 
         @Test
@@ -217,9 +217,9 @@ class EmployeeServiceTest {
             when(request.getDepartmentId()).thenReturn("DEPT-001");
             when(request.getPositionId()).thenReturn("POS-001");
 
-            BenefitType unknownType = BenefitType.builder().id("BT-MISSING").build();
-            Benefit benefit = new Benefit();
-            benefit.setBenefitType(unknownType);
+            Benefit unknownType = Benefit.builder().code("BT-MISSING").build();
+            EmployeeBenefit benefit = new EmployeeBenefit();
+            benefit.setBenefit(unknownType);
 
             Employee mappedEmployee = Employee.builder().id(1L).build();
             mappedEmployee.setBenefits(new ArrayList<>(List.of(benefit)));
@@ -227,7 +227,7 @@ class EmployeeServiceTest {
             when(employeeMapper.toEntity(request)).thenReturn(mappedEmployee);
             when(departmentService.getDepartmentById("DEPT-001")).thenReturn(department);
             when(positionService.getPositionById("POS-001")).thenReturn(position);
-            when(benefitService.getBenefitTypeById("BT-MISSING"))
+            when(benefitService.getBenefitByCode("BT-MISSING"))
                     .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Benefit type not found"));
 
             // Act & Assert

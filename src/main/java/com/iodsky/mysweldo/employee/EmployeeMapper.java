@@ -1,10 +1,10 @@
 package com.iodsky.mysweldo.employee;
 
 
-import com.iodsky.mysweldo.benefit.Benefit;
-import com.iodsky.mysweldo.benefit.BenefitDto;
-import com.iodsky.mysweldo.benefit.BenefitMapper;
-import com.iodsky.mysweldo.benefit.BenefitRequest;
+import com.iodsky.mysweldo.benefit.EmployeeBenefit;
+import com.iodsky.mysweldo.benefit.EmployeeBenefitDto;
+import com.iodsky.mysweldo.benefit.EmployeeBenefitMapper;
+import com.iodsky.mysweldo.benefit.EmployeeBenefitRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -16,17 +16,17 @@ import java.util.List;
 @RequiredArgsConstructor
 public class EmployeeMapper  {
 
-    private final BenefitMapper benefitMapper;
+    private final EmployeeBenefitMapper benefitMapper;
 
     public EmployeeDto toDto(Employee employee) {
 
         Employee supervisor = employee.getSupervisor();
         String supervisorName = supervisor != null ? supervisor.getFirstName() + " " + supervisor.getLastName() : "N/A";
 
-        List<BenefitDto> benefits = employee.getBenefits()
+        List<EmployeeBenefitDto> benefits = employee.getBenefits()
                 .stream()
-                .map(b -> BenefitDto.builder()
-                        .benefit(b.getBenefitType().getId().toLowerCase())
+                .map(b -> EmployeeBenefitDto.builder()
+                        .benefit(b.getBenefit().getCode().toLowerCase())
                         .amount(b.getAmount())
                         .build())
                 .toList();
@@ -84,11 +84,11 @@ public class EmployeeMapper  {
         employee.setSemiMonthlyRate(semiMonthlyRate);
         employee.setHourlyRate(hourlyRate);
 
-        List<Benefit> benefits = request.getBenefits()
+        List<EmployeeBenefit> benefits = request.getBenefits()
                 .stream()
                 .map( b -> benefitMapper.toEntity(
-                        BenefitRequest.builder()
-                                .benefitTypeId(b.getBenefitTypeId())
+                        EmployeeBenefitRequest.builder()
+                                .benefitCode(b.getBenefitCode())
                                 .amount(b.getAmount())
                                 .build()
                 )).
@@ -136,11 +136,11 @@ public class EmployeeMapper  {
         existing.setSemiMonthlyRate(semiMonthlyRate);
         existing.setHourlyRate(hourlyRate);
 
-        List<Benefit> benefits = request.getBenefits()
+        List<EmployeeBenefit> benefits = request.getBenefits()
                 .stream()
                 .map( b -> benefitMapper.toEntity(
-                        BenefitRequest.builder()
-                                .benefitTypeId(b.getBenefitTypeId())
+                        EmployeeBenefitRequest.builder()
+                                .benefitCode(b.getBenefitCode())
                                 .amount(b.getAmount())
                                 .build()
                 )).

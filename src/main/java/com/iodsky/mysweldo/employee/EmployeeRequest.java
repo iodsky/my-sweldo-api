@@ -1,6 +1,6 @@
 package com.iodsky.mysweldo.employee;
 
-import com.iodsky.mysweldo.benefit.BenefitRequest;
+import com.iodsky.mysweldo.benefit.EmployeeBenefitRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Data;
@@ -58,6 +58,6 @@ public class EmployeeRequest {
     private BigDecimal basicSalary;
 
     @NotNull
-    private List<BenefitRequest> benefits;
+    private List<EmployeeBenefitRequest> benefits;
 
 }

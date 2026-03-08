@@ -1,6 +1,6 @@
 package com.iodsky.mysweldo.employee;
 
-import com.iodsky.mysweldo.benefit.BenefitDto;
+import com.iodsky.mysweldo.benefit.EmployeeBenefitDto;
 import lombok.Builder;
 import lombok.Data;
 
@@ -32,6 +32,6 @@ public class EmployeeDto {
     private BigDecimal basicSalary;
     private BigDecimal hourlyRate;
     private BigDecimal semiMonthlyRate;
-    private List<BenefitDto> benefits;
+    private List<EmployeeBenefitDto> benefits;
 
 }
