@@ -33,6 +33,20 @@ CREATE TABLE IF NOT EXISTS deduction (
     version BIGINT
 );
 
+CREATE TABLE IF NOT EXISTS contribution (
+    code VARCHAR(255) PRIMARY KEY,
+    description VARCHAR(255),
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    created_by UUID,
+    last_modified_by UUID,
+    version BIGINT,
+    CONSTRAINT fk_contribution_created_by FOREIGN KEY (created_by) REFERENCES users(id),
+    CONSTRAINT fk_contribution_last_modified_by FOREIGN KEY (last_modified_by) REFERENCES users(id),
+    CONSTRAINT uk_contribution_code UNIQUE (code)
+);
+
 CREATE TABLE IF NOT EXISTS benefit (
     code VARCHAR(255) PRIMARY KEY,
     description VARCHAR(255),
@@ -526,6 +540,11 @@ INSERT INTO roles (name, created_at, updated_at, version) VALUES
     ('PAYROLL', NOW(), NOW(), 0),
     ('EMPLOYEE', NOW(), NOW(), 0),
     ('SUPERVISOR', NOW(), NOW(), 0);
+
+INSERT INTO contribution (code, description, created_at, updated_at, version) VALUES
+    ('SSS_ER',  'SSS Employer Share',        NOW(), NOW(), 0),
+    ('PHIC_ER', 'PhilHealth Employer Share',  NOW(), NOW(), 0),
+    ('HDMF_ER', 'Pag-IBIG Employer Share',    NOW(), NOW(), 0);
 
 INSERT INTO employee (id, first_name, last_name, birthday, address, phone_number, supervisor_id, position_id, department_id, status, created_at, updated_at, version) VALUES
     (10000, 'Super', 'User', '1990-01-15', '123 Test Street, Manila, Philippines', '+639171234567', NULL, 'ITOPSYS', 'IT', 'REGULAR', NOW(), NOW(), 0);
