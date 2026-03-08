@@ -33,9 +33,9 @@ CREATE TABLE IF NOT EXISTS deduction_type (
     version BIGINT
 );
 
-CREATE TABLE IF NOT EXISTS benefit_type (
-    id VARCHAR(255) PRIMARY KEY,
-    type VARCHAR(255),
+CREATE TABLE IF NOT EXISTS benefit (
+    code VARCHAR(255) PRIMARY KEY,
+    description VARCHAR(255),
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP,
     deleted_at TIMESTAMP,
@@ -101,10 +101,10 @@ CREATE TABLE IF NOT EXISTS government_id (
     CONSTRAINT fk_government_id_employee FOREIGN KEY (employee_id) REFERENCES employee(id)
 );
 
-CREATE TABLE IF NOT EXISTS benefit (
+CREATE TABLE IF NOT EXISTS employee_benefit (
     id UUID PRIMARY KEY,
     employee_id BIGINT NOT NULL,
-    benefit_type_id VARCHAR(255) NOT NULL,
+    benefit_code VARCHAR(255) NOT NULL,
     amount NUMERIC(19, 2),
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP,
@@ -113,7 +113,7 @@ CREATE TABLE IF NOT EXISTS benefit (
     last_modified_by UUID,
     version BIGINT,
     CONSTRAINT fk_benefit_employee FOREIGN KEY (employee_id) REFERENCES employee(id),
-    CONSTRAINT fk_benefit_type FOREIGN KEY (benefit_type_id) REFERENCES benefit_type(id)
+    CONSTRAINT fk_benefit FOREIGN KEY (benefit_code) REFERENCES benefit(code)
 );
 
 CREATE TABLE IF NOT EXISTS users (
@@ -156,9 +156,9 @@ ALTER TABLE government_id
     ADD CONSTRAINT fk_government_id_last_modified_by FOREIGN KEY (last_modified_by) REFERENCES users(id);
 
 -- Add foreign keys for created_by and last_modified_by in benefit
-ALTER TABLE benefit
-    ADD CONSTRAINT fk_benefit_created_by FOREIGN KEY (created_by) REFERENCES users(id),
-    ADD CONSTRAINT fk_benefit_last_modified_by FOREIGN KEY (last_modified_by) REFERENCES users(id);
+ALTER TABLE employee_benefit
+    ADD CONSTRAINT fk_employee_benefit_created_by FOREIGN KEY (created_by) REFERENCES users(id),
+    ADD CONSTRAINT fk_employee_benefit_last_modified_by FOREIGN KEY (last_modified_by) REFERENCES users(id);
 
 -- Add foreign keys for created_by and last_modified_by in roles
 ALTER TABLE roles
@@ -175,10 +175,10 @@ ALTER TABLE deduction_type
     ADD CONSTRAINT fk_deduction_type_created_by FOREIGN KEY (created_by) REFERENCES users(id),
     ADD CONSTRAINT fk_deduction_type_last_modified_by FOREIGN KEY (last_modified_by) REFERENCES users(id);
 
--- Add foreign keys for created_by and last_modified_by in benefit_type
-ALTER TABLE benefit_type
-    ADD CONSTRAINT fk_benefit_type_created_by FOREIGN KEY (created_by) REFERENCES users(id),
-    ADD CONSTRAINT fk_benefit_type_last_modified_by FOREIGN KEY (last_modified_by) REFERENCES users(id);
+-- Add foreign keys for created_by and last_modified_by in benefit
+ALTER TABLE benefit
+    ADD CONSTRAINT fk_benefit_created_by FOREIGN KEY (created_by) REFERENCES users(id),
+    ADD CONSTRAINT fk_benefit_last_modified_by FOREIGN KEY (last_modified_by) REFERENCES users(id);
 
 CREATE TABLE IF NOT EXISTS attendance (
     id UUID PRIMARY KEY,
@@ -281,10 +281,10 @@ CREATE TABLE IF NOT EXISTS deduction (
     CONSTRAINT fk_deduction_last_modified_by FOREIGN KEY (last_modified_by) REFERENCES users(id)
 );
 
-CREATE TABLE IF NOT EXISTS payroll_benefits (
+CREATE TABLE IF NOT EXISTS payroll_benefit (
     id UUID PRIMARY KEY,
     payroll_id UUID NOT NULL,
-    benefit_type_id VARCHAR(255) NOT NULL,
+    benefit_code VARCHAR(255) NOT NULL,
     amount NUMERIC(19, 2),
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP,
@@ -293,7 +293,7 @@ CREATE TABLE IF NOT EXISTS payroll_benefits (
     last_modified_by UUID,
     version BIGINT,
     CONSTRAINT fk_payroll_benefits_payroll FOREIGN KEY (payroll_id) REFERENCES payroll(id),
-    CONSTRAINT fk_payroll_benefits_type FOREIGN KEY (benefit_type_id) REFERENCES benefit_type(id),
+    CONSTRAINT fk_payroll_benefit FOREIGN KEY (benefit_code) REFERENCES benefit(code),
     CONSTRAINT fk_payroll_benefits_created_by FOREIGN KEY (created_by) REFERENCES users(id),
     CONSTRAINT fk_payroll_benefits_last_modified_by FOREIGN KEY (last_modified_by) REFERENCES users(id)
 );
@@ -466,7 +466,7 @@ CREATE INDEX idx_employee_last_name ON employee(last_name);
 CREATE INDEX idx_employee_supervisor ON employee(supervisor_id);
 CREATE INDEX idx_employee_position ON employee(position_id);
 CREATE INDEX idx_employee_department ON employee(department_id);
-CREATE INDEX idx_benefit_employee ON benefit(employee_id);
+CREATE INDEX idx_benefit_employee ON employee_benefit (employee_id);
 CREATE INDEX idx_attendance_date ON attendance(date);
 CREATE INDEX idx_attendance_employee_date ON attendance(employee_id, date);
 CREATE INDEX idx_leave_request_employee ON leave_request(employee_id);
@@ -514,7 +514,7 @@ INSERT INTO deduction_type (code, type, created_at, updated_at, version) VALUES
     ('HDMF', 'Pag-IBIG', NOW(), NOW(), 0),
     ('TAX', 'Withholding Tax', NOW(), NOW(), 0);
 
-INSERT INTO benefit_type (id, type, created_at, updated_at, version) VALUES
+INSERT INTO benefit (code, description, created_at, updated_at, version)VALUES
     ('MEAL', 'MEAL ALLOWANCE', NOW(), NOW(), 0),
     ('PHONE', 'PHONE ALLOWANCE', NOW(), NOW(), 0),
     ('CLOTHING', 'CLOTHING ALLOWANCE', NOW(), NOW(), 0);
