@@ -3,7 +3,7 @@ package com.iodsky.mysweldo.payroll.core;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.iodsky.mysweldo.common.BaseModel;
 import com.iodsky.mysweldo.employee.Employee;
-import com.iodsky.mysweldo.deduction.Deduction;
+import com.iodsky.mysweldo.deduction.PayrollDeduction;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLRestriction;
@@ -39,7 +39,7 @@ public class Payroll extends BaseModel {
 
     @OneToMany(mappedBy = "payroll", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<Deduction> deductions;
+    private List<PayrollDeduction> deductions;
 
     @OneToMany(mappedBy = "payroll", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnore

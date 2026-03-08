@@ -1,6 +1,6 @@
 package com.iodsky.mysweldo.payroll.core;
 
-import com.iodsky.mysweldo.deduction.Deduction;
+import com.iodsky.mysweldo.deduction.PayrollDeduction;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -46,7 +46,7 @@ public class PayrollMapper {
     private BigDecimal getDeductionAmount(Payroll payroll, String type) {
         return payroll.getDeductions().stream()
                 .filter(d -> d.getDeductionType().getCode().equalsIgnoreCase(type))
-                .map(Deduction::getAmount)
+                .map(PayrollDeduction::getAmount)
                 .findFirst()
                 .orElse(BigDecimal.ZERO);
     }

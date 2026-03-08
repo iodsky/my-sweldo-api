@@ -11,14 +11,14 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
-@Table(name = "deduction")
+@Table(name = "payroll_deduction")
 @SQLRestriction("deleted_at IS NULL")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Deduction extends BaseModel {
+public class PayrollDeduction extends BaseModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
