@@ -4,7 +4,7 @@ import com.iodsky.mysweldo.attendance.Attendance;
 import com.iodsky.mysweldo.attendance.AttendanceService;
 import com.iodsky.mysweldo.employee.Employee;
 import com.iodsky.mysweldo.employee.EmployeeService;
-import com.iodsky.mysweldo.benefit.Benefit;
+import com.iodsky.mysweldo.benefit.EmployeeBenefit;
 import com.iodsky.mysweldo.overtime.OvertimeRequestService;
 import com.iodsky.mysweldo.payroll.deduction.Deduction;
 import com.iodsky.mysweldo.payroll.deduction.DeductionTypeRepository;
@@ -44,7 +44,7 @@ public class PayrollBuilder {
     private PayrollContext buildContext(Long employeeId, LocalDate periodStart, LocalDate periodEnd, LocalDate payDate) {
         Employee employee = employeeService.getEmployeeById(employeeId);
         List<Attendance> attendances = attendanceService.getEmployeeAttendances(employeeId, periodStart, periodEnd);
-        List<Benefit> benefits = employee.getBenefits();
+        List<EmployeeBenefit> benefits = employee.getBenefits();
 
         BigDecimal basicSalary = employee.getBasicSalary();
         BigDecimal hourlyRate = employee.getHourlyRate();
@@ -79,7 +79,7 @@ public class PayrollBuilder {
         return PayrollContext.builder()
                 .employee(employee)
                 .attendances(attendances)
-                .benefits(benefits)
+                .employeeBenefits(benefits)
                 .hourlyRate(hourlyRate)
                 .basicSalary(basicSalary)
                 .totalHours(totalHours)
@@ -102,7 +102,7 @@ public class PayrollBuilder {
     private PayrollContext buildContext(Long employeeId, LocalDate periodStart, LocalDate periodEnd, LocalDate payDate, PayrollConfiguration config) {
         Employee employee = employeeService.getEmployeeById(employeeId);
         List<Attendance> attendances = attendanceService.getEmployeeAttendances(employeeId, periodStart, periodEnd);
-        List<Benefit> benefits = employee.getBenefits();
+        List<EmployeeBenefit> benefits = employee.getBenefits();
 
         BigDecimal basicSalary = employee.getBasicSalary();
         BigDecimal hourlyRate = employee.getHourlyRate();
@@ -137,7 +137,7 @@ public class PayrollBuilder {
         return PayrollContext.builder()
                 .employee(employee)
                 .attendances(attendances)
-                .benefits(benefits)
+                .employeeBenefits(benefits)
                 .hourlyRate(hourlyRate)
                 .basicSalary(basicSalary)
                 .totalHours(totalHours)
@@ -164,7 +164,7 @@ public class PayrollBuilder {
         List<Deduction> deductions = buildDeductions(context);
 
         // Build payroll benefits
-        List<PayrollBenefit> payrollBenefits = buildPayrollBenefits(context.getBenefits());
+        List<PayrollBenefit> payrollBenefits = buildPayrollBenefits(context.getEmployeeBenefits());
 
         // Determine period dates from attendances
         LocalDate periodStartDate = context.getAttendances().isEmpty() ? null :
@@ -222,11 +222,11 @@ public class PayrollBuilder {
         return deductions;
     }
 
-    private List<PayrollBenefit> buildPayrollBenefits(List<Benefit> benefits) {
-        return benefits.stream()
-                .map(benefit -> PayrollBenefit.builder()
-                        .benefitType(benefit.getBenefitType())
-                        .amount(benefit.getAmount())
+    private List<PayrollBenefit> buildPayrollBenefits(List<EmployeeBenefit> employeeBenefits) {
+        return employeeBenefits.stream()
+                .map(employeeBenefit -> PayrollBenefit.builder()
+                        .benefit(employeeBenefit.getBenefit())
+                        .amount(employeeBenefit.getAmount())
                         .build())
                 .toList();
     }
