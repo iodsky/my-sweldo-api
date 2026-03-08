@@ -2,7 +2,7 @@ package com.iodsky.mysweldo.payroll.core;
 
 import com.iodsky.mysweldo.attendance.Attendance;
 import com.iodsky.mysweldo.employee.Employee;
-import com.iodsky.mysweldo.benefit.Benefit;
+import com.iodsky.mysweldo.benefit.EmployeeBenefit;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -14,7 +14,7 @@ import java.util.List;
 public class PayrollContext {
     private Employee employee;
     private List<Attendance> attendances;
-    private List<Benefit> benefits;
+    private List<EmployeeBenefit> employeeBenefits;
 
     private BigDecimal hourlyRate;
     private BigDecimal basicSalary;
