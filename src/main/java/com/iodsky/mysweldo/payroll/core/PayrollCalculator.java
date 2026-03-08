@@ -1,6 +1,6 @@
 package com.iodsky.mysweldo.payroll.core;
 
-import com.iodsky.mysweldo.benefit.Benefit;
+import com.iodsky.mysweldo.benefit.EmployeeBenefit;
 import com.iodsky.mysweldo.payroll.contribution.pagIbig.PagibigRateTable;
 import com.iodsky.mysweldo.payroll.contribution.pagIbig.PagibigRateTableRepository;
 import com.iodsky.mysweldo.payroll.contribution.philhealth.PhilhealthRateTable;
@@ -85,9 +85,9 @@ public class PayrollCalculator {
         return regularPay.add(overtimePay).setScale(2, RoundingMode.HALF_UP);
     }
 
-    public BigDecimal calculateTotalBenefits(List<Benefit> benefits) {
-        return benefits.stream()
-                .map(Benefit::getAmount)
+    public BigDecimal calculateTotalBenefits(List<EmployeeBenefit> employeeBenefits) {
+        return employeeBenefits.stream()
+                .map(EmployeeBenefit::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
