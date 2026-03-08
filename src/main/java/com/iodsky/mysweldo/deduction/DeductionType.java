@@ -1,4 +1,4 @@
-package com.iodsky.mysweldo.payroll.deduction;
+package com.iodsky.mysweldo.deduction;
 
 import com.iodsky.mysweldo.common.BaseModel;
 import jakarta.persistence.Entity;

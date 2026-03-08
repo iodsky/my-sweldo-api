@@ -6,8 +6,8 @@ import com.iodsky.mysweldo.employee.Employee;
 import com.iodsky.mysweldo.employee.EmployeeService;
 import com.iodsky.mysweldo.benefit.EmployeeBenefit;
 import com.iodsky.mysweldo.overtime.OvertimeRequestService;
-import com.iodsky.mysweldo.payroll.deduction.Deduction;
-import com.iodsky.mysweldo.payroll.deduction.DeductionTypeRepository;
+import com.iodsky.mysweldo.deduction.Deduction;
+import com.iodsky.mysweldo.deduction.DeductionTypeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

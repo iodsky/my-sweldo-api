@@ -3,7 +3,7 @@ package com.iodsky.mysweldo.payroll.core;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.iodsky.mysweldo.common.BaseModel;
 import com.iodsky.mysweldo.employee.Employee;
-import com.iodsky.mysweldo.payroll.deduction.Deduction;
+import com.iodsky.mysweldo.deduction.Deduction;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLRestriction;

@@ -1,6 +1,6 @@
 package com.iodsky.mysweldo.payroll.core;
 
-import com.iodsky.mysweldo.payroll.deduction.Deduction;
+import com.iodsky.mysweldo.deduction.Deduction;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;

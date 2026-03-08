@@ -1,4 +1,4 @@
-package com.iodsky.mysweldo.payroll.deduction;
+package com.iodsky.mysweldo.deduction;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.iodsky.mysweldo.common.BaseModel;
