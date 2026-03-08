@@ -1,20 +1,23 @@
 package com.iodsky.mysweldo.benefit;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-
-import java.math.BigDecimal;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class BenefitRequest {
 
-    @NotNull(message = "Benefit type id is requried")
-    private String benefitTypeId;
+    @NotBlank(message = "Code is required")
+    @Size(max = 50, message = "Code must not exceed 50 characters")
+    private String code;
 
-    @NotNull(message = "Amount is required")
-    @Min(100)
-    private BigDecimal amount;
+    @NotBlank(message = "Description is required")
+    @Size(max = 100, message = "Type must not exceed 100 characters")
+    private String description;
 }

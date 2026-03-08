@@ -1,14 +1,11 @@
 package com.iodsky.mysweldo.benefit;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.iodsky.mysweldo.common.BaseModel;
-import com.iodsky.mysweldo.employee.Employee;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.*;
 import org.hibernate.annotations.SQLRestriction;
-
-import java.math.BigDecimal;
-import java.util.UUID;
 
 @Entity
 @Table(name = "benefit")
@@ -21,19 +18,7 @@ import java.util.UUID;
 public class Benefit extends BaseModel {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
-
-    @ManyToOne
-    @JoinColumn(name = "employee_id")
-    @JsonIgnore
-    private Employee employee;
-
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "benefit_type_id")
-    @JsonIgnore
-    private BenefitType benefitType;
-
-    private BigDecimal amount;
+    private String code;
+    private String description;
 
 }

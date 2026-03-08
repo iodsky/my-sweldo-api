@@ -5,26 +5,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class BenefitMapper {
 
-    public BenefitDto toDto(Benefit benefit) {
-        if (benefit == null) {
+    public BenefitDto toDto(Benefit entity) {
+        if (entity == null) {
             return null;
         }
 
         return BenefitDto.builder()
-                .benefit(benefit.getBenefitType().getType())
-                .amount(benefit.getAmount())
+                .code(entity.getCode())
+                .description(entity.getDescription())
+                .createdAt(entity.getCreatedAt())
+                .updatedAt(entity.getUpdatedAt())
                 .build();
     }
-
-    public Benefit toEntity(BenefitRequest request) {
-        if (request == null) {
-            return  null;
-        }
-
-        return Benefit.builder()
-                .benefitType(BenefitType.builder().id(request.getBenefitTypeId()).build())
-                .amount(request.getAmount())
-                .build();
-    }
-
 }
