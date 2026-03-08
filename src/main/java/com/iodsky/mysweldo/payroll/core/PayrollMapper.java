@@ -45,7 +45,7 @@ public class PayrollMapper {
 
     private BigDecimal getDeductionAmount(Payroll payroll, String type) {
         return payroll.getDeductions().stream()
-                .filter(d -> d.getDeductionType().getCode().equalsIgnoreCase(type))
+                .filter(d -> d.getDeduction().getCode().equalsIgnoreCase(type))
                 .map(PayrollDeduction::getAmount)
                 .findFirst()
                 .orElse(BigDecimal.ZERO);

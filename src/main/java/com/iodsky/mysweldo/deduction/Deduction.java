@@ -7,14 +7,14 @@ import jakarta.persistence.Table;
 import lombok.*;
 
 @Entity
-@Table(name = "deduction_type")
+@Table(name = "deduction")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class DeductionType extends BaseModel {
+public class Deduction extends BaseModel {
     @Id
     private String code;
-    private String type;
+    private String description;
 }

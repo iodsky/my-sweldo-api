@@ -31,7 +31,7 @@ public class PayrollDeduction extends BaseModel {
 
     @ManyToOne
     @JoinColumn(name = "deduction_code")
-    private DeductionType deductionType;
+    private Deduction deduction;
 
     private BigDecimal amount;
 
