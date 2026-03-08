@@ -6,10 +6,10 @@ import com.iodsky.mysweldo.department.Department;
 import com.iodsky.mysweldo.department.DepartmentRepository;
 import com.iodsky.mysweldo.position.Position;
 import com.iodsky.mysweldo.position.PositionRepository;
-import com.iodsky.mysweldo.benefit.Benefit;
+import com.iodsky.mysweldo.benefit.EmployeeBenefit;
 
-import com.iodsky.mysweldo.benefit.BenefitType;
-import com.iodsky.mysweldo.benefit.BenefitTypeRepository;
+import com.iodsky.mysweldo.benefit.Benefit;
+import com.iodsky.mysweldo.benefit.BenefitRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemProcessor;
@@ -29,13 +29,13 @@ public class EmployeeImportProcessor implements ItemProcessor<EmployeeImportReco
 
     private final PositionRepository positionRepository;
     private final DepartmentRepository departmentRepository;
-    private final BenefitTypeRepository benefitTypeRepository;
+    private final BenefitRepository benefitRepository;
     private final EmployeeRepository employeeRepository;
 
     // Cache for reference data to avoid repeated database queries
     private Map<String, Position> positionCache;
     private Map<String, Department> departmentCache;
-    private Map<String, BenefitType> benefitTypeCache;
+    private Map<String, Benefit> benefitCache;
     private Map<Long, Employee> supervisorCache;
 
     @Override
@@ -104,7 +104,7 @@ public class EmployeeImportProcessor implements ItemProcessor<EmployeeImportReco
 
 
     private void validateEmployeeBenefits(EmployeeImportRecord item, Employee entity) {
-        List<Benefit> benefits = new ArrayList<>();
+        List<EmployeeBenefit> benefits = new ArrayList<>();
 
         if (item.getMealAllowance() != null && !item.getMealAllowance().isEmpty()) {
             addBenefit(benefits, entity, "MEAL", item.getMealAllowance(), item);
@@ -146,12 +146,12 @@ public class EmployeeImportProcessor implements ItemProcessor<EmployeeImportReco
             log.info("Loaded {} departments into cache", departments.size());
 
             // Load all benefit types into cache
-            benefitTypeCache = new HashMap<>();
-            List<BenefitType> benefitTypes = benefitTypeRepository.findAll();
-            for (BenefitType benefitType : benefitTypes) {
-                benefitTypeCache.put(benefitType.getId().toUpperCase(), benefitType);
+            benefitCache = new HashMap<>();
+            List<Benefit> benefits = benefitRepository.findAll();
+            for (Benefit benefit : benefits) {
+                benefitCache.put(benefit.getCode().toUpperCase(), benefit);
             }
-            log.info("Loaded {} benefit types into cache", benefitTypes.size());
+            log.info("Loaded {} benefit into cache", benefits.size());
 
             // Initialize supervisor cache (will be populated on-demand)
             supervisorCache = new HashMap<>();
@@ -163,12 +163,12 @@ public class EmployeeImportProcessor implements ItemProcessor<EmployeeImportReco
     /**
      * Helper method to add a benefit with validation.
      */
-    private void addBenefit(List<Benefit> benefits, Employee employee, String benefitTypeId,
-                           String amountStr, EmployeeImportRecord csvRow) {
+    private void addBenefit(List<EmployeeBenefit> benefits, Employee employee, String benefitTypeId,
+                            String amountStr, EmployeeImportRecord csvRow) {
         try {
-            BenefitType benefitType = benefitTypeCache.get(benefitTypeId.toUpperCase());
+            Benefit benefit = benefitCache.get(benefitTypeId.toUpperCase());
 
-            if (benefitType == null) {
+            if (benefit == null) {
                 log.warn("Benefit type '{}' not found for employee {} {}. Skipping this benefit.",
                         benefitTypeId, csvRow.getFirstName(), csvRow.getLastName());
                 return;
@@ -176,15 +176,15 @@ public class EmployeeImportProcessor implements ItemProcessor<EmployeeImportReco
 
             BigDecimal amount = new BigDecimal(amountStr);
 
-            Benefit benefit = Benefit.builder()
+            EmployeeBenefit employeeBenefit = EmployeeBenefit.builder()
                     .employee(employee)
-                    .benefitType(benefitType)
+                    .benefit(benefit)
                     .amount(amount)
                     .build();
 
-            benefits.add(benefit);
+            benefits.add(employeeBenefit);
         } catch (NumberFormatException e) {
-            log.warn("Invalid amount '{}' for benefit type '{}' for employee {} {}. Skipping this benefit.",
+            log.warn("Invalid amount '{}' for benefit '{}' for employee {} {}. Skipping this benefit.",
                     amountStr, benefitTypeId, csvRow.getFirstName(), csvRow.getLastName());
         }
     }
@@ -193,12 +193,12 @@ public class EmployeeImportProcessor implements ItemProcessor<EmployeeImportReco
     public void clearCaches() {
         if (positionCache != null) positionCache.clear();
         if (departmentCache != null) departmentCache.clear();
-        if (benefitTypeCache != null) benefitTypeCache.clear();
+        if (benefitCache != null) benefitCache.clear();
         if (supervisorCache != null) supervisorCache.clear();
 
         positionCache = null;
         departmentCache = null;
-        benefitTypeCache = null;
+        benefitCache = null;
         supervisorCache = null;
 
         log.info("Caches cleared");
