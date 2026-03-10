@@ -23,9 +23,9 @@ public class PayrollBenefit extends BaseModel {
     private UUID id;
 
     @ManyToOne
-    @JoinColumn(name = "payroll_id")
+    @JoinColumn(name = "payroll_item_id")
     @JsonIgnore
-    private Payroll payroll;
+    private PayrollItem payroll;
 
     @ManyToOne
     @JoinColumn(name = "benefit_code")

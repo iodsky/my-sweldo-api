@@ -42,8 +42,6 @@ CREATE TABLE IF NOT EXISTS contribution (
     created_by UUID,
     last_modified_by UUID,
     version BIGINT,
-    CONSTRAINT fk_contribution_created_by FOREIGN KEY (created_by) REFERENCES users(id),
-    CONSTRAINT fk_contribution_last_modified_by FOREIGN KEY (last_modified_by) REFERENCES users(id),
     CONSTRAINT uk_contribution_code UNIQUE (code)
 );
 
@@ -194,6 +192,10 @@ ALTER TABLE benefit
     ADD CONSTRAINT fk_benefit_created_by FOREIGN KEY (created_by) REFERENCES users(id),
     ADD CONSTRAINT fk_benefit_last_modified_by FOREIGN KEY (last_modified_by) REFERENCES users(id);
 
+ALTER TABLE contribution
+    ADD CONSTRAINT fk_contribution_created_by FOREIGN KEY (created_by) REFERENCES users(id),
+    ADD CONSTRAINT fk_contribution_last_modified_by FOREIGN KEY (last_modified_by) REFERENCES users(id);
+
 CREATE TABLE IF NOT EXISTS attendance (
     id UUID PRIMARY KEY,
     employee_id BIGINT NOT NULL,
@@ -252,12 +254,32 @@ CREATE TABLE IF NOT EXISTS leave_request (
     CONSTRAINT uk_leave_request_employee_dates UNIQUE (employee_id, start_date, end_date)
 );
 
-CREATE TABLE IF NOT EXISTS payroll (
+CREATE TABLE IF NOT EXISTS payroll_run (
     id UUID PRIMARY KEY,
+    period_start_date DATE  NOT NULL,
+    period_end_date DATE NOT NULL,
+    type VARCHAR(50) NOT NULL DEFAULT 'REGULAR',
+    status VARCHAR(50) NOT NULL DEFAULT 'DRAFT',
+    total_gross_pay NUMERIC(19, 2),
+    total_net_pay NUMERIC(19, 2),
+    total_deductions NUMERIC(19, 2),
+    total_benefits NUMERIC (19, 2),
+    total_employer_cost NUMERIC(19,2),
+    notes VARCHAR(255),
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    created_by UUID,
+    last_modified_by UUID,
+    version BIGINT,
+    CONSTRAINT fk_payroll_run_created_by FOREIGN KEY (created_by) REFERENCES users(id),
+    CONSTRAINT fk_payroll_run_last_modified_by FOREIGN KEY(last_modified_by) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS payroll_item (
+    id UUID PRIMARY KEY,
+    payroll_run_id UUID,
     employee_id BIGINT NOT NULL,
-    period_start_date DATE,
-    period_end_date DATE,
-    pay_date DATE,
     days_worked INTEGER,
     overtime NUMERIC(19, 2),
     monthly_rate NUMERIC(19, 2),
@@ -265,6 +287,7 @@ CREATE TABLE IF NOT EXISTS payroll (
     gross_pay NUMERIC(19, 2),
     total_benefits NUMERIC(19, 2),
     total_deductions NUMERIC(19, 2),
+    total_employer_contributions NUMERIC(19, 2),
     net_pay NUMERIC(19, 2),
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP,
@@ -272,15 +295,34 @@ CREATE TABLE IF NOT EXISTS payroll (
     created_by UUID,
     last_modified_by UUID,
     version BIGINT,
-    CONSTRAINT fk_payroll_employee FOREIGN KEY (employee_id) REFERENCES employee(id),
-    CONSTRAINT fk_payroll_created_by FOREIGN KEY (created_by) REFERENCES users(id),
-    CONSTRAINT fk_payroll_last_modified_by FOREIGN KEY (last_modified_by) REFERENCES users(id),
-    CONSTRAINT uk_payroll_employee_period UNIQUE (employee_id, period_start_date, period_end_date)
+    CONSTRAINT fk_payroll_run_payroll_item FOREIGN KEY (payroll_run_id) REFERENCES payroll_run(id),
+    CONSTRAINT fk_payroll_item_employee FOREIGN KEY (employee_id) REFERENCES employee(id),
+    CONSTRAINT fk_payroll_item_created_by FOREIGN KEY (created_by) REFERENCES users(id),
+    CONSTRAINT fk_payroll_item_last_modified_by FOREIGN KEY (last_modified_by) REFERENCES users(id),
+    CONSTRAINT uk_payroll_run_id_employee_id UNIQUE (payroll_run_id, employee_id)
+);
+
+CREATE TABLE IF NOT EXISTS employer_contribution (
+    id UUID PRIMARY KEY,
+    payroll_item_id UUID NOT NULL,
+    contribution_code VARCHAR(255) NOT NULL,
+    amount NUMERIC(19,2) NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    created_by UUID,
+    last_modified_by UUID,
+    version BIGINT,
+    CONSTRAINT fk_contribution_payroll_item FOREIGN KEY (payroll_item_id) REFERENCES payroll_item(id),
+    CONSTRAINT fk_contribution_code FOREIGN KEY (contribution_code) REFERENCES contribution(code),
+    CONSTRAINT fk_contribution_created_by FOREIGN KEY (created_by) REFERENCES users(id),
+    CONSTRAINT fk_contribution_last_modified_by FOREIGN KEY (last_modified_by) REFERENCES users(id),
+    CONSTRAINT uk_employer_contribution UNIQUE (payroll_item_id, contribution_code)
 );
 
 CREATE TABLE IF NOT EXISTS payroll_deduction (
     id UUID PRIMARY KEY,
-    payroll_id UUID NOT NULL,
+    payroll_item_id UUID NOT NULL,
     deduction_code VARCHAR(255) NOT NULL,
     amount NUMERIC(19, 2),
     created_at TIMESTAMP NOT NULL,
@@ -289,7 +331,7 @@ CREATE TABLE IF NOT EXISTS payroll_deduction (
     created_by UUID,
     last_modified_by UUID,
     version BIGINT,
-    CONSTRAINT fk_payroll_deduction_payroll FOREIGN KEY (payroll_id) REFERENCES payroll(id),
+    CONSTRAINT fk_payroll_deduction_payroll_item FOREIGN KEY (payroll_item_id) REFERENCES payroll_item(id),
     CONSTRAINT fk_payroll_deduction_deduction FOREIGN KEY (deduction_code) REFERENCES deduction (code),
     CONSTRAINT fk_payroll_deduction_created_by FOREIGN KEY (created_by) REFERENCES users(id),
     CONSTRAINT fk_payroll_deduction_last_modified_by FOREIGN KEY (last_modified_by) REFERENCES users(id)
@@ -297,7 +339,7 @@ CREATE TABLE IF NOT EXISTS payroll_deduction (
 
 CREATE TABLE IF NOT EXISTS payroll_benefit (
     id UUID PRIMARY KEY,
-    payroll_id UUID NOT NULL,
+    payroll_item_id UUID NOT NULL,
     benefit_code VARCHAR(255) NOT NULL,
     amount NUMERIC(19, 2),
     created_at TIMESTAMP NOT NULL,
@@ -306,7 +348,7 @@ CREATE TABLE IF NOT EXISTS payroll_benefit (
     created_by UUID,
     last_modified_by UUID,
     version BIGINT,
-    CONSTRAINT fk_payroll_benefits_payroll FOREIGN KEY (payroll_id) REFERENCES payroll(id),
+    CONSTRAINT fk_payroll_benefits_payroll_item FOREIGN KEY (payroll_item_id) REFERENCES payroll_item(id),
     CONSTRAINT fk_payroll_benefit FOREIGN KEY (benefit_code) REFERENCES benefit(code),
     CONSTRAINT fk_payroll_benefits_created_by FOREIGN KEY (created_by) REFERENCES users(id),
     CONSTRAINT fk_payroll_benefits_last_modified_by FOREIGN KEY (last_modified_by) REFERENCES users(id)
@@ -485,9 +527,8 @@ CREATE INDEX idx_attendance_date ON attendance(date);
 CREATE INDEX idx_attendance_employee_date ON attendance(employee_id, date);
 CREATE INDEX idx_leave_request_employee ON leave_request(employee_id);
 CREATE INDEX idx_leave_request_dates ON leave_request(start_date, end_date);
-CREATE INDEX idx_payroll_employee ON payroll(employee_id);
-CREATE INDEX idx_payroll_period ON payroll(period_start_date, period_end_date);
-
+CREATE INDEX idx_payroll_item_employee ON payroll_item(employee_id);
+CREATE INDEX idx_payroll_run_period_status ON payroll_run(period_start_date, period_end_date, status);
 -- ==========================================
 -- REFERENCE DATA
 -- ==========================================

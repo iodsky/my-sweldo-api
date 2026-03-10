@@ -1,6 +1,7 @@
-package com.iodsky.mysweldo.benefit;
+package com.iodsky.mysweldo.batch.employee;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.iodsky.mysweldo.benefit.Benefit;
 import com.iodsky.mysweldo.common.BaseModel;
 import com.iodsky.mysweldo.employee.Employee;
 import jakarta.persistence.*;

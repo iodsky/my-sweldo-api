@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.iodsky.mysweldo.common.BaseModel;
 import com.iodsky.mysweldo.department.Department;
 import com.iodsky.mysweldo.position.Position;
-import com.iodsky.mysweldo.benefit.EmployeeBenefit;
+import com.iodsky.mysweldo.batch.employee.EmployeeBenefit;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLRestriction;

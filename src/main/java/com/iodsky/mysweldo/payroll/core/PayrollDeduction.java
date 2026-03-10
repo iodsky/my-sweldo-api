@@ -1,8 +1,8 @@
-package com.iodsky.mysweldo.deduction;
+package com.iodsky.mysweldo.payroll.core;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.iodsky.mysweldo.common.BaseModel;
-import com.iodsky.mysweldo.payroll.core.Payroll;
+import com.iodsky.mysweldo.deduction.Deduction;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLRestriction;
@@ -25,9 +25,9 @@ public class PayrollDeduction extends BaseModel {
     private UUID id;
 
     @ManyToOne
-    @JoinColumn(name = "payroll_id")
+    @JoinColumn(name = "payroll_item_id")
     @JsonIgnore
-    private Payroll payroll;
+    private PayrollItem payroll;
 
     @ManyToOne
     @JoinColumn(name = "deduction_code")
