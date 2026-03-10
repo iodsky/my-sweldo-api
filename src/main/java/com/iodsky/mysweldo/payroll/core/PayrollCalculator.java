@@ -1,12 +1,13 @@
 package com.iodsky.mysweldo.payroll.core;
 
-import com.iodsky.mysweldo.benefit.EmployeeBenefit;
+import com.iodsky.mysweldo.batch.employee.EmployeeBenefit;
 import com.iodsky.mysweldo.payroll.contribution.pagIbig.PagibigRateTable;
 import com.iodsky.mysweldo.payroll.contribution.pagIbig.PagibigRateTableRepository;
 import com.iodsky.mysweldo.payroll.contribution.philhealth.PhilhealthRateTable;
 import com.iodsky.mysweldo.payroll.contribution.philhealth.PhilhealthRateTableRepository;
 import com.iodsky.mysweldo.payroll.contribution.sss.SssRateTable;
 import com.iodsky.mysweldo.payroll.contribution.sss.SssRateTableRepository;
+import com.iodsky.mysweldo.payroll.run.PayrollRunException;
 import com.iodsky.mysweldo.payroll.tax.IncomeTaxBracket;
 import com.iodsky.mysweldo.payroll.tax.IncomeTaxBracketRepository;
 import lombok.RequiredArgsConstructor;
@@ -91,15 +92,6 @@ public class PayrollCalculator {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    public BigDecimal calculatePhilhealthDeduction(BigDecimal basicSalary, LocalDate payrollDate) {
-        PhilhealthRateTable config = philhealthRateTableRepository
-                .findLatestByEffectiveDate(payrollDate)
-                .orElseThrow(() -> new PayrollRunException(
-                        "PhilHealth rate table not found for date: " + payrollDate
-                ));
-
-        return calculatePhilhealthDeduction(basicSalary, config);
-    }
 
     public BigDecimal calculatePhilhealthDeduction(BigDecimal basicSalary, PhilhealthRateTable config) {
         if (basicSalary.compareTo(config.getMinSalaryFloor()) <= 0) {
@@ -116,16 +108,6 @@ public class PayrollCalculator {
         return employeeShare.divide(SEMI_MONTHLY_DIVISOR, 2, RoundingMode.HALF_UP);
     }
 
-    public BigDecimal calculatePagibigDeduction(BigDecimal basicSalary, LocalDate payrollDate) {
-        PagibigRateTable config = pagibigRateTableRepository
-                .findLatestByEffectiveDate(payrollDate)
-                .orElseThrow(() -> new PayrollRunException(
-                        "Pag-IBIG rate table not found for date: " + payrollDate
-                ));
-
-        return calculatePagibigDeduction(basicSalary, config);
-    }
-
     public BigDecimal calculatePagibigDeduction(BigDecimal basicSalary, PagibigRateTable config) {
         BigDecimal monthlySalary = basicSalary.min(config.getMaxSalaryCap());
         BigDecimal rate;
@@ -140,16 +122,6 @@ public class PayrollCalculator {
         return monthlyContribution.divide(SEMI_MONTHLY_DIVISOR, 2, RoundingMode.HALF_UP);
     }
 
-    public BigDecimal calculateSssDeduction(BigDecimal basicSalary, LocalDate payrollDate) {
-        SssRateTable config = sssRateTableRepository
-                .findLatestByEffectiveDate(payrollDate)
-                .orElseThrow(() -> new PayrollRunException(
-                        "SSS rate table not found for date: " + payrollDate
-                ));
-
-        return calculateSssDeduction(basicSalary, config);
-    }
-
     public BigDecimal calculateSssDeduction(BigDecimal basicSalary, SssRateTable sssRateTable) {
         // Find the appropriate salary bracket
         SssRateTable.SalaryBracket bracket = sssRateTable.findBracket(basicSalary);
@@ -161,27 +133,9 @@ public class PayrollCalculator {
         return monthlyContribution.divide(SEMI_MONTHLY_DIVISOR, 2, RoundingMode.HALF_UP);
     }
 
-    public BigDecimal calculateWithholdingTax(BigDecimal semiMonthlyTaxableIncome, LocalDate payrollDate) {
-        // Convert semi-monthly taxable income to annual for bracket lookup
-        BigDecimal annualTaxableIncome = semiMonthlyTaxableIncome.multiply(PAY_PERIODS_PER_YEAR);
-
-        IncomeTaxBracket bracket = incomeTaxBracketRepository
-                .findByIncomeAndEffectiveDate(annualTaxableIncome, payrollDate);
-
-        if (bracket == null) {
-            throw new PayrollRunException(
-                    "Income tax bracket not found for annual income: " + annualTaxableIncome + " and date: " + payrollDate
-            );
-        }
-
-        return calculateWithholdingTaxFromBracket(annualTaxableIncome, bracket);
-    }
-
-
     public BigDecimal calculateWithholdingTax(
             BigDecimal semiMonthlyTaxableIncome,
             List<IncomeTaxBracket> taxBrackets) {
-
         BigDecimal annualTaxableIncome =
                 semiMonthlyTaxableIncome.multiply(PAY_PERIODS_PER_YEAR);
 
@@ -216,6 +170,46 @@ public class PayrollCalculator {
         return annualTax.divide(PAY_PERIODS_PER_YEAR, 2, RoundingMode.HALF_UP);
     }
 
+    public BigDecimal calculateSssEmployerContribution(BigDecimal basicSalary, LocalDate payrollDate) {
+        SssRateTable config = sssRateTableRepository
+                .findLatestByEffectiveDate(payrollDate)
+                .orElseThrow(() -> new PayrollRunException(
+                        "SSS rate table not found for date: " + payrollDate
+                ));
+        return calculateSssEmployerContribution(basicSalary, config);
+    }
+
+    public BigDecimal calculateSssEmployerContribution(BigDecimal basicSalary, SssRateTable config) {
+        SssRateTable.SalaryBracket bracket = config.findBracket(basicSalary);
+        BigDecimal monthlyContribution = bracket.getMsc().multiply(config.getEmployerRate());
+        return monthlyContribution.divide(SEMI_MONTHLY_DIVISOR, 2, RoundingMode.HALF_UP);
+    }
+
+    public BigDecimal calculatePhilhealthEmployerContribution(BigDecimal basicSalary, LocalDate payrollDate) {
+        PhilhealthRateTable config = philhealthRateTableRepository
+                .findLatestByEffectiveDate(payrollDate)
+                .orElseThrow(() -> new PayrollRunException(
+                        "PhilHealth rate table not found for date: " + payrollDate
+                ));
+        return calculatePhilhealthEmployerContribution(basicSalary, config);
+    }
+
+    public BigDecimal calculatePhilhealthEmployerContribution(BigDecimal basicSalary, PhilhealthRateTable config) {
+        // PhilHealth is a split equally,  employer share equals employee share
+        return calculatePhilhealthDeduction(basicSalary, config);
+    }
+
+    public BigDecimal calculatePagibigEmployerContribution(BigDecimal basicSalary, PagibigRateTable config) {
+        // Employer always uses the flat employer_rate regardless of income tier
+        BigDecimal monthlySalary = basicSalary.min(config.getMaxSalaryCap());
+        BigDecimal monthlyContribution = monthlySalary.multiply(config.getEmployerRate());
+        return monthlyContribution.divide(SEMI_MONTHLY_DIVISOR, 2, RoundingMode.HALF_UP);
+    }
+
+    public BigDecimal calculateTotalEmployerContributions(
+            BigDecimal sssEr, BigDecimal philhealthEr, BigDecimal pagibigEr) {
+        return sssEr.add(philhealthEr).add(pagibigEr).setScale(2, RoundingMode.HALF_UP);
+    }
 
     public BigDecimal calculateTotalStatutoryDeductions(
             BigDecimal sss, BigDecimal philhealth, BigDecimal pagibig) {

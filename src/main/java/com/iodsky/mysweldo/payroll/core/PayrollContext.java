@@ -2,7 +2,7 @@ package com.iodsky.mysweldo.payroll.core;
 
 import com.iodsky.mysweldo.attendance.Attendance;
 import com.iodsky.mysweldo.employee.Employee;
-import com.iodsky.mysweldo.benefit.EmployeeBenefit;
+import com.iodsky.mysweldo.batch.employee.EmployeeBenefit;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -32,6 +32,11 @@ public class PayrollContext {
     private BigDecimal sss;
     private BigDecimal philhealth;
     private BigDecimal pagibig;
+
+    private BigDecimal sssEr;
+    private BigDecimal philhealthEr;
+    private BigDecimal pagibigEr;
+    private BigDecimal totalEmployerContributions;
 
     private BigDecimal taxableIncome;
     private BigDecimal withholdingTax;

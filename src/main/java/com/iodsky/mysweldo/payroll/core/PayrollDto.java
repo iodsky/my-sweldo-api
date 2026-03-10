@@ -20,7 +20,6 @@ public class PayrollDto {
     private Long employeeId;
     private LocalDate periodStartDate;
     private LocalDate periodEndDate;
-    private LocalDate payDate;
     private int daysWorked;
     private BigDecimal overtime;
     private BigDecimal monthlyRate;

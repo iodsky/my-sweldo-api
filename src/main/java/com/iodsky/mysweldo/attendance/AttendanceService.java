@@ -204,6 +204,10 @@ public class AttendanceService {
         return repository.findByEmployee_IdAndDateBetween(employeeId, startDate, endDate);
     }
 
+    public boolean hasAttendance(Long employeeId, LocalDate startDate, LocalDate endDate) {
+        return !repository.findByEmployee_IdAndDateBetween(employeeId, startDate, endDate).isEmpty();
+    }
+
     public BigDecimal calculateTotalHoursByEmployeeId(Long employeeId, LocalDate startDate, LocalDate endDate) {
         return repository.sumTotalHoursByEmployee_IdAndDateBetween(employeeId, startDate, endDate);
     }

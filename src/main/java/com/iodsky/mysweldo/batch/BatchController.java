@@ -37,7 +37,6 @@ public class BatchController {
     private final JobExplorer jobExplorer;
     private final Job employeeImportJob;
     private final Job userImportJob;
-    private final Job generatePayrollJob;
 
     @Value("${batch.upload.directory}")
     private String uploadDirectory;
@@ -93,40 +92,6 @@ public class BatchController {
         } catch (Exception e) {
             log.error("Failed to launch user import job", e);
             throw new RuntimeException("Failed to launch user import job: " + e.getMessage(), e);
-        }
-    }
-
-    @PreAuthorize("hasAnyRole('HR', 'PAYROLL', 'SUPERUSER')")
-    @PostMapping("/generate-payroll")
-    @Operation(
-            summary = "Generate payroll for all active employees",
-            description = "Launch a batch job to generate payroll for all active employees for the specified period. Returns job execution ID for tracking."
-    )
-    public ResponseEntity<ApiResponse<JobLaunchResponse>> generatePayroll(
-            @RequestParam String periodStartDate,
-            @RequestParam String periodEndDate,
-            @RequestParam String payDate) {
-
-        try {
-            JobParameters jobParameters = new JobParametersBuilder()
-                    .addString("periodStartDate", periodStartDate)
-                    .addString("periodEndDate", periodEndDate)
-                    .addString("payDate", payDate)
-                    .addLong("timestamp", System.currentTimeMillis())
-                    .toJobParameters();
-
-            JobExecution jobExecution = jobLauncher.run(generatePayrollJob, jobParameters);
-
-            JobLaunchResponse response = JobLaunchResponse.builder()
-                    .jobExecutionId(jobExecution.getId())
-                    .message("Payroll generation job launched successfully")
-                    .build();
-
-            return ResponseFactory.ok("Job launched successfully", response);
-
-        } catch (Exception e) {
-            log.error("Failed to launch payroll generation job", e);
-            throw new RuntimeException("Failed to launch payroll generation job: " + e.getMessage(), e);
         }
     }
 

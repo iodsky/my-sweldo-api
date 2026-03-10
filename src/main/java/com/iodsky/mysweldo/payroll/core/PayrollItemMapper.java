@@ -1,22 +1,20 @@
 package com.iodsky.mysweldo.payroll.core;
 
-import com.iodsky.mysweldo.deduction.PayrollDeduction;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 
 @Component
-public class PayrollMapper {
+public class PayrollItemMapper {
 
-    public PayrollDto toDto(Payroll payroll) {
+    public PayrollDto toDto(PayrollItem payroll) {
         if (payroll == null) return null;
 
         return PayrollDto.builder()
                 .id(payroll.getId())
                 .employeeId(payroll.getEmployee().getId())
-                .periodStartDate(payroll.getPeriodStartDate())
-                .periodEndDate(payroll.getPeriodEndDate())
-                .payDate(payroll.getPayDate())
+                .periodStartDate(payroll.getPayrollRun().getPeriodStartDate())
+                .periodEndDate(payroll.getPayrollRun().getPeriodEndDate())
                 .daysWorked(payroll.getDaysWorked())
                 .overtime(payroll.getOvertime())
                 .monthlyRate(payroll.getMonthlyRate())
@@ -43,7 +41,7 @@ public class PayrollMapper {
                 .build();
     }
 
-    private BigDecimal getDeductionAmount(Payroll payroll, String type) {
+    private BigDecimal getDeductionAmount(PayrollItem payroll, String type) {
         return payroll.getDeductions().stream()
                 .filter(d -> d.getDeduction().getCode().equalsIgnoreCase(type))
                 .map(PayrollDeduction::getAmount)
@@ -51,7 +49,7 @@ public class PayrollMapper {
                 .orElse(BigDecimal.ZERO);
     }
 
-    private BigDecimal getBenefitAmount(Payroll payroll, String type) {
+    private BigDecimal getBenefitAmount(PayrollItem payroll, String type) {
         return payroll.getBenefits().stream()
                 .filter(b -> b.getBenefit().getCode().equalsIgnoreCase(type))
                 .map(PayrollBenefit::getAmount)
