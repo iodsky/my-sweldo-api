@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/payroll-config/tax")
+@RequestMapping("/payroll-config/tax-brackets")
 @PreAuthorize("hasAnyRole('PAYROLL', 'SUPERUSER')")
 @Validated
 @RequiredArgsConstructor
