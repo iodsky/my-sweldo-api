@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @Entity
 @Table(
-        name = "income_tax_bracket",
+        name = "tax_bracket",
         uniqueConstraints = @UniqueConstraint(columnNames = {"effective_date", "min_income"})
 )
 @SQLRestriction("deleted_at IS NULL")
