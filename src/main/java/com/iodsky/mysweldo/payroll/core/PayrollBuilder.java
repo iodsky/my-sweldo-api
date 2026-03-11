@@ -44,7 +44,8 @@ public class PayrollBuilder {
         // Calculate hours
         BigDecimal totalHours = attendanceService.calculateTotalHoursByEmployeeId(employeeId, run.getPeriodStartDate(), run.getPeriodEndDate());
         BigDecimal approvedOvertimeHours = overtimeRequestService.calculateApprovedOvertimeHours(employeeId, run.getPeriodStartDate(), run.getPeriodEndDate());
-        BigDecimal regularHours = totalHours.subtract(approvedOvertimeHours);
+        BigDecimal standardHours = BigDecimal.valueOf(attendances.size()).multiply(BigDecimal.valueOf(8));
+        BigDecimal regularHours = totalHours.subtract(approvedOvertimeHours).min(standardHours);
 
         // Calculate pay
         BigDecimal regularPay = payrollCalculator.calculateRegularPay(hourlyRate, regularHours);
