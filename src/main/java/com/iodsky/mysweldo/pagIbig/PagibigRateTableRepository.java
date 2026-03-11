@@ -1,4 +1,4 @@
-package com.iodsky.mysweldo.payroll.contribution.pagIbig;
+package com.iodsky.mysweldo.pagIbig;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;

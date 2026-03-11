@@ -1,4 +1,4 @@
-package com.iodsky.mysweldo.payroll.contribution.pagIbig;
+package com.iodsky.mysweldo.pagIbig;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

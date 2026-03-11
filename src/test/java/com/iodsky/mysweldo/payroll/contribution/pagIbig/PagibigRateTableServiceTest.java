@@ -1,5 +1,9 @@
 package com.iodsky.mysweldo.payroll.contribution.pagIbig;
 
+import com.iodsky.mysweldo.pagIbig.PagibigRateTable;
+import com.iodsky.mysweldo.pagIbig.PagibigRateTableRepository;
+import com.iodsky.mysweldo.pagIbig.PagibigRateTableRequest;
+import com.iodsky.mysweldo.pagIbig.PagibigRateTableService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

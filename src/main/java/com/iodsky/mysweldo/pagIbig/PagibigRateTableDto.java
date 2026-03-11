@@ -1,4 +1,4 @@
-package com.iodsky.mysweldo.payroll.contribution.pagIbig;
+package com.iodsky.mysweldo.pagIbig;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
