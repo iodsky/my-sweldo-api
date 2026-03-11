@@ -8,7 +8,7 @@ import com.iodsky.mysweldo.philhealth.PhilhealthRateTableRepository;
 import com.iodsky.mysweldo.sss.SssRateTable;
 import com.iodsky.mysweldo.sss.SssRateTableRepository;
 import com.iodsky.mysweldo.payroll.run.PayrollRunException;
-import com.iodsky.mysweldo.tax.IncomeTaxBracket;
+import com.iodsky.mysweldo.tax.TaxBracket;
 import com.iodsky.mysweldo.tax.IncomeTaxBracketRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -51,7 +51,7 @@ public class PayrollCalculator {
                         "SSS rate table not found for date: " + payrollDate
                 ));
 
-        List<IncomeTaxBracket> taxBrackets = incomeTaxBracketRepository
+        List<TaxBracket> taxBrackets = incomeTaxBracketRepository
                 .findAllByEffectiveDate(payrollDate);
 
         if (taxBrackets.isEmpty()) {
@@ -135,11 +135,11 @@ public class PayrollCalculator {
 
     public BigDecimal calculateWithholdingTax(
             BigDecimal semiMonthlyTaxableIncome,
-            List<IncomeTaxBracket> taxBrackets) {
+            List<TaxBracket> taxBrackets) {
         BigDecimal annualTaxableIncome =
                 semiMonthlyTaxableIncome.multiply(PAY_PERIODS_PER_YEAR);
 
-        IncomeTaxBracket bracket = taxBrackets.stream()
+        TaxBracket bracket = taxBrackets.stream()
                 .filter(b -> annualTaxableIncome.compareTo(b.getMinIncome()) >= 0
                         && (b.getMaxIncome() == null
                         || annualTaxableIncome.compareTo(b.getMaxIncome()) <= 0))
@@ -156,7 +156,7 @@ public class PayrollCalculator {
 
     private BigDecimal calculateWithholdingTaxFromBracket(
             BigDecimal annualTaxableIncome,
-            IncomeTaxBracket annualBracket) {
+            TaxBracket annualBracket) {
 
         BigDecimal excessAmount =
                 annualTaxableIncome

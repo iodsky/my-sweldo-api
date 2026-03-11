@@ -12,13 +12,13 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface IncomeTaxBracketRepository extends JpaRepository<IncomeTaxBracket, UUID>, JpaSpecificationExecutor<IncomeTaxBracket> {
+public interface IncomeTaxBracketRepository extends JpaRepository<TaxBracket, UUID>, JpaSpecificationExecutor<TaxBracket> {
 
-    @Query("SELECT i FROM IncomeTaxBracket i WHERE i.effectiveDate <= :date AND i.deletedAt IS NULL ORDER BY i.minIncome ASC")
-    List<IncomeTaxBracket> findAllByEffectiveDate(@Param("date") LocalDate date);
+    @Query("SELECT i FROM TaxBracket i WHERE i.effectiveDate <= :date AND i.deletedAt IS NULL ORDER BY i.minIncome ASC")
+    List<TaxBracket> findAllByEffectiveDate(@Param("date") LocalDate date);
 
-    @Query("SELECT i FROM IncomeTaxBracket i WHERE i.minIncome <= :income AND (i.maxIncome IS NULL OR i.maxIncome >= :income) AND i.effectiveDate <= :date AND i.deletedAt IS NULL ORDER BY i.effectiveDate DESC LIMIT 1")
-    IncomeTaxBracket findByIncomeAndEffectiveDate(
+    @Query("SELECT i FROM TaxBracket i WHERE i.minIncome <= :income AND (i.maxIncome IS NULL OR i.maxIncome >= :income) AND i.effectiveDate <= :date AND i.deletedAt IS NULL ORDER BY i.effectiveDate DESC LIMIT 1")
+    TaxBracket findByIncomeAndEffectiveDate(
             @Param("income") BigDecimal income,
             @Param("date") LocalDate date
     );

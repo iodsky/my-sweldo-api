@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class IncomeTaxBracketMapper {
 
-    public IncomeTaxBracketDto toDto(IncomeTaxBracket entity) {
+    public IncomeTaxBracketDto toDto(TaxBracket entity) {
         if (entity == null) {
             return null;
         }

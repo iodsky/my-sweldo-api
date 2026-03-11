@@ -20,7 +20,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class IncomeTaxBracket extends BaseModel {
+public class TaxBracket extends BaseModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

@@ -23,8 +23,8 @@ public class IncomeTaxBracketService {
     private final IncomeTaxBracketRepository repository;
 
     @Transactional
-    public IncomeTaxBracket createIncomeTaxBracket(IncomeTaxBracketRequest request) {
-        IncomeTaxBracket bracket = IncomeTaxBracket.builder()
+    public TaxBracket createIncomeTaxBracket(IncomeTaxBracketRequest request) {
+        TaxBracket bracket = TaxBracket.builder()
                 .minIncome(request.getMinIncome())
                 .maxIncome(request.getMaxIncome())
                 .baseTax(request.getBaseTax())
@@ -36,7 +36,7 @@ public class IncomeTaxBracketService {
         return repository.save(bracket);
     }
 
-    public Page<IncomeTaxBracket> getAllIncomeTaxBrackets(
+    public Page<TaxBracket> getAllIncomeTaxBrackets(
             int page, int limit, LocalDate effectiveDate, BigDecimal minIncome, BigDecimal maxIncome) {
         Pageable pageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.ASC, "minIncome"));
 
@@ -61,11 +61,11 @@ public class IncomeTaxBracketService {
         }, pageable);
     }
 
-    public List<IncomeTaxBracket> getAllIncomeTaxBracketsByDate(LocalDate effectiveDate) {
+    public List<TaxBracket> getAllIncomeTaxBracketsByDate(LocalDate effectiveDate) {
         return repository.findAllByEffectiveDate(effectiveDate);
     }
 
-    public IncomeTaxBracket getIncomeTaxBracketById(UUID id) {
+    public TaxBracket getIncomeTaxBracketById(UUID id) {
         return repository.findById(id)
                 .filter(bracket -> bracket.getDeletedAt() == null)
                 .orElseThrow(() -> new ResponseStatusException(
@@ -74,8 +74,8 @@ public class IncomeTaxBracketService {
                 ));
     }
 
-    public IncomeTaxBracket getIncomeTaxBracketByIncomeAndDate(BigDecimal income, LocalDate date) {
-        IncomeTaxBracket bracket = repository.findByIncomeAndEffectiveDate(income, date);
+    public TaxBracket getIncomeTaxBracketByIncomeAndDate(BigDecimal income, LocalDate date) {
+        TaxBracket bracket = repository.findByIncomeAndEffectiveDate(income, date);
         if (bracket == null) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
@@ -86,8 +86,8 @@ public class IncomeTaxBracketService {
     }
 
     @Transactional
-    public IncomeTaxBracket updateIncomeTaxBracket(UUID id, IncomeTaxBracketRequest request) {
-        IncomeTaxBracket bracket = getIncomeTaxBracketById(id);
+    public TaxBracket updateIncomeTaxBracket(UUID id, IncomeTaxBracketRequest request) {
+        TaxBracket bracket = getIncomeTaxBracketById(id);
 
         bracket.setMinIncome(request.getMinIncome());
         bracket.setMaxIncome(request.getMaxIncome());
@@ -101,7 +101,7 @@ public class IncomeTaxBracketService {
 
     @Transactional
     public void deleteIncomeTaxBracket(UUID id) {
-        IncomeTaxBracket bracket = getIncomeTaxBracketById(id);
+        TaxBracket bracket = getIncomeTaxBracketById(id);
         bracket.setDeletedAt(Instant.now());
         repository.save(bracket);
     }

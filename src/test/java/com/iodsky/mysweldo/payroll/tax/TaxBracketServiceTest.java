@@ -1,6 +1,6 @@
 package com.iodsky.mysweldo.payroll.tax;
 
-import com.iodsky.mysweldo.tax.IncomeTaxBracket;
+import com.iodsky.mysweldo.tax.TaxBracket;
 import com.iodsky.mysweldo.tax.IncomeTaxBracketRepository;
 import com.iodsky.mysweldo.tax.IncomeTaxBracketRequest;
 import com.iodsky.mysweldo.tax.IncomeTaxBracketService;
@@ -31,7 +31,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class IncomeTaxBracketServiceTest {
+class TaxBracketServiceTest {
 
     @InjectMocks
     private IncomeTaxBracketService service;
@@ -39,12 +39,12 @@ class IncomeTaxBracketServiceTest {
     @Mock
     private IncomeTaxBracketRepository repository;
 
-    private IncomeTaxBracket bracket;
+    private TaxBracket bracket;
     private IncomeTaxBracketRequest request;
 
     @BeforeEach
     void setUp() {
-        bracket = IncomeTaxBracket.builder()
+        bracket = TaxBracket.builder()
                 .id(UUID.randomUUID())
                 .minIncome(new BigDecimal("20833.00"))
                 .maxIncome(new BigDecimal("33332.00"))
@@ -65,13 +65,13 @@ class IncomeTaxBracketServiceTest {
     }
 
     @Nested
-    class CreateIncomeTaxBracketTests {
+    class CreateTaxBracketTests {
 
         @Test
         void shouldReturnSavedBracketWhenAllFieldsAreProvided() {
-            when(repository.save(any(IncomeTaxBracket.class))).thenReturn(bracket);
+            when(repository.save(any(TaxBracket.class))).thenReturn(bracket);
 
-            IncomeTaxBracket result = service.createIncomeTaxBracket(request);
+            TaxBracket result = service.createIncomeTaxBracket(request);
 
             assertThat(result).isNotNull();
             assertThat(result.getMinIncome()).isEqualTo(request.getMinIncome());
@@ -93,7 +93,7 @@ class IncomeTaxBracketServiceTest {
                     .effectiveDate(LocalDate.of(2024, 1, 1))
                     .build();
 
-            IncomeTaxBracket openEndedBracket = IncomeTaxBracket.builder()
+            TaxBracket openEndedBracket = TaxBracket.builder()
                     .id(UUID.randomUUID())
                     .minIncome(openEndedRequest.getMinIncome())
                     .maxIncome(null)
@@ -103,9 +103,9 @@ class IncomeTaxBracketServiceTest {
                     .effectiveDate(openEndedRequest.getEffectiveDate())
                     .build();
 
-            when(repository.save(any(IncomeTaxBracket.class))).thenReturn(openEndedBracket);
+            when(repository.save(any(TaxBracket.class))).thenReturn(openEndedBracket);
 
-            IncomeTaxBracket result = service.createIncomeTaxBracket(openEndedRequest);
+            TaxBracket result = service.createIncomeTaxBracket(openEndedRequest);
 
             assertThat(result.getMaxIncome()).isNull();
         }
@@ -121,23 +121,23 @@ class IncomeTaxBracketServiceTest {
                     .effectiveDate(LocalDate.of(2024, 1, 1))
                     .build();
 
-            IncomeTaxBracket zeroBaseTaxBracket = IncomeTaxBracket.builder()
+            TaxBracket zeroBaseTaxBracket = TaxBracket.builder()
                     .id(UUID.randomUUID())
                     .minIncome(BigDecimal.ZERO)
                     .baseTax(BigDecimal.ZERO)
                     .effectiveDate(firstBracketRequest.getEffectiveDate())
                     .build();
 
-            when(repository.save(any(IncomeTaxBracket.class))).thenReturn(zeroBaseTaxBracket);
+            when(repository.save(any(TaxBracket.class))).thenReturn(zeroBaseTaxBracket);
 
-            IncomeTaxBracket result = service.createIncomeTaxBracket(firstBracketRequest);
+            TaxBracket result = service.createIncomeTaxBracket(firstBracketRequest);
 
             assertThat(result.getBaseTax()).isEqualByComparingTo(BigDecimal.ZERO);
         }
 
         @Test
         void shouldPropagateExceptionWhenRepositorySaveFails() {
-            when(repository.save(any(IncomeTaxBracket.class)))
+            when(repository.save(any(TaxBracket.class)))
                     .thenThrow(new RuntimeException("Database error"));
 
             assertThatThrownBy(() -> service.createIncomeTaxBracket(request))
@@ -147,16 +147,16 @@ class IncomeTaxBracketServiceTest {
     }
 
     @Nested
-    class GetAllIncomeTaxBracketsTests {
+    class GetAllTaxBracketsTests {
 
         @SuppressWarnings("unchecked")
         @Test
         void shouldReturnPaginatedBracketsWhenNoFiltersApplied() {
-            Page<IncomeTaxBracket> expectedPage = new PageImpl<>(List.of(bracket));
+            Page<TaxBracket> expectedPage = new PageImpl<>(List.of(bracket));
             when(repository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(expectedPage);
 
-            Page<IncomeTaxBracket> result = service.getAllIncomeTaxBrackets(0, 10, null, null, null);
+            Page<TaxBracket> result = service.getAllIncomeTaxBrackets(0, 10, null, null, null);
 
             assertThat(result.getContent()).hasSize(1);
             assertThat(result.getContent().getFirst()).isEqualTo(bracket);
@@ -165,11 +165,11 @@ class IncomeTaxBracketServiceTest {
         @SuppressWarnings("unchecked")
         @Test
         void shouldReturnBracketsFilteredByEffectiveDateWhenDateProvided() {
-            Page<IncomeTaxBracket> expectedPage = new PageImpl<>(List.of(bracket));
+            Page<TaxBracket> expectedPage = new PageImpl<>(List.of(bracket));
             when(repository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(expectedPage);
 
-            Page<IncomeTaxBracket> result = service.getAllIncomeTaxBrackets(
+            Page<TaxBracket> result = service.getAllIncomeTaxBrackets(
                     0, 10, LocalDate.of(2024, 1, 1), null, null);
 
             assertThat(result.getContent()).hasSize(1);
@@ -178,11 +178,11 @@ class IncomeTaxBracketServiceTest {
         @SuppressWarnings("unchecked")
         @Test
         void shouldReturnBracketsFilteredByMinIncomeWhenMinIncomeProvided() {
-            Page<IncomeTaxBracket> expectedPage = new PageImpl<>(List.of(bracket));
+            Page<TaxBracket> expectedPage = new PageImpl<>(List.of(bracket));
             when(repository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(expectedPage);
 
-            Page<IncomeTaxBracket> result = service.getAllIncomeTaxBrackets(
+            Page<TaxBracket> result = service.getAllIncomeTaxBrackets(
                     0, 10, null, new BigDecimal("20833.00"), null);
 
             assertThat(result.getContent()).hasSize(1);
@@ -191,11 +191,11 @@ class IncomeTaxBracketServiceTest {
         @SuppressWarnings("unchecked")
         @Test
         void shouldReturnBracketsFilteredByMaxIncomeWhenMaxIncomeIsGreaterThanZero() {
-            Page<IncomeTaxBracket> expectedPage = new PageImpl<>(List.of(bracket));
+            Page<TaxBracket> expectedPage = new PageImpl<>(List.of(bracket));
             when(repository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(expectedPage);
 
-            Page<IncomeTaxBracket> result = service.getAllIncomeTaxBrackets(
+            Page<TaxBracket> result = service.getAllIncomeTaxBrackets(
                     0, 10, null, null, new BigDecimal("33332.00"));
 
             assertThat(result.getContent()).hasSize(1);
@@ -204,11 +204,11 @@ class IncomeTaxBracketServiceTest {
         @SuppressWarnings("unchecked")
         @Test
         void shouldIgnoreMaxIncomeFilterWhenMaxIncomeIsZero() {
-            Page<IncomeTaxBracket> expectedPage = new PageImpl<>(List.of(bracket));
+            Page<TaxBracket> expectedPage = new PageImpl<>(List.of(bracket));
             when(repository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(expectedPage);
 
-            Page<IncomeTaxBracket> result = service.getAllIncomeTaxBrackets(
+            Page<TaxBracket> result = service.getAllIncomeTaxBrackets(
                     0, 10, null, null, BigDecimal.ZERO);
 
             assertThat(result.getContent()).hasSize(1);
@@ -217,11 +217,11 @@ class IncomeTaxBracketServiceTest {
         @SuppressWarnings("unchecked")
         @Test
         void shouldReturnEmptyPageWhenNoBracketsMatchFilters() {
-            Page<IncomeTaxBracket> emptyPage = new PageImpl<>(List.of());
+            Page<TaxBracket> emptyPage = new PageImpl<>(List.of());
             when(repository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(emptyPage);
 
-            Page<IncomeTaxBracket> result = service.getAllIncomeTaxBrackets(
+            Page<TaxBracket> result = service.getAllIncomeTaxBrackets(
                     0, 10, LocalDate.of(2099, 1, 1), null, null);
 
             assertThat(result.getContent()).isEmpty();
@@ -229,14 +229,14 @@ class IncomeTaxBracketServiceTest {
     }
 
     @Nested
-    class GetAllIncomeTaxBracketsByDateTests {
+    class GetAllTaxBracketsByDateTests {
 
         @Test
         void shouldReturnBracketsMatchingGivenEffectiveDate() {
             LocalDate date = LocalDate.of(2024, 1, 1);
             when(repository.findAllByEffectiveDate(date)).thenReturn(List.of(bracket));
 
-            List<IncomeTaxBracket> result = service.getAllIncomeTaxBracketsByDate(date);
+            List<TaxBracket> result = service.getAllIncomeTaxBracketsByDate(date);
 
             assertThat(result).hasSize(1);
             assertThat(result.getFirst().getEffectiveDate()).isEqualTo(date);
@@ -247,20 +247,20 @@ class IncomeTaxBracketServiceTest {
             LocalDate date = LocalDate.of(2099, 1, 1);
             when(repository.findAllByEffectiveDate(date)).thenReturn(List.of());
 
-            List<IncomeTaxBracket> result = service.getAllIncomeTaxBracketsByDate(date);
+            List<TaxBracket> result = service.getAllIncomeTaxBracketsByDate(date);
 
             assertThat(result).isEmpty();
         }
     }
 
     @Nested
-    class GetIncomeTaxBracketByIdTests {
+    class GetTaxBracketByIdTests {
 
         @Test
         void shouldReturnBracketWhenItExistsAndIsNotDeleted() {
             when(repository.findById(bracket.getId())).thenReturn(Optional.of(bracket));
 
-            IncomeTaxBracket result = service.getIncomeTaxBracketById(bracket.getId());
+            TaxBracket result = service.getIncomeTaxBracketById(bracket.getId());
 
             assertThat(result).isEqualTo(bracket);
         }
@@ -294,7 +294,7 @@ class IncomeTaxBracketServiceTest {
     }
 
     @Nested
-    class GetIncomeTaxBracketByIncomeAndDateTests {
+    class GetIncomeTaxBracketByAndDateTests {
 
         @Test
         void shouldReturnMatchingBracketForGivenIncomeAndDate() {
@@ -302,7 +302,7 @@ class IncomeTaxBracketServiceTest {
             LocalDate date = LocalDate.of(2024, 1, 1);
             when(repository.findByIncomeAndEffectiveDate(income, date)).thenReturn(bracket);
 
-            IncomeTaxBracket result = service.getIncomeTaxBracketByIncomeAndDate(income, date);
+            TaxBracket result = service.getIncomeTaxBracketByIncomeAndDate(income, date);
 
             assertThat(result).isEqualTo(bracket);
         }
@@ -325,7 +325,7 @@ class IncomeTaxBracketServiceTest {
     }
 
     @Nested
-    class UpdateIncomeTaxBracketTests {
+    class UpdateTaxBracketTests {
 
         @Test
         void shouldUpdateAllFieldsAndReturnUpdatedBracket() {
@@ -338,7 +338,7 @@ class IncomeTaxBracketServiceTest {
                     .effectiveDate(LocalDate.of(2025, 1, 1))
                     .build();
 
-            IncomeTaxBracket updatedBracket = IncomeTaxBracket.builder()
+            TaxBracket updatedBracket = TaxBracket.builder()
                     .id(bracket.getId())
                     .minIncome(updateRequest.getMinIncome())
                     .maxIncome(updateRequest.getMaxIncome())
@@ -349,9 +349,9 @@ class IncomeTaxBracketServiceTest {
                     .build();
 
             when(repository.findById(bracket.getId())).thenReturn(Optional.of(bracket));
-            when(repository.save(any(IncomeTaxBracket.class))).thenReturn(updatedBracket);
+            when(repository.save(any(TaxBracket.class))).thenReturn(updatedBracket);
 
-            IncomeTaxBracket result = service.updateIncomeTaxBracket(bracket.getId(), updateRequest);
+            TaxBracket result = service.updateIncomeTaxBracket(bracket.getId(), updateRequest);
 
             assertThat(result.getMinIncome()).isEqualTo(updateRequest.getMinIncome());
             assertThat(result.getMaxIncome()).isEqualTo(updateRequest.getMaxIncome());
@@ -389,12 +389,12 @@ class IncomeTaxBracketServiceTest {
     }
 
     @Nested
-    class DeleteIncomeTaxBracketTests {
+    class DeleteTaxBracketTests {
 
         @Test
         void shouldSoftDeleteBracketBySettingDeletedAt() {
             when(repository.findById(bracket.getId())).thenReturn(Optional.of(bracket));
-            when(repository.save(any(IncomeTaxBracket.class))).thenReturn(bracket);
+            when(repository.save(any(TaxBracket.class))).thenReturn(bracket);
 
             service.deleteIncomeTaxBracket(bracket.getId());
 

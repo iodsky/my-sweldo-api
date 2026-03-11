@@ -37,7 +37,7 @@ public class IncomeTaxBracketController {
     @Operation(summary = "Create income tax bracket", description = "Create a new income tax bracket configuration. Requires PAYROLL role.")
     public ResponseEntity<ApiResponse<IncomeTaxBracketDto>> createIncomeTaxBracket(
             @Valid @RequestBody IncomeTaxBracketRequest request) {
-        IncomeTaxBracket bracket = service.createIncomeTaxBracket(request);
+        TaxBracket bracket = service.createIncomeTaxBracket(request);
         return ResponseFactory.created(
                 "Income tax bracket created successfully",
                 mapper.toDto(bracket)
@@ -53,7 +53,7 @@ public class IncomeTaxBracketController {
             @Parameter(description = "Filter by minimum income (greater than or equal to)") @RequestParam(required = false) BigDecimal minIncome,
             @Parameter(description = "Filter by maximum income (less than or equal to)") @RequestParam(required = false) BigDecimal maxIncome
     ) {
-        Page<IncomeTaxBracket> page = service.getAllIncomeTaxBrackets(
+        Page<TaxBracket> page = service.getAllIncomeTaxBrackets(
                 pageNo, limit, effectiveDate, minIncome, maxIncome);
         List<IncomeTaxBracketDto> brackets = page.getContent().stream()
                 .map(mapper::toDto)
@@ -70,7 +70,7 @@ public class IncomeTaxBracketController {
     @Operation(summary = "Get income tax bracket by ID", description = "Retrieve a specific income tax bracket. Requires PAYROLL role.")
     public ResponseEntity<ApiResponse<IncomeTaxBracketDto>> getIncomeTaxBracketById(
             @Parameter(description = "Bracket ID") @PathVariable UUID id) {
-        IncomeTaxBracket bracket = service.getIncomeTaxBracketById(id);
+        TaxBracket bracket = service.getIncomeTaxBracketById(id);
         return ResponseFactory.ok(
                 "Income tax bracket retrieved successfully",
                 mapper.toDto(bracket)
@@ -84,7 +84,7 @@ public class IncomeTaxBracketController {
             @Parameter(description = "Date to check (defaults to today)") @RequestParam(required = false) LocalDate date
     ) {
         LocalDate effectiveDate = date != null ? date : LocalDate.now();
-        IncomeTaxBracket bracket = service.getIncomeTaxBracketByIncomeAndDate(income, effectiveDate);
+        TaxBracket bracket = service.getIncomeTaxBracketByIncomeAndDate(income, effectiveDate);
         return ResponseFactory.ok(
                 "Income tax bracket found for income",
                 mapper.toDto(bracket)
@@ -97,7 +97,7 @@ public class IncomeTaxBracketController {
             @Parameter(description = "Effective date (defaults to today)") @RequestParam(required = false) LocalDate effectiveDate
     ) {
         LocalDate date = effectiveDate != null ? effectiveDate : LocalDate.now();
-        List<IncomeTaxBracket> brackets = service.getAllIncomeTaxBracketsByDate(date);
+        List<TaxBracket> brackets = service.getAllIncomeTaxBracketsByDate(date);
         List<IncomeTaxBracketDto> dtos = brackets.stream()
                 .map(mapper::toDto)
                 .toList();
@@ -113,7 +113,7 @@ public class IncomeTaxBracketController {
     public ResponseEntity<ApiResponse<IncomeTaxBracketDto>> updateIncomeTaxBracket(
             @Parameter(description = "Bracket ID") @PathVariable UUID id,
             @Valid @RequestBody IncomeTaxBracketRequest request) {
-        IncomeTaxBracket bracket = service.updateIncomeTaxBracket(id, request);
+        TaxBracket bracket = service.updateIncomeTaxBracket(id, request);
         return ResponseFactory.ok(
                 "Income tax bracket updated successfully",
                 mapper.toDto(bracket)
