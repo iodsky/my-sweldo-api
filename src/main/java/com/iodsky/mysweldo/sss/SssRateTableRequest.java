@@ -1,4 +1,4 @@
-package com.iodsky.mysweldo.payroll.contribution.sss;
+package com.iodsky.mysweldo.sss;
 
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;

@@ -1,5 +1,9 @@
 package com.iodsky.mysweldo.payroll.contribution.sss;
 
+import com.iodsky.mysweldo.sss.SssRateTable;
+import com.iodsky.mysweldo.sss.SssRateTableRepository;
+import com.iodsky.mysweldo.sss.SssRateTableRequest;
+import com.iodsky.mysweldo.sss.SssRateTableService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

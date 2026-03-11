@@ -1,4 +1,4 @@
-package com.iodsky.mysweldo.payroll.contribution.sss;
+package com.iodsky.mysweldo.sss;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;

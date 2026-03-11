@@ -1,4 +1,4 @@
-package com.iodsky.mysweldo.payroll.contribution.sss;
+package com.iodsky.mysweldo.sss;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

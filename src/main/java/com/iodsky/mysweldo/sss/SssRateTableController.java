@@ -1,4 +1,4 @@
-package com.iodsky.mysweldo.payroll.contribution.sss;
+package com.iodsky.mysweldo.sss;
 
 import com.iodsky.mysweldo.common.response.ApiResponse;
 import com.iodsky.mysweldo.common.response.DeleteResponse;
