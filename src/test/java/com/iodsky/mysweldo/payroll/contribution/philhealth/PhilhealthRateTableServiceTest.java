@@ -1,5 +1,9 @@
 package com.iodsky.mysweldo.payroll.contribution.philhealth;
 
+import com.iodsky.mysweldo.philhealth.PhilhealthRateTable;
+import com.iodsky.mysweldo.philhealth.PhilhealthRateTableRepository;
+import com.iodsky.mysweldo.philhealth.PhilhealthRateTableRequest;
+import com.iodsky.mysweldo.philhealth.PhilhealthRateTableService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

@@ -1,4 +1,4 @@
-package com.iodsky.mysweldo.payroll.contribution.philhealth;
+package com.iodsky.mysweldo.philhealth;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

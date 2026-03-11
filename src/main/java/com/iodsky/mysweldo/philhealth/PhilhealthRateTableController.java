@@ -1,4 +1,4 @@
-package com.iodsky.mysweldo.payroll.contribution.philhealth;
+package com.iodsky.mysweldo.philhealth;
 
 import com.iodsky.mysweldo.common.response.ApiResponse;
 import com.iodsky.mysweldo.common.response.DeleteResponse;

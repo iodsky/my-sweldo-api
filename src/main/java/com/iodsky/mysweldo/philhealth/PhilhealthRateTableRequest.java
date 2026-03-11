@@ -1,4 +1,4 @@
-package com.iodsky.mysweldo.payroll.contribution.philhealth;
+package com.iodsky.mysweldo.philhealth;
 
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
