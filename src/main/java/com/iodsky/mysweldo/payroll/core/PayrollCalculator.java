@@ -3,8 +3,8 @@ package com.iodsky.mysweldo.payroll.core;
 import com.iodsky.mysweldo.batch.employee.EmployeeBenefit;
 import com.iodsky.mysweldo.pagIbig.PagibigRateTable;
 import com.iodsky.mysweldo.pagIbig.PagibigRateTableRepository;
-import com.iodsky.mysweldo.philhealth.PhilhealthRateTable;
-import com.iodsky.mysweldo.philhealth.PhilhealthRateTableRepository;
+import com.iodsky.mysweldo.philhealth.PhilhealthRate;
+import com.iodsky.mysweldo.philhealth.PhilhealthRateRepository;
 import com.iodsky.mysweldo.sss.SssRate;
 import com.iodsky.mysweldo.sss.SssRateRepository;
 import com.iodsky.mysweldo.payroll.run.PayrollRunException;
@@ -22,7 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PayrollCalculator {
 
-    private final PhilhealthRateTableRepository philhealthRateTableRepository;
+    private final PhilhealthRateRepository philhealthRateTableRepository;
     private final PagibigRateTableRepository pagibigRateTableRepository;
     private final SssRateRepository sssRateTableRepository;
     private final TaxBracketRepository incomeTaxBracketRepository;
@@ -33,7 +33,7 @@ public class PayrollCalculator {
     private static final BigDecimal PAY_PERIODS_PER_YEAR = BigDecimal.valueOf(24);
 
     public PayrollConfiguration loadConfiguration(LocalDate payrollDate) {
-        PhilhealthRateTable philhealth = philhealthRateTableRepository
+        PhilhealthRate philhealth = philhealthRateTableRepository
                 .findLatestByEffectiveDate(payrollDate)
                 .orElseThrow(() -> new PayrollRunException(
                         "PhilHealth rate table not found for date: " + payrollDate
@@ -93,7 +93,7 @@ public class PayrollCalculator {
     }
 
 
-    public BigDecimal calculatePhilhealthDeduction(BigDecimal basicSalary, PhilhealthRateTable config) {
+    public BigDecimal calculatePhilhealthDeduction(BigDecimal basicSalary, PhilhealthRate config) {
         if (basicSalary.compareTo(config.getMinSalaryFloor()) <= 0) {
             BigDecimal employeeShare = config.getFixedContribution().divide(BigDecimal.valueOf(2), 2, RoundingMode.HALF_UP);
             return employeeShare.divide(SEMI_MONTHLY_DIVISOR, 2, RoundingMode.HALF_UP);
@@ -186,7 +186,7 @@ public class PayrollCalculator {
     }
 
     public BigDecimal calculatePhilhealthEmployerContribution(BigDecimal basicSalary, LocalDate payrollDate) {
-        PhilhealthRateTable config = philhealthRateTableRepository
+        PhilhealthRate config = philhealthRateTableRepository
                 .findLatestByEffectiveDate(payrollDate)
                 .orElseThrow(() -> new PayrollRunException(
                         "PhilHealth rate table not found for date: " + payrollDate
@@ -194,7 +194,7 @@ public class PayrollCalculator {
         return calculatePhilhealthEmployerContribution(basicSalary, config);
     }
 
-    public BigDecimal calculatePhilhealthEmployerContribution(BigDecimal basicSalary, PhilhealthRateTable config) {
+    public BigDecimal calculatePhilhealthEmployerContribution(BigDecimal basicSalary, PhilhealthRate config) {
         // PhilHealth is a split equally,  employer share equals employee share
         return calculatePhilhealthDeduction(basicSalary, config);
     }

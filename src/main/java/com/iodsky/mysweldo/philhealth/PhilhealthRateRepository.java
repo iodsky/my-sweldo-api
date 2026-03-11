@@ -11,9 +11,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface PhilhealthRateTableRepository extends JpaRepository<PhilhealthRateTable, UUID>, JpaSpecificationExecutor<PhilhealthRateTable> {
+public interface PhilhealthRateRepository extends JpaRepository<PhilhealthRate, UUID>, JpaSpecificationExecutor<PhilhealthRate> {
 
-    @Query("SELECT p FROM PhilhealthRateTable p WHERE p.effectiveDate <= :date AND p.deletedAt IS NULL ORDER BY p.effectiveDate DESC LIMIT 1")
-    Optional<PhilhealthRateTable> findLatestByEffectiveDate(@Param("date") LocalDate date);
+    @Query("SELECT p FROM PhilhealthRate p WHERE p.effectiveDate <= :date AND p.deletedAt IS NULL ORDER BY p.effectiveDate DESC LIMIT 1")
+    Optional<PhilhealthRate> findLatestByEffectiveDate(@Param("date") LocalDate date);
 
 }

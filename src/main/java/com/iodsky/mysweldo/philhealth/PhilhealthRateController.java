@@ -22,21 +22,21 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/payroll-config/philhealth")
+@RequestMapping("/payroll-config/philhealth-rates")
 @PreAuthorize("hasAnyRole('PAYROLL', 'SUPERUSER')")
 @Validated
 @RequiredArgsConstructor
 @Tag(name = "Payroll Configuration - PhilHealth", description = "Manage PhilHealth rate table configurations")
-public class PhilhealthRateTableController {
+public class PhilhealthRateController {
 
-    private final PhilhealthRateTableService service;
-    private final PhilhealthRateTableMapper mapper;
+    private final PhilhealthRateService service;
+    private final PhilhealthRateMapper mapper;
 
     @PostMapping
     @Operation(summary = "Create PhilHealth rate table", description = "Create a new PhilHealth rate table. Requires PAYROLL role.")
-    public ResponseEntity<ApiResponse<PhilhealthRateTableDto>> createPhilhealthRateTable(
-            @Valid @RequestBody PhilhealthRateTableRequest request) {
-        PhilhealthRateTable rateTable = service.createPhilhealthRateTable(request);
+    public ResponseEntity<ApiResponse<PhilhealthRateDto>> createPhilhealthRateTable(
+            @Valid @RequestBody PhilhealthRateRequest request) {
+        PhilhealthRate rateTable = service.createPhilhealthRateTable(request);
         return ResponseFactory.created(
                 "PhilHealth rate table created successfully",
                 mapper.toDto(rateTable)
@@ -45,13 +45,13 @@ public class PhilhealthRateTableController {
 
     @GetMapping
     @Operation(summary = "Get all PhilHealth rate tables", description = "Retrieve all PhilHealth rate tables with pagination. Requires PAYROLL role.")
-    public ResponseEntity<ApiResponse<List<PhilhealthRateTableDto>>> getAllPhilhealthRateTables(
+    public ResponseEntity<ApiResponse<List<PhilhealthRateDto>>> getAllPhilhealthRateTables(
             @Parameter(description = "Page number (0-indexed)") @RequestParam(defaultValue = "0") @Min(0) int pageNo,
             @Parameter(description = "Number of items per page (1-100)") @RequestParam(defaultValue = "10") @Min(1) @Max(100) int limit,
             @Parameter(description = "Filter by effective date (on or before)") @RequestParam(required = false) LocalDate effectiveDate
     ) {
-        Page<PhilhealthRateTable> page = service.getAllPhilhealthRateTables(pageNo, limit, effectiveDate);
-        List<PhilhealthRateTableDto> rateTables = page.getContent().stream()
+        Page<PhilhealthRate> page = service.getAllPhilhealthRateTables(pageNo, limit, effectiveDate);
+        List<PhilhealthRateDto> rateTables = page.getContent().stream()
                 .map(mapper::toDto)
                 .toList();
 
@@ -64,9 +64,9 @@ public class PhilhealthRateTableController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get PhilHealth rate table by ID", description = "Retrieve a specific PhilHealth rate table. Requires PAYROLL role.")
-    public ResponseEntity<ApiResponse<PhilhealthRateTableDto>> getPhilhealthRateTableById(
+    public ResponseEntity<ApiResponse<PhilhealthRateDto>> getPhilhealthRateTableById(
             @Parameter(description = "Rate table ID") @PathVariable UUID id) {
-        PhilhealthRateTable rateTable = service.getPhilhealthRateTableById(id);
+        PhilhealthRate rateTable = service.getPhilhealthRateTableById(id);
         return ResponseFactory.ok(
                 "PhilHealth rate table retrieved successfully",
                 mapper.toDto(rateTable)
@@ -75,11 +75,11 @@ public class PhilhealthRateTableController {
 
     @GetMapping("/latest")
     @Operation(summary = "Get latest PhilHealth rate table", description = "Retrieve the latest PhilHealth rate table for a given date. Requires PAYROLL role.")
-    public ResponseEntity<ApiResponse<PhilhealthRateTableDto>> getLatestPhilhealthRateTable(
+    public ResponseEntity<ApiResponse<PhilhealthRateDto>> getLatestPhilhealthRateTable(
             @Parameter(description = "Date to check (defaults to today)") @RequestParam(required = false) LocalDate date
     ) {
         LocalDate effectiveDate = date != null ? date : LocalDate.now();
-        PhilhealthRateTable rateTable = service.getLatestPhilhealthRateTable(effectiveDate);
+        PhilhealthRate rateTable = service.getLatestPhilhealthRateTable(effectiveDate);
         return ResponseFactory.ok(
                 "Latest PhilHealth rate table retrieved successfully",
                 mapper.toDto(rateTable)
@@ -88,10 +88,10 @@ public class PhilhealthRateTableController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Update PhilHealth rate table", description = "Update an existing PhilHealth rate table. Requires PAYROLL role.")
-    public ResponseEntity<ApiResponse<PhilhealthRateTableDto>> updatePhilhealthRateTable(
+    public ResponseEntity<ApiResponse<PhilhealthRateDto>> updatePhilhealthRateTable(
             @Parameter(description = "Rate table ID") @PathVariable UUID id,
-            @Valid @RequestBody PhilhealthRateTableRequest request) {
-        PhilhealthRateTable rateTable = service.updatePhilhealthRateTable(id, request);
+            @Valid @RequestBody PhilhealthRateRequest request) {
+        PhilhealthRate rateTable = service.updatePhilhealthRateTable(id, request);
         return ResponseFactory.ok(
                 "PhilHealth rate table updated successfully",
                 mapper.toDto(rateTable)

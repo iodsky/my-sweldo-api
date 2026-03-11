@@ -3,14 +3,14 @@ package com.iodsky.mysweldo.philhealth;
 import org.springframework.stereotype.Component;
 
 @Component
-public class PhilhealthRateTableMapper {
+public class PhilhealthRateMapper {
 
-    public PhilhealthRateTableDto toDto(PhilhealthRateTable entity) {
+    public PhilhealthRateDto toDto(PhilhealthRate entity) {
         if (entity == null) {
             return null;
         }
 
-        return PhilhealthRateTableDto.builder()
+        return PhilhealthRateDto.builder()
                 .id(entity.getId())
                 .premiumRate(entity.getPremiumRate())
                 .maxSalaryCap(entity.getMaxSalaryCap())

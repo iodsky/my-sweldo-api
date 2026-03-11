@@ -10,14 +10,14 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
-@Table(name = "philhealth_rate_table")
+@Table(name = "philhealth_rate")
 @SQLRestriction("deleted_at IS NULL")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class PhilhealthRateTable extends BaseModel {
+public class PhilhealthRate extends BaseModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

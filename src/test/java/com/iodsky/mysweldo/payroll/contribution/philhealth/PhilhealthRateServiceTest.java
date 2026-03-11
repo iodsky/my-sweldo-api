@@ -1,9 +1,9 @@
 package com.iodsky.mysweldo.payroll.contribution.philhealth;
 
-import com.iodsky.mysweldo.philhealth.PhilhealthRateTable;
-import com.iodsky.mysweldo.philhealth.PhilhealthRateTableRepository;
-import com.iodsky.mysweldo.philhealth.PhilhealthRateTableRequest;
-import com.iodsky.mysweldo.philhealth.PhilhealthRateTableService;
+import com.iodsky.mysweldo.philhealth.PhilhealthRate;
+import com.iodsky.mysweldo.philhealth.PhilhealthRateRepository;
+import com.iodsky.mysweldo.philhealth.PhilhealthRateRequest;
+import com.iodsky.mysweldo.philhealth.PhilhealthRateService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -31,20 +31,20 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class PhilhealthRateTableServiceTest {
+class PhilhealthRateServiceTest {
 
     @InjectMocks
-    private PhilhealthRateTableService service;
+    private PhilhealthRateService service;
 
     @Mock
-    private PhilhealthRateTableRepository repository;
+    private PhilhealthRateRepository repository;
 
-    private PhilhealthRateTable rateTable;
-    private PhilhealthRateTableRequest request;
+    private PhilhealthRate rateTable;
+    private PhilhealthRateRequest request;
 
     @BeforeEach
     void setUp() {
-        rateTable = PhilhealthRateTable.builder()
+        rateTable = PhilhealthRate.builder()
                 .id(UUID.randomUUID())
                 .premiumRate(new BigDecimal("0.0500"))
                 .maxSalaryCap(new BigDecimal("100000.00"))
@@ -53,7 +53,7 @@ class PhilhealthRateTableServiceTest {
                 .effectiveDate(LocalDate.of(2024, 1, 1))
                 .build();
 
-        request = PhilhealthRateTableRequest.builder()
+        request = PhilhealthRateRequest.builder()
                 .premiumRate(new BigDecimal("0.0500"))
                 .maxSalaryCap(new BigDecimal("100000.00"))
                 .minSalaryFloor(new BigDecimal("10000.00"))
@@ -63,15 +63,15 @@ class PhilhealthRateTableServiceTest {
     }
 
     @Nested
-    class CreatePhilhealthRateTableTests {
+    class CreatePhilhealthRateTests {
 
         @Test
         void shouldCreateRateTableWhenNoExistingRecordForEffectiveDate() {
             when(repository.findLatestByEffectiveDate(request.getEffectiveDate()))
                     .thenReturn(Optional.empty());
-            when(repository.save(any(PhilhealthRateTable.class))).thenReturn(rateTable);
+            when(repository.save(any(PhilhealthRate.class))).thenReturn(rateTable);
 
-            PhilhealthRateTable result = service.createPhilhealthRateTable(request);
+            PhilhealthRate result = service.createPhilhealthRateTable(request);
 
             assertThat(result).isNotNull();
             assertThat(result.getPremiumRate()).isEqualTo(request.getPremiumRate());
@@ -104,11 +104,11 @@ class PhilhealthRateTableServiceTest {
         @SuppressWarnings("unchecked")
         @Test
         void shouldReturnPaginatedRateTablesWhenNoEffectiveDateFilterProvided() {
-            Page<PhilhealthRateTable> expectedPage = new PageImpl<>(List.of(rateTable));
+            Page<PhilhealthRate> expectedPage = new PageImpl<>(List.of(rateTable));
             when(repository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(expectedPage);
 
-            Page<PhilhealthRateTable> result = service.getAllPhilhealthRateTables(0, 10, null);
+            Page<PhilhealthRate> result = service.getAllPhilhealthRateTables(0, 10, null);
 
             assertThat(result.getContent()).hasSize(1);
             assertThat(result.getContent().getFirst()).isEqualTo(rateTable);
@@ -117,11 +117,11 @@ class PhilhealthRateTableServiceTest {
         @SuppressWarnings("unchecked")
         @Test
         void shouldReturnPaginatedRateTablesFilteredByEffectiveDateWhenDateProvided() {
-            Page<PhilhealthRateTable> expectedPage = new PageImpl<>(List.of(rateTable));
+            Page<PhilhealthRate> expectedPage = new PageImpl<>(List.of(rateTable));
             when(repository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(expectedPage);
 
-            Page<PhilhealthRateTable> result = service.getAllPhilhealthRateTables(0, 10, LocalDate.of(2024, 6, 1));
+            Page<PhilhealthRate> result = service.getAllPhilhealthRateTables(0, 10, LocalDate.of(2024, 6, 1));
 
             assertThat(result.getContent()).hasSize(1);
         }
@@ -129,25 +129,25 @@ class PhilhealthRateTableServiceTest {
         @SuppressWarnings("unchecked")
         @Test
         void shouldReturnEmptyPageWhenNoRateTablesExist() {
-            Page<PhilhealthRateTable> emptyPage = new PageImpl<>(List.of());
+            Page<PhilhealthRate> emptyPage = new PageImpl<>(List.of());
             when(repository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(emptyPage);
 
-            Page<PhilhealthRateTable> result = service.getAllPhilhealthRateTables(0, 10, null);
+            Page<PhilhealthRate> result = service.getAllPhilhealthRateTables(0, 10, null);
 
             assertThat(result.getContent()).isEmpty();
         }
     }
 
     @Nested
-    class GetPhilhealthRateTableByIdTests {
+    class GetPhilhealthRateByIdTests {
 
         @Test
         void shouldReturnRateTableWhenItExistsAndIsNotDeleted() {
             when(repository.findById(rateTable.getId()))
                     .thenReturn(Optional.of(rateTable));
 
-            PhilhealthRateTable result = service.getPhilhealthRateTableById(rateTable.getId());
+            PhilhealthRate result = service.getPhilhealthRateTableById(rateTable.getId());
 
             assertThat(result).isEqualTo(rateTable);
         }
@@ -181,7 +181,7 @@ class PhilhealthRateTableServiceTest {
     }
 
     @Nested
-    class GetLatestPhilhealthRateTableTests {
+    class GetLatestPhilhealthRateTests {
 
         @Test
         void shouldReturnLatestRateTableForGivenDate() {
@@ -189,7 +189,7 @@ class PhilhealthRateTableServiceTest {
             when(repository.findLatestByEffectiveDate(date))
                     .thenReturn(Optional.of(rateTable));
 
-            PhilhealthRateTable result = service.getLatestPhilhealthRateTable(date);
+            PhilhealthRate result = service.getLatestPhilhealthRateTable(date);
 
             assertThat(result).isEqualTo(rateTable);
         }
@@ -211,11 +211,11 @@ class PhilhealthRateTableServiceTest {
     }
 
     @Nested
-    class UpdatePhilhealthRateTableTests {
+    class UpdatePhilhealthRateTests {
 
         @Test
         void shouldUpdateFieldsAndReturnUpdatedRateTableWhenExists() {
-            PhilhealthRateTableRequest updateRequest = PhilhealthRateTableRequest.builder()
+            PhilhealthRateRequest updateRequest = PhilhealthRateRequest.builder()
                     .premiumRate(new BigDecimal("0.0600"))
                     .maxSalaryCap(new BigDecimal("120000.00"))
                     .minSalaryFloor(new BigDecimal("10000.00"))
@@ -225,9 +225,9 @@ class PhilhealthRateTableServiceTest {
 
             when(repository.findById(rateTable.getId()))
                     .thenReturn(Optional.of(rateTable));
-            when(repository.save(any(PhilhealthRateTable.class))).thenAnswer(inv -> inv.getArgument(0));
+            when(repository.save(any(PhilhealthRate.class))).thenAnswer(inv -> inv.getArgument(0));
 
-            PhilhealthRateTable result = service.updatePhilhealthRateTable(rateTable.getId(), updateRequest);
+            PhilhealthRate result = service.updatePhilhealthRateTable(rateTable.getId(), updateRequest);
 
             assertThat(result.getPremiumRate()).isEqualTo(updateRequest.getPremiumRate());
             assertThat(result.getMaxSalaryCap()).isEqualTo(updateRequest.getMaxSalaryCap());
@@ -239,7 +239,7 @@ class PhilhealthRateTableServiceTest {
             BigDecimal originalMinSalaryFloor = rateTable.getMinSalaryFloor();
             BigDecimal originalFixedContribution = rateTable.getFixedContribution();
 
-            PhilhealthRateTableRequest updateRequest = PhilhealthRateTableRequest.builder()
+            PhilhealthRateRequest updateRequest = PhilhealthRateRequest.builder()
                     .premiumRate(new BigDecimal("0.0600"))
                     .maxSalaryCap(new BigDecimal("120000.00"))
                     .minSalaryFloor(new BigDecimal("99999.00"))
@@ -249,9 +249,9 @@ class PhilhealthRateTableServiceTest {
 
             when(repository.findById(rateTable.getId()))
                     .thenReturn(Optional.of(rateTable));
-            when(repository.save(any(PhilhealthRateTable.class))).thenAnswer(inv -> inv.getArgument(0));
+            when(repository.save(any(PhilhealthRate.class))).thenAnswer(inv -> inv.getArgument(0));
 
-            PhilhealthRateTable result = service.updatePhilhealthRateTable(rateTable.getId(), updateRequest);
+            PhilhealthRate result = service.updatePhilhealthRateTable(rateTable.getId(), updateRequest);
 
             assertThat(result.getMinSalaryFloor()).isEqualTo(originalMinSalaryFloor);
             assertThat(result.getFixedContribution()).isEqualTo(originalFixedContribution);
@@ -282,13 +282,13 @@ class PhilhealthRateTableServiceTest {
     }
 
     @Nested
-    class DeletePhilhealthRateTableTests {
+    class DeletePhilhealthRateTests {
 
         @Test
         void shouldSoftDeleteRateTableBySettingDeletedAt() {
             when(repository.findById(rateTable.getId()))
                     .thenReturn(Optional.of(rateTable));
-            when(repository.save(any(PhilhealthRateTable.class))).thenAnswer(inv -> inv.getArgument(0));
+            when(repository.save(any(PhilhealthRate.class))).thenAnswer(inv -> inv.getArgument(0));
 
             service.deletePhilhealthRateTable(rateTable.getId());
 

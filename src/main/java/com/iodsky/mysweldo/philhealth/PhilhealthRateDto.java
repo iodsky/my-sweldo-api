@@ -14,7 +14,7 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class PhilhealthRateTableDto {
+public class PhilhealthRateDto {
     private UUID id;
     private BigDecimal premiumRate;
     private BigDecimal maxSalaryCap;
