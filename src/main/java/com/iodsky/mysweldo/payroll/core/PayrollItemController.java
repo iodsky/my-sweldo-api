@@ -17,7 +17,7 @@ import java.time.YearMonth;
 import java.util.List;
 
 @RestController
-@RequestMapping("/payrolls")
+@RequestMapping("/payroll-items")
 @RequiredArgsConstructor
 @Tag(name = "Payroll", description = "Payroll processing and management endpoints")
 public class PayrollItemController {
