@@ -95,7 +95,7 @@ class SssRateServiceTest {
         void shouldReturnSavedRateTableWhenValidRequestProvided() {
             when(sssRateTableRepository.save(any(SssRate.class))).thenReturn(rateTable);
 
-            SssRate result = service.createSssRateTable(request);
+            SssRate result = service.createSssRate(request);
 
             assertThat(result).isNotNull();
             assertThat(result.getTotalSss()).isEqualTo(request.getTotalSss());
@@ -108,7 +108,7 @@ class SssRateServiceTest {
         void shouldMapSalaryBracketsCorrectlyFromRequest() {
             when(sssRateTableRepository.save(any(SssRate.class))).thenAnswer(inv -> inv.getArgument(0));
 
-            SssRate result = service.createSssRateTable(request);
+            SssRate result = service.createSssRate(request);
 
             assertThat(result.getSalaryBrackets()).hasSize(2);
             assertThat(result.getSalaryBrackets().get(0).getMinSalary()).isEqualTo(new BigDecimal("0.00"));
@@ -121,7 +121,7 @@ class SssRateServiceTest {
             request.setSalaryBrackets(List.of());
             when(sssRateTableRepository.save(any(SssRate.class))).thenAnswer(inv -> inv.getArgument(0));
 
-            SssRate result = service.createSssRateTable(request);
+            SssRate result = service.createSssRate(request);
 
             assertThat(result.getSalaryBrackets()).isEmpty();
         }
@@ -137,7 +137,7 @@ class SssRateServiceTest {
             when(sssRateTableRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(expectedPage);
 
-            Page<SssRate> result = service.getAllSssRateTables(0, 10, null);
+            Page<SssRate> result = service.getAllSssRate(0, 10, null);
 
             assertThat(result.getContent()).hasSize(1);
             assertThat(result.getContent().getFirst()).isEqualTo(rateTable);
@@ -150,7 +150,7 @@ class SssRateServiceTest {
             when(sssRateTableRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(expectedPage);
 
-            Page<SssRate> result = service.getAllSssRateTables(0, 10, LocalDate.of(2024, 1, 1));
+            Page<SssRate> result = service.getAllSssRate(0, 10, LocalDate.of(2024, 1, 1));
 
             assertThat(result.getContent()).hasSize(1);
         }
@@ -162,7 +162,7 @@ class SssRateServiceTest {
             when(sssRateTableRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(emptyPage);
 
-            Page<SssRate> result = service.getAllSssRateTables(0, 10, null);
+            Page<SssRate> result = service.getAllSssRate(0, 10, null);
 
             assertThat(result.getContent()).isEmpty();
         }
@@ -176,7 +176,7 @@ class SssRateServiceTest {
             when(sssRateTableRepository.findById(rateTable.getId()))
                     .thenReturn(Optional.of(rateTable));
 
-            SssRate result = service.getSssRateTableById(rateTable.getId());
+            SssRate result = service.getSssRateById(rateTable.getId());
 
             assertThat(result).isEqualTo(rateTable);
         }
@@ -186,7 +186,7 @@ class SssRateServiceTest {
             UUID unknownId = UUID.randomUUID();
             when(sssRateTableRepository.findById(unknownId)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> service.getSssRateTableById(unknownId))
+            assertThatThrownBy(() -> service.getSssRateById(unknownId))
                     .isInstanceOf(ResponseStatusException.class)
                     .satisfies(ex -> {
                         ResponseStatusException rse = (ResponseStatusException) ex;
@@ -201,7 +201,7 @@ class SssRateServiceTest {
             when(sssRateTableRepository.findById(rateTable.getId()))
                     .thenReturn(Optional.of(rateTable));
 
-            assertThatThrownBy(() -> service.getSssRateTableById(rateTable.getId()))
+            assertThatThrownBy(() -> service.getSssRateById(rateTable.getId()))
                     .isInstanceOf(ResponseStatusException.class)
                     .satisfies(ex -> assertThat(((ResponseStatusException) ex).getStatusCode())
                             .isEqualTo(HttpStatus.NOT_FOUND));
@@ -218,7 +218,7 @@ class SssRateServiceTest {
             when(sssRateTableRepository.findLatestByEffectiveDate(date))
                     .thenReturn(Optional.of(rateTable));
 
-            SssRate result = service.getSssRateTableBySalaryAndDate(salary, date);
+            SssRate result = service.getSssRateBySalaryAndDate(salary, date);
 
             assertThat(result).isEqualTo(rateTable);
         }
@@ -230,7 +230,7 @@ class SssRateServiceTest {
             when(sssRateTableRepository.findLatestByEffectiveDate(date))
                     .thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> service.getSssRateTableBySalaryAndDate(salary, date))
+            assertThatThrownBy(() -> service.getSssRateBySalaryAndDate(salary, date))
                     .isInstanceOf(ResponseStatusException.class)
                     .satisfies(ex -> {
                         ResponseStatusException rse = (ResponseStatusException) ex;
@@ -246,7 +246,7 @@ class SssRateServiceTest {
             when(sssRateTableRepository.findLatestByEffectiveDate(date))
                     .thenReturn(Optional.of(rateTable));
 
-            assertThatThrownBy(() -> service.getSssRateTableBySalaryAndDate(salaryBelowAllBrackets, date))
+            assertThatThrownBy(() -> service.getSssRateBySalaryAndDate(salaryBelowAllBrackets, date))
                     .isInstanceOf(ResponseStatusException.class)
                     .satisfies(ex -> {
                         ResponseStatusException rse = (ResponseStatusException) ex;
@@ -281,7 +281,7 @@ class SssRateServiceTest {
                     .thenReturn(Optional.of(rateTable));
             when(sssRateTableRepository.save(any(SssRate.class))).thenAnswer(inv -> inv.getArgument(0));
 
-            SssRate result = service.updateSssRateTable(rateTable.getId(), updateRequest);
+            SssRate result = service.updateSssRate(rateTable.getId(), updateRequest);
 
             assertThat(result.getTotalSss()).isEqualTo(updateRequest.getTotalSss());
             assertThat(result.getEmployeeRate()).isEqualTo(updateRequest.getEmployeeRate());
@@ -296,7 +296,7 @@ class SssRateServiceTest {
             UUID unknownId = UUID.randomUUID();
             when(sssRateTableRepository.findById(unknownId)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> service.updateSssRateTable(unknownId, request))
+            assertThatThrownBy(() -> service.updateSssRate(unknownId, request))
                     .isInstanceOf(ResponseStatusException.class)
                     .satisfies(ex -> assertThat(((ResponseStatusException) ex).getStatusCode())
                             .isEqualTo(HttpStatus.NOT_FOUND));
@@ -308,7 +308,7 @@ class SssRateServiceTest {
             when(sssRateTableRepository.findById(rateTable.getId()))
                     .thenReturn(Optional.of(rateTable));
 
-            assertThatThrownBy(() -> service.updateSssRateTable(rateTable.getId(), request))
+            assertThatThrownBy(() -> service.updateSssRate(rateTable.getId(), request))
                     .isInstanceOf(ResponseStatusException.class)
                     .satisfies(ex -> assertThat(((ResponseStatusException) ex).getStatusCode())
                             .isEqualTo(HttpStatus.NOT_FOUND));
@@ -324,7 +324,7 @@ class SssRateServiceTest {
                     .thenReturn(Optional.of(rateTable));
             when(sssRateTableRepository.save(any(SssRate.class))).thenAnswer(inv -> inv.getArgument(0));
 
-            service.deleteSssRateTable(rateTable.getId());
+            service.deleteSssRate(rateTable.getId());
 
             assertThat(rateTable.getDeletedAt()).isNotNull();
         }
@@ -334,7 +334,7 @@ class SssRateServiceTest {
             UUID unknownId = UUID.randomUUID();
             when(sssRateTableRepository.findById(unknownId)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> service.deleteSssRateTable(unknownId))
+            assertThatThrownBy(() -> service.deleteSssRate(unknownId))
                     .isInstanceOf(ResponseStatusException.class)
                     .satisfies(ex -> assertThat(((ResponseStatusException) ex).getStatusCode())
                             .isEqualTo(HttpStatus.NOT_FOUND));
@@ -346,7 +346,7 @@ class SssRateServiceTest {
             when(sssRateTableRepository.findById(rateTable.getId()))
                     .thenReturn(Optional.of(rateTable));
 
-            assertThatThrownBy(() -> service.deleteSssRateTable(rateTable.getId()))
+            assertThatThrownBy(() -> service.deleteSssRate(rateTable.getId()))
                     .isInstanceOf(ResponseStatusException.class)
                     .satisfies(ex -> assertThat(((ResponseStatusException) ex).getStatusCode())
                             .isEqualTo(HttpStatus.NOT_FOUND));

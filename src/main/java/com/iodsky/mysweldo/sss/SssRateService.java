@@ -24,7 +24,7 @@ public class SssRateService {
     private final SssRateRepository repositiry;
 
     @Transactional
-    public SssRate createSssRateTable(SssRateRequest request) {
+    public SssRate createSssRate(SssRateRequest request) {
         List<SssRate.SalaryBracket> brackets = request.getSalaryBrackets().stream()
                 .map(req -> SssRate.SalaryBracket.builder()
                         .minSalary(req.getMinSalary())
@@ -33,7 +33,7 @@ public class SssRateService {
                         .build())
                 .collect(Collectors.toList());
 
-        SssRate rateTable = SssRate.builder()
+        SssRate sssRate = SssRate.builder()
                 .totalSss(request.getTotalSss())
                 .employeeRate(request.getEmployeeRate())
                 .employerRate(request.getEmployerRate())
@@ -41,10 +41,10 @@ public class SssRateService {
                 .effectiveDate(request.getEffectiveDate())
                 .build();
 
-        return repositiry.save(rateTable);
+        return repositiry.save(sssRate);
     }
 
-    public Page<SssRate> getAllSssRateTables(
+    public Page<SssRate> getAllSssRate(
             int page, int limit, LocalDate effectiveDate) {
         Pageable pageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.DESC, "effectiveDate"));
 
@@ -61,20 +61,20 @@ public class SssRateService {
         }, pageable);
     }
 
-    public SssRate getSssRateTableById(UUID id) {
+    public SssRate getSssRateById(UUID id) {
         return repositiry.findById(id)
                 .filter(config -> config.getDeletedAt() == null)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "SSS rate table not found with ID: " + id
+                        "SSS rate not found with ID: " + id
                 ));
     }
 
-    public SssRate getSssRateTableBySalaryAndDate(BigDecimal salary, LocalDate date) {
+    public SssRate getSssRateBySalaryAndDate(BigDecimal salary, LocalDate date) {
         SssRate config = repositiry.findLatestByEffectiveDate(date)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "No SSS rate table found for date: " + date
+                        "No SSS rate found for date: " + date
                 ));
 
         // Verify the salary falls within one of the brackets
@@ -91,8 +91,8 @@ public class SssRateService {
     }
 
     @Transactional
-    public SssRate updateSssRateTable(UUID id, SssRateRequest request) {
-        SssRate rateTable = getSssRateTableById(id);
+    public SssRate updateSssRate(UUID id, SssRateRequest request) {
+        SssRate sssRate = getSssRateById(id);
 
         List<SssRate.SalaryBracket> brackets = request.getSalaryBrackets().stream()
                 .map(req -> SssRate.SalaryBracket.builder()
@@ -102,19 +102,19 @@ public class SssRateService {
                         .build())
                 .collect(Collectors.toList());
 
-        rateTable.setTotalSss(request.getTotalSss());
-        rateTable.setEmployeeRate(request.getEmployeeRate());
-        rateTable.setEmployerRate(request.getEmployerRate());
-        rateTable.setSalaryBrackets(brackets);
-        rateTable.setEffectiveDate(request.getEffectiveDate());
+        sssRate.setTotalSss(request.getTotalSss());
+        sssRate.setEmployeeRate(request.getEmployeeRate());
+        sssRate.setEmployerRate(request.getEmployerRate());
+        sssRate.setSalaryBrackets(brackets);
+        sssRate.setEffectiveDate(request.getEffectiveDate());
 
-        return repositiry.save(rateTable);
+        return repositiry.save(sssRate);
     }
 
     @Transactional
-    public void deleteSssRateTable(UUID id) {
-        SssRate rateTable = getSssRateTableById(id);
-        rateTable.setDeletedAt(Instant.now());
-        repositiry.save(rateTable);
+    public void deleteSssRate(UUID id) {
+        SssRate sssRate = getSssRateById(id);
+        sssRate.setDeletedAt(Instant.now());
+        repositiry.save(sssRate);
     }
 }
