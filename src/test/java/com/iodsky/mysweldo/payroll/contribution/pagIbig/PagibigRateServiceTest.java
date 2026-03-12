@@ -73,7 +73,7 @@ class PagibigRateServiceTest {
                     .thenReturn(Optional.empty());
             when(pagibigRateTableRepository.save(any(PagibigRate.class))).thenReturn(rateTable);
 
-            PagibigRate result = service.createPagibigRateTable(request);
+            PagibigRate result = service.createPagibigRate(request);
 
             assertThat(result).isNotNull();
             assertThat(result.getEmployeeRate()).isEqualTo(request.getEmployeeRate());
@@ -86,7 +86,7 @@ class PagibigRateServiceTest {
             when(pagibigRateTableRepository.findLatestByEffectiveDate(request.getEffectiveDate()))
                     .thenReturn(Optional.of(rateTable));
 
-            assertThatThrownBy(() -> service.createPagibigRateTable(request))
+            assertThatThrownBy(() -> service.createPagibigRate(request))
                     .isInstanceOf(ResponseStatusException.class)
                     .satisfies(ex -> {
                         ResponseStatusException rse = (ResponseStatusException) ex;
@@ -108,7 +108,7 @@ class PagibigRateServiceTest {
             when(pagibigRateTableRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(expectedPage);
 
-            Page<PagibigRate> result = service.getAllPagibigRateTables(0, 10, null);
+            Page<PagibigRate> result = service.getAllPagibigRates(0, 10, null);
 
             assertThat(result.getContent()).hasSize(1);
             assertThat(result.getContent().getFirst()).isEqualTo(rateTable);
@@ -121,7 +121,7 @@ class PagibigRateServiceTest {
             when(pagibigRateTableRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(expectedPage);
 
-            Page<PagibigRate> result = service.getAllPagibigRateTables(0, 10, LocalDate.of(2024, 6, 1));
+            Page<PagibigRate> result = service.getAllPagibigRates(0, 10, LocalDate.of(2024, 6, 1));
 
             assertThat(result.getContent()).hasSize(1);
         }
@@ -133,7 +133,7 @@ class PagibigRateServiceTest {
             when(pagibigRateTableRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(emptyPage);
 
-            Page<PagibigRate> result = service.getAllPagibigRateTables(0, 10, null);
+            Page<PagibigRate> result = service.getAllPagibigRates(0, 10, null);
 
             assertThat(result.getContent()).isEmpty();
         }
@@ -147,7 +147,7 @@ class PagibigRateServiceTest {
             when(pagibigRateTableRepository.findById(rateTable.getId()))
                     .thenReturn(Optional.of(rateTable));
 
-            PagibigRate result = service.getPagibigRateTableById(rateTable.getId());
+            PagibigRate result = service.getPagibigRateById(rateTable.getId());
 
             assertThat(result).isEqualTo(rateTable);
         }
@@ -157,7 +157,7 @@ class PagibigRateServiceTest {
             UUID unknownId = UUID.randomUUID();
             when(pagibigRateTableRepository.findById(unknownId)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> service.getPagibigRateTableById(unknownId))
+            assertThatThrownBy(() -> service.getPagibigRateById(unknownId))
                     .isInstanceOf(ResponseStatusException.class)
                     .satisfies(ex -> {
                         ResponseStatusException rse = (ResponseStatusException) ex;
@@ -171,7 +171,7 @@ class PagibigRateServiceTest {
             when(pagibigRateTableRepository.findById(rateTable.getId()))
                     .thenReturn(Optional.of(rateTable));
 
-            assertThatThrownBy(() -> service.getPagibigRateTableById(rateTable.getId()))
+            assertThatThrownBy(() -> service.getPagibigRateById(rateTable.getId()))
                     .isInstanceOf(ResponseStatusException.class)
                     .satisfies(ex -> {
                         ResponseStatusException rse = (ResponseStatusException) ex;
@@ -189,7 +189,7 @@ class PagibigRateServiceTest {
             when(pagibigRateTableRepository.findLatestByEffectiveDate(date))
                     .thenReturn(Optional.of(rateTable));
 
-            PagibigRate result = service.getLatestPagibigRateTable(date);
+            PagibigRate result = service.getLatestPagibigRate(date);
 
             assertThat(result).isEqualTo(rateTable);
         }
@@ -200,7 +200,7 @@ class PagibigRateServiceTest {
             when(pagibigRateTableRepository.findLatestByEffectiveDate(date))
                     .thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> service.getLatestPagibigRateTable(date))
+            assertThatThrownBy(() -> service.getLatestPagibigRate(date))
                     .isInstanceOf(ResponseStatusException.class)
                     .satisfies(ex -> {
                         ResponseStatusException rse = (ResponseStatusException) ex;
@@ -228,7 +228,7 @@ class PagibigRateServiceTest {
                     .thenReturn(Optional.of(rateTable));
             when(pagibigRateTableRepository.save(any(PagibigRate.class))).thenAnswer(inv -> inv.getArgument(0));
 
-            PagibigRate result = service.updatePagibigRateTable(rateTable.getId(), updateRequest);
+            PagibigRate result = service.updatePagibigRate(rateTable.getId(), updateRequest);
 
             assertThat(result.getEmployeeRate()).isEqualTo(updateRequest.getEmployeeRate());
             assertThat(result.getEmployerRate()).isEqualTo(updateRequest.getEmployerRate());
@@ -243,7 +243,7 @@ class PagibigRateServiceTest {
             UUID unknownId = UUID.randomUUID();
             when(pagibigRateTableRepository.findById(unknownId)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> service.updatePagibigRateTable(unknownId, request))
+            assertThatThrownBy(() -> service.updatePagibigRate(unknownId, request))
                     .isInstanceOf(ResponseStatusException.class)
                     .satisfies(ex -> assertThat(((ResponseStatusException) ex).getStatusCode())
                             .isEqualTo(HttpStatus.NOT_FOUND));
@@ -255,7 +255,7 @@ class PagibigRateServiceTest {
             when(pagibigRateTableRepository.findById(rateTable.getId()))
                     .thenReturn(Optional.of(rateTable));
 
-            assertThatThrownBy(() -> service.updatePagibigRateTable(rateTable.getId(), request))
+            assertThatThrownBy(() -> service.updatePagibigRate(rateTable.getId(), request))
                     .isInstanceOf(ResponseStatusException.class)
                     .satisfies(ex -> assertThat(((ResponseStatusException) ex).getStatusCode())
                             .isEqualTo(HttpStatus.NOT_FOUND));
@@ -271,7 +271,7 @@ class PagibigRateServiceTest {
                     .thenReturn(Optional.of(rateTable));
             when(pagibigRateTableRepository.save(any(PagibigRate.class))).thenAnswer(inv -> inv.getArgument(0));
 
-            service.deletePagibigRateTable(rateTable.getId());
+            service.deletePagibigRate(rateTable.getId());
 
             assertThat(rateTable.getDeletedAt()).isNotNull();
         }
@@ -281,7 +281,7 @@ class PagibigRateServiceTest {
             UUID unknownId = UUID.randomUUID();
             when(pagibigRateTableRepository.findById(unknownId)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> service.deletePagibigRateTable(unknownId))
+            assertThatThrownBy(() -> service.deletePagibigRate(unknownId))
                     .isInstanceOf(ResponseStatusException.class)
                     .satisfies(ex -> assertThat(((ResponseStatusException) ex).getStatusCode())
                             .isEqualTo(HttpStatus.NOT_FOUND));
@@ -293,7 +293,7 @@ class PagibigRateServiceTest {
             when(pagibigRateTableRepository.findById(rateTable.getId()))
                     .thenReturn(Optional.of(rateTable));
 
-            assertThatThrownBy(() -> service.deletePagibigRateTable(rateTable.getId()))
+            assertThatThrownBy(() -> service.deletePagibigRate(rateTable.getId()))
                     .isInstanceOf(ResponseStatusException.class)
                     .satisfies(ex -> assertThat(((ResponseStatusException) ex).getStatusCode())
                             .isEqualTo(HttpStatus.NOT_FOUND));

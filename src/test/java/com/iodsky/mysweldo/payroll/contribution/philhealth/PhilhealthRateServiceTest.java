@@ -71,7 +71,7 @@ class PhilhealthRateServiceTest {
                     .thenReturn(Optional.empty());
             when(repository.save(any(PhilhealthRate.class))).thenReturn(rateTable);
 
-            PhilhealthRate result = service.createPhilhealthRateTable(request);
+            PhilhealthRate result = service.createPhilhealthRate(request);
 
             assertThat(result).isNotNull();
             assertThat(result.getPremiumRate()).isEqualTo(request.getPremiumRate());
@@ -86,7 +86,7 @@ class PhilhealthRateServiceTest {
             when(repository.findLatestByEffectiveDate(request.getEffectiveDate()))
                     .thenReturn(Optional.of(rateTable));
 
-            assertThatThrownBy(() -> service.createPhilhealthRateTable(request))
+            assertThatThrownBy(() -> service.createPhilhealthRate(request))
                     .isInstanceOf(ResponseStatusException.class)
                     .satisfies(ex -> {
                         ResponseStatusException rse = (ResponseStatusException) ex;
@@ -108,7 +108,7 @@ class PhilhealthRateServiceTest {
             when(repository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(expectedPage);
 
-            Page<PhilhealthRate> result = service.getAllPhilhealthRateTables(0, 10, null);
+            Page<PhilhealthRate> result = service.getAllPhilhealthRates(0, 10, null);
 
             assertThat(result.getContent()).hasSize(1);
             assertThat(result.getContent().getFirst()).isEqualTo(rateTable);
@@ -121,7 +121,7 @@ class PhilhealthRateServiceTest {
             when(repository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(expectedPage);
 
-            Page<PhilhealthRate> result = service.getAllPhilhealthRateTables(0, 10, LocalDate.of(2024, 6, 1));
+            Page<PhilhealthRate> result = service.getAllPhilhealthRates(0, 10, LocalDate.of(2024, 6, 1));
 
             assertThat(result.getContent()).hasSize(1);
         }
@@ -133,7 +133,7 @@ class PhilhealthRateServiceTest {
             when(repository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(emptyPage);
 
-            Page<PhilhealthRate> result = service.getAllPhilhealthRateTables(0, 10, null);
+            Page<PhilhealthRate> result = service.getAllPhilhealthRates(0, 10, null);
 
             assertThat(result.getContent()).isEmpty();
         }
@@ -147,7 +147,7 @@ class PhilhealthRateServiceTest {
             when(repository.findById(rateTable.getId()))
                     .thenReturn(Optional.of(rateTable));
 
-            PhilhealthRate result = service.getPhilhealthRateTableById(rateTable.getId());
+            PhilhealthRate result = service.getPhilhealthRateById(rateTable.getId());
 
             assertThat(result).isEqualTo(rateTable);
         }
@@ -157,7 +157,7 @@ class PhilhealthRateServiceTest {
             UUID unknownId = UUID.randomUUID();
             when(repository.findById(unknownId)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> service.getPhilhealthRateTableById(unknownId))
+            assertThatThrownBy(() -> service.getPhilhealthRateById(unknownId))
                     .isInstanceOf(ResponseStatusException.class)
                     .satisfies(ex -> {
                         ResponseStatusException rse = (ResponseStatusException) ex;
@@ -171,7 +171,7 @@ class PhilhealthRateServiceTest {
             when(repository.findById(rateTable.getId()))
                     .thenReturn(Optional.of(rateTable));
 
-            assertThatThrownBy(() -> service.getPhilhealthRateTableById(rateTable.getId()))
+            assertThatThrownBy(() -> service.getPhilhealthRateById(rateTable.getId()))
                     .isInstanceOf(ResponseStatusException.class)
                     .satisfies(ex -> {
                         ResponseStatusException rse = (ResponseStatusException) ex;
@@ -189,7 +189,7 @@ class PhilhealthRateServiceTest {
             when(repository.findLatestByEffectiveDate(date))
                     .thenReturn(Optional.of(rateTable));
 
-            PhilhealthRate result = service.getLatestPhilhealthRateTable(date);
+            PhilhealthRate result = service.getLatestPhilhealthRate(date);
 
             assertThat(result).isEqualTo(rateTable);
         }
@@ -200,7 +200,7 @@ class PhilhealthRateServiceTest {
             when(repository.findLatestByEffectiveDate(date))
                     .thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> service.getLatestPhilhealthRateTable(date))
+            assertThatThrownBy(() -> service.getLatestPhilhealthRate(date))
                     .isInstanceOf(ResponseStatusException.class)
                     .satisfies(ex -> {
                         ResponseStatusException rse = (ResponseStatusException) ex;
@@ -227,7 +227,7 @@ class PhilhealthRateServiceTest {
                     .thenReturn(Optional.of(rateTable));
             when(repository.save(any(PhilhealthRate.class))).thenAnswer(inv -> inv.getArgument(0));
 
-            PhilhealthRate result = service.updatePhilhealthRateTable(rateTable.getId(), updateRequest);
+            PhilhealthRate result = service.updatePhilhealthRate(rateTable.getId(), updateRequest);
 
             assertThat(result.getPremiumRate()).isEqualTo(updateRequest.getPremiumRate());
             assertThat(result.getMaxSalaryCap()).isEqualTo(updateRequest.getMaxSalaryCap());
@@ -251,7 +251,7 @@ class PhilhealthRateServiceTest {
                     .thenReturn(Optional.of(rateTable));
             when(repository.save(any(PhilhealthRate.class))).thenAnswer(inv -> inv.getArgument(0));
 
-            PhilhealthRate result = service.updatePhilhealthRateTable(rateTable.getId(), updateRequest);
+            PhilhealthRate result = service.updatePhilhealthRate(rateTable.getId(), updateRequest);
 
             assertThat(result.getMinSalaryFloor()).isEqualTo(originalMinSalaryFloor);
             assertThat(result.getFixedContribution()).isEqualTo(originalFixedContribution);
@@ -262,7 +262,7 @@ class PhilhealthRateServiceTest {
             UUID unknownId = UUID.randomUUID();
             when(repository.findById(unknownId)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> service.updatePhilhealthRateTable(unknownId, request))
+            assertThatThrownBy(() -> service.updatePhilhealthRate(unknownId, request))
                     .isInstanceOf(ResponseStatusException.class)
                     .satisfies(ex -> assertThat(((ResponseStatusException) ex).getStatusCode())
                             .isEqualTo(HttpStatus.NOT_FOUND));
@@ -274,7 +274,7 @@ class PhilhealthRateServiceTest {
             when(repository.findById(rateTable.getId()))
                     .thenReturn(Optional.of(rateTable));
 
-            assertThatThrownBy(() -> service.updatePhilhealthRateTable(rateTable.getId(), request))
+            assertThatThrownBy(() -> service.updatePhilhealthRate(rateTable.getId(), request))
                     .isInstanceOf(ResponseStatusException.class)
                     .satisfies(ex -> assertThat(((ResponseStatusException) ex).getStatusCode())
                             .isEqualTo(HttpStatus.NOT_FOUND));
@@ -290,7 +290,7 @@ class PhilhealthRateServiceTest {
                     .thenReturn(Optional.of(rateTable));
             when(repository.save(any(PhilhealthRate.class))).thenAnswer(inv -> inv.getArgument(0));
 
-            service.deletePhilhealthRateTable(rateTable.getId());
+            service.deletePhilhealthRate(rateTable.getId());
 
             assertThat(rateTable.getDeletedAt()).isNotNull();
         }
@@ -300,7 +300,7 @@ class PhilhealthRateServiceTest {
             UUID unknownId = UUID.randomUUID();
             when(repository.findById(unknownId)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> service.deletePhilhealthRateTable(unknownId))
+            assertThatThrownBy(() -> service.deletePhilhealthRate(unknownId))
                     .isInstanceOf(ResponseStatusException.class)
                     .satisfies(ex -> assertThat(((ResponseStatusException) ex).getStatusCode())
                             .isEqualTo(HttpStatus.NOT_FOUND));
@@ -312,7 +312,7 @@ class PhilhealthRateServiceTest {
             when(repository.findById(rateTable.getId()))
                     .thenReturn(Optional.of(rateTable));
 
-            assertThatThrownBy(() -> service.deletePhilhealthRateTable(rateTable.getId()))
+            assertThatThrownBy(() -> service.deletePhilhealthRate(rateTable.getId()))
                     .isInstanceOf(ResponseStatusException.class)
                     .satisfies(ex -> assertThat(((ResponseStatusException) ex).getStatusCode())
                             .isEqualTo(HttpStatus.NOT_FOUND));

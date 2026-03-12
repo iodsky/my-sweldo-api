@@ -21,16 +21,16 @@ public class PhilhealthRateService {
     private final PhilhealthRateRepository repository;
 
     @Transactional
-    public PhilhealthRate createPhilhealthRateTable(PhilhealthRateRequest request) {
+    public PhilhealthRate createPhilhealthRate(PhilhealthRateRequest request) {
         // Check if configuration already exists for this effective date
         if (repository.findLatestByEffectiveDate(request.getEffectiveDate()).isPresent()) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "PhilHealth rate table already exists for effective date: " + request.getEffectiveDate()
+                    "PhilHealth rate already exists for effective date: " + request.getEffectiveDate()
             );
         }
 
-        PhilhealthRate rateTable = PhilhealthRate.builder()
+        PhilhealthRate philhealthRate = PhilhealthRate.builder()
                 .premiumRate(request.getPremiumRate())
                 .maxSalaryCap(request.getMaxSalaryCap())
                 .minSalaryFloor(request.getMinSalaryFloor())
@@ -38,10 +38,10 @@ public class PhilhealthRateService {
                 .effectiveDate(request.getEffectiveDate())
                 .build();
 
-        return repository.save(rateTable);
+        return repository.save(philhealthRate);
     }
 
-    public Page<PhilhealthRate> getAllPhilhealthRateTables(int page, int limit, LocalDate effectiveDate) {
+    public Page<PhilhealthRate> getAllPhilhealthRates(int page, int limit, LocalDate effectiveDate) {
         Pageable pageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.DESC, "effectiveDate"));
 
         if (effectiveDate != null) {
@@ -60,38 +60,38 @@ public class PhilhealthRateService {
         );
     }
 
-    public PhilhealthRate getPhilhealthRateTableById(UUID id) {
+    public PhilhealthRate getPhilhealthRateById(UUID id) {
         return repository.findById(id)
                 .filter(config -> config.getDeletedAt() == null)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "PhilHealth rate table not found with ID: " + id
+                        "PhilHealth rate not found with ID: " + id
                 ));
     }
 
-    public PhilhealthRate getLatestPhilhealthRateTable(LocalDate date) {
+    public PhilhealthRate getLatestPhilhealthRate(LocalDate date) {
         return repository.findLatestByEffectiveDate(date)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "No PhilHealth rate table found for date: " + date
+                        "No PhilHealth rate found for date: " + date
                 ));
     }
 
     @Transactional
-    public PhilhealthRate updatePhilhealthRateTable(UUID id, PhilhealthRateRequest request) {
-        PhilhealthRate rateTable = getPhilhealthRateTableById(id);
+    public PhilhealthRate updatePhilhealthRate(UUID id, PhilhealthRateRequest request) {
+        PhilhealthRate philhealthRate = getPhilhealthRateById(id);
 
-        rateTable.setPremiumRate(request.getPremiumRate());
-        rateTable.setMaxSalaryCap(request.getMaxSalaryCap());
-        rateTable.setEffectiveDate(request.getEffectiveDate());
+        philhealthRate.setPremiumRate(request.getPremiumRate());
+        philhealthRate.setMaxSalaryCap(request.getMaxSalaryCap());
+        philhealthRate.setEffectiveDate(request.getEffectiveDate());
 
-        return repository.save(rateTable);
+        return repository.save(philhealthRate);
     }
 
     @Transactional
-    public void deletePhilhealthRateTable(UUID id) {
-        PhilhealthRate rateTable = getPhilhealthRateTableById(id);
-        rateTable.setDeletedAt(Instant.now());
-        repository.save(rateTable);
+    public void deletePhilhealthRate(UUID id) {
+        PhilhealthRate philhealthRate = getPhilhealthRateById(id);
+        philhealthRate.setDeletedAt(Instant.now());
+        repository.save(philhealthRate);
     }
 }
