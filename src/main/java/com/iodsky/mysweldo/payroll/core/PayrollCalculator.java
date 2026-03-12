@@ -1,6 +1,6 @@
 package com.iodsky.mysweldo.payroll.core;
 
-import com.iodsky.mysweldo.batch.employee.EmployeeBenefit;
+import com.iodsky.mysweldo.employee.EmployeeBenefit;
 import com.iodsky.mysweldo.pagIbig.PagibigRate;
 import com.iodsky.mysweldo.pagIbig.PagibigRateRepository;
 import com.iodsky.mysweldo.philhealth.PhilhealthRate;

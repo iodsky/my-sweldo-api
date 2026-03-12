@@ -1,9 +1,8 @@
-package com.iodsky.mysweldo.batch.employee;
+package com.iodsky.mysweldo.employee;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.iodsky.mysweldo.benefit.Benefit;
 import com.iodsky.mysweldo.common.BaseModel;
-import com.iodsky.mysweldo.employee.Employee;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLRestriction;

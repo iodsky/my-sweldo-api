@@ -2,7 +2,7 @@ package com.iodsky.mysweldo.payroll.core;
 
 import com.iodsky.mysweldo.attendance.Attendance;
 import com.iodsky.mysweldo.employee.Employee;
-import com.iodsky.mysweldo.batch.employee.EmployeeBenefit;
+import com.iodsky.mysweldo.employee.EmployeeBenefit;
 import lombok.Builder;
 import lombok.Getter;
 

@@ -6,7 +6,7 @@ import com.iodsky.mysweldo.contribution.ContributionService;
 import com.iodsky.mysweldo.deduction.DeductionService;
 import com.iodsky.mysweldo.employee.Employee;
 import com.iodsky.mysweldo.employee.EmployeeService;
-import com.iodsky.mysweldo.batch.employee.EmployeeBenefit;
+import com.iodsky.mysweldo.employee.EmployeeBenefit;
 import com.iodsky.mysweldo.overtime.OvertimeRequestService;
 import com.iodsky.mysweldo.payroll.run.PayrollRun;
 import lombok.RequiredArgsConstructor;

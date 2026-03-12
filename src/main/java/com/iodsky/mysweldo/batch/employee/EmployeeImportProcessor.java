@@ -1,6 +1,7 @@
 package com.iodsky.mysweldo.batch.employee;
 
 import com.iodsky.mysweldo.employee.Employee;
+import com.iodsky.mysweldo.employee.EmployeeBenefit;
 import com.iodsky.mysweldo.employee.EmployeeRepository;
 import com.iodsky.mysweldo.department.Department;
 import com.iodsky.mysweldo.department.DepartmentRepository;
