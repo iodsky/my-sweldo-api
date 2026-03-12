@@ -18,18 +18,18 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class PagibigRateService {
 
-    private final PagibigRateRepository pagibigRateTableRepository;
+    private final PagibigRateRepository repository;
 
     @Transactional
-    public PagibigRate createPagibigRateTable(PagibigRateRequest request) {
-        if (pagibigRateTableRepository.findLatestByEffectiveDate(request.getEffectiveDate()).isPresent()) {
+    public PagibigRate createPagibigRate(PagibigRateRequest request) {
+        if (repository.findLatestByEffectiveDate(request.getEffectiveDate()).isPresent()) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "Pag-IBIG rate table already exists for effective date: " + request.getEffectiveDate()
+                    "Pag-IBIG rate already exists for effective date: " + request.getEffectiveDate()
             );
         }
 
-        PagibigRate rateTable = PagibigRate.builder()
+        PagibigRate pagibigRate = PagibigRate.builder()
                 .employeeRate(request.getEmployeeRate())
                 .employerRate(request.getEmployerRate())
                 .lowIncomeThreshold(request.getLowIncomeThreshold())
@@ -38,14 +38,14 @@ public class PagibigRateService {
                 .effectiveDate(request.getEffectiveDate())
                 .build();
 
-        return pagibigRateTableRepository.save(rateTable);
+        return repository.save(pagibigRate);
     }
 
-    public Page<PagibigRate> getAllPagibigRateTables(int page, int limit, LocalDate effectiveDate) {
+    public Page<PagibigRate> getAllPagibigRates(int page, int limit, LocalDate effectiveDate) {
         Pageable pageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.DESC, "effectiveDate"));
 
         if (effectiveDate != null) {
-            return pagibigRateTableRepository.findAll(
+            return repository.findAll(
                     (root, query, cb) -> cb.and(
                             cb.lessThanOrEqualTo(root.get("effectiveDate"), effectiveDate),
                             cb.isNull(root.get("deletedAt"))
@@ -54,47 +54,47 @@ public class PagibigRateService {
             );
         }
 
-        return pagibigRateTableRepository.findAll(
+        return repository.findAll(
                 (root, query, cb) -> cb.isNull(root.get("deletedAt")),
                 pageable
         );
     }
 
-    public PagibigRate getPagibigRateTableById(UUID id) {
-        return pagibigRateTableRepository.findById(id)
+    public PagibigRate getPagibigRateById(UUID id) {
+        return repository.findById(id)
                 .filter(config -> config.getDeletedAt() == null)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "Pag-IBIG rate table not found with ID: " + id
+                        "Pag-IBIG rate not found with ID: " + id
                 ));
     }
 
-    public PagibigRate getLatestPagibigRateTable(LocalDate date) {
-        return pagibigRateTableRepository.findLatestByEffectiveDate(date)
+    public PagibigRate getLatestPagibigRate(LocalDate date) {
+        return repository.findLatestByEffectiveDate(date)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "No Pag-IBIG rate table found for date: " + date
+                        "No Pag-IBIG rate found for date: " + date
                 ));
     }
 
     @Transactional
-    public PagibigRate updatePagibigRateTable(UUID id, PagibigRateRequest request) {
-        PagibigRate rateTable = getPagibigRateTableById(id);
+    public PagibigRate updatePagibigRate(UUID id, PagibigRateRequest request) {
+        PagibigRate pagibigRate = getPagibigRateById(id);
 
-        rateTable.setEmployeeRate(request.getEmployeeRate());
-        rateTable.setEmployerRate(request.getEmployerRate());
-        rateTable.setLowIncomeThreshold(request.getLowIncomeThreshold());
-        rateTable.setLowIncomeEmployeeRate(request.getLowIncomeEmployeeRate());
-        rateTable.setMaxSalaryCap(request.getMaxSalaryCap());
-        rateTable.setEffectiveDate(request.getEffectiveDate());
+        pagibigRate.setEmployeeRate(request.getEmployeeRate());
+        pagibigRate.setEmployerRate(request.getEmployerRate());
+        pagibigRate.setLowIncomeThreshold(request.getLowIncomeThreshold());
+        pagibigRate.setLowIncomeEmployeeRate(request.getLowIncomeEmployeeRate());
+        pagibigRate.setMaxSalaryCap(request.getMaxSalaryCap());
+        pagibigRate.setEffectiveDate(request.getEffectiveDate());
 
-        return pagibigRateTableRepository.save(rateTable);
+        return repository.save(pagibigRate);
     }
 
     @Transactional
-    public void deletePagibigRateTable(UUID id) {
-        PagibigRate rateTable = getPagibigRateTableById(id);
-        rateTable.setDeletedAt(Instant.now());
-        pagibigRateTableRepository.save(rateTable);
+    public void deletePagibigRate(UUID id) {
+        PagibigRate pagibigRate = getPagibigRateById(id);
+        pagibigRate.setDeletedAt(Instant.now());
+        repository.save(pagibigRate);
     }
 }
