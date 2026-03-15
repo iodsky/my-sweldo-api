@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 @Data
@@ -14,6 +15,8 @@ import java.time.Instant;
 public class BenefitDto {
     private String code;
     private String description;
+    private Boolean taxable;
+    private BigDecimal nonTaxablelimit;
     private Instant createdAt;
     private Instant updatedAt;
 }

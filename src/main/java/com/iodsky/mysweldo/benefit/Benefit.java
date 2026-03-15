@@ -1,11 +1,14 @@
 package com.iodsky.mysweldo.benefit;
 
 import com.iodsky.mysweldo.common.BaseModel;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.*;
 import org.hibernate.annotations.SQLRestriction;
+
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "benefit")
@@ -20,5 +23,8 @@ public class Benefit extends BaseModel {
     @Id
     private String code;
     private String description;
+    private boolean taxable;
+    @Column(name = "non_taxable_limit")
+    private BigDecimal nonTaxableLimit;
 
 }

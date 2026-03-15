@@ -36,4 +36,22 @@ public class EmployeeBenefit extends BaseModel {
 
     private BigDecimal amount;
 
+    public BigDecimal getTaxableAmount() {
+        if (benefit.isTaxable()) {
+            return amount;
+        }
+        if (benefit.getNonTaxableLimit() == null) {
+            return amount;
+        }
+
+        return amount.subtract(benefit.getNonTaxableLimit()).max(BigDecimal.ZERO);
+    }
+
+    public BigDecimal getNonTaxableAmount() {
+        if (!benefit.isTaxable() && benefit.getNonTaxableLimit() != null) {
+            return amount.min(benefit.getNonTaxableLimit());
+        }
+        return BigDecimal.ZERO;
+    }
+
 }

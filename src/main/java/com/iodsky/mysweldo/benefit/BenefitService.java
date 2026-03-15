@@ -26,6 +26,10 @@ public class BenefitService {
             );
         }
 
+        if (request.isTaxable() && request.getNonTaxableLimit() != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Taxable benefit cannot have non-taxable limit");
+        }
+
         Benefit benefit = Benefit.builder()
                 .code(request.getCode())
                 .description(request.getDescription())
