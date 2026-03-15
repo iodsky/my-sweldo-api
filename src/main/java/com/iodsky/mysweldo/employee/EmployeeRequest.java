@@ -43,8 +43,11 @@ public class EmployeeRequest {
     @NotNull(message = "Department is required")
     private String departmentId;
 
-    @NotNull(message = "Status is required")
-    private Status status;
+    @NotNull(message = "Employment status is required")
+    private EmploymentStatus status;
+
+    @NotNull(message = "Employment type is required")
+    private EmploymentType type;
 
     @NotNull(message = "Start shift is required")
     private LocalTime startShift;
@@ -52,7 +55,7 @@ public class EmployeeRequest {
     @NotNull(message = "End shift is required")
     private LocalTime endShift;
 
-    @NotNull
+    @NotNull(message = "Basic salary is required")
     @Positive
     private BigDecimal basicSalary;
 

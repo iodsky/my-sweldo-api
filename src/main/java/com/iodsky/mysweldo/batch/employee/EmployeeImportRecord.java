@@ -2,13 +2,10 @@ package com.iodsky.mysweldo.batch.employee;
 
 
 import com.iodsky.mysweldo.batch.DateTimeUtil;
-import com.iodsky.mysweldo.employee.Employee;
-import com.iodsky.mysweldo.employee.GovernmentId;
-import com.iodsky.mysweldo.employee.Status;
+import com.iodsky.mysweldo.employee.*;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 
 @Getter
 @Setter
@@ -28,6 +25,7 @@ public class EmployeeImportRecord {
             "tinNumber",
             "pagIbigNumber",
             "status",
+            "type",
             "position",
             "supervisorId",
             "startShift",
@@ -48,6 +46,7 @@ public class EmployeeImportRecord {
     private String tinNumber;
     private String pagIbigNumber;
     private String status;
+    private String type;
     private String position;
     private String supervisorId;
     private String startShift;
@@ -66,9 +65,10 @@ public class EmployeeImportRecord {
                 .pagIbigNumber(record.getPagIbigNumber())
                 .build();
 
-        BigDecimal basicSalary = new BigDecimal(record.getBasicSalary());
-        BigDecimal semiMonthlyRate = basicSalary.divide(BigDecimal.valueOf(2), 2, RoundingMode.HALF_UP);
-        BigDecimal hourlyRate = basicSalary.divide(BigDecimal.valueOf(21.75).multiply(BigDecimal.valueOf(8)), 2, RoundingMode.HALF_UP);
+        Salary salary = Salary.builder()
+                .type(SalaryType.MONTHLY)
+                .amount(new BigDecimal(record.getBasicSalary()))
+                .build();
 
         Employee employee = Employee.builder()
                 .lastName(record.getLastName())
@@ -77,15 +77,15 @@ public class EmployeeImportRecord {
                 .address(record.getAddress())
                 .phoneNumber(record.getPhoneNumber())
                 .governmentId(governmentId)
-                .status(Status.valueOf(record.getStatus().toUpperCase()))
+                .salary(salary)
+                .status(EmploymentStatus.valueOf(record.getStatus().toUpperCase()))
+                .type(EmploymentType.valueOf(record.getType().toUpperCase()))
                 .startShift(DateTimeUtil.parseTime(record.getStartShift()))
                 .endShift(DateTimeUtil.parseTime(record.getEndShift()))
-                .basicSalary(basicSalary)
-                .semiMonthlyRate(semiMonthlyRate)
-                .hourlyRate(hourlyRate)
                 .build();
 
         governmentId.setEmployee(employee);
+        salary.setEmployee(employee);
 
         return employee;
     }

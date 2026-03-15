@@ -64,7 +64,7 @@ public class EmployeeService {
         } else if (supervisorId != null) {
             return employeeRepository.findAllBySupervisor_Id(supervisorId, pageable);
         } else if (status != null) {
-            return  employeeRepository.findAllByStatus(Status.valueOf(status.toUpperCase()), pageable);
+            return  employeeRepository.findAllByStatus(EmploymentStatus.valueOf(status.toUpperCase()), pageable);
         }
 
         return employeeRepository.findAll(pageable);
@@ -106,13 +106,13 @@ public class EmployeeService {
     }
 
     @Transactional
-    public void deleteEmployeeById(Long id, Status finalStatus) {
+    public void deleteEmployeeById(Long id, EmploymentStatus finalStatus) {
         Employee employee = getEmployeeById(id);
         if (employee.isDeleted()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Employee already deleted");
         }
 
-        if (finalStatus != Status.TERMINATED && finalStatus != Status.RESIGNED) {
+        if (finalStatus != EmploymentStatus.TERMINATED && finalStatus != EmploymentStatus.RESIGNED) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Final status must be TERMINATED or RESIGNED");
         }

@@ -1,10 +1,8 @@
 package com.iodsky.mysweldo.employee;
 
-public enum Status {
+public enum EmploymentStatus {
     PROBATIONARY,
     REGULAR,
-    PART_TIME,
-    CONTRACTUAL,
     TERMINATED,
     RESIGNED
 }

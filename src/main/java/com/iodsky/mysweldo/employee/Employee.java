@@ -8,14 +8,13 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLRestriction;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
 @Entity
 @Table(name = "employee")
-@SQLRestriction("deleted_at IS NULL")
+@SQLRestriction("deleted_at IS NULL AND id != 10000")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -47,12 +46,12 @@ public class Employee extends BaseModel {
     @Column(name = "phone_number", unique = true)
     private String phoneNumber;
 
-    @OneToOne(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true, optional = true)
+    @OneToOne(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private GovernmentId governmentId;
 
     @ManyToOne
-    @JoinColumn(name = "supervisor_id", nullable = true)
+    @JoinColumn(name = "supervisor_id")
     @JsonIgnore
     private Employee supervisor;
 
@@ -65,21 +64,19 @@ public class Employee extends BaseModel {
     private Department department;
 
     @Enumerated(EnumType.STRING)
-    private Status status;
+    private EmploymentStatus status;
+
+    @Enumerated(EnumType.STRING)
+    private EmploymentType type;
 
     private LocalTime startShift;
 
     private LocalTime endShift;
 
-    @Column(name = "basic_salary")
-    private BigDecimal basicSalary;
-
-    @Column(name = "hourly_rate")
-    private BigDecimal hourlyRate;
-
-    @Column(name = "semi_monthly_rate")
-    private BigDecimal semiMonthlyRate;
-
+    @OneToOne(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private Salary salary;
+    
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JsonIgnore
     private List<EmployeeBenefit> benefits;

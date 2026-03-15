@@ -267,12 +267,12 @@ class EmployeeServiceTest {
         @Test
         void shouldReturnEmployeesFilteredByStatusWhenStatusIsProvidedAndOtherFiltersAreNull() {
             Page<Employee> expected = new PageImpl<>(List.of(savedEmployee));
-            when(employeeRepository.findAllByStatus(eq(Status.REGULAR), any(Pageable.class))).thenReturn(expected);
+            when(employeeRepository.findAllByStatus(eq(EmploymentStatus.REGULAR), any(Pageable.class))).thenReturn(expected);
 
             Page<Employee> result = service.getAllEmployees(0, 10, null, null, "REGULAR");
 
             assertThat(result).isEqualTo(expected);
-            verify(employeeRepository).findAllByStatus(eq(Status.REGULAR), any(Pageable.class));
+            verify(employeeRepository).findAllByStatus(eq(EmploymentStatus.REGULAR), any(Pageable.class));
         }
 
         @Test
@@ -313,12 +313,12 @@ class EmployeeServiceTest {
         @Test
         void shouldResolveStatusCaseInsensitivelyWhenLowercaseStatusIsProvided() {
             Page<Employee> expected = new PageImpl<>(List.of(savedEmployee));
-            when(employeeRepository.findAllByStatus(eq(Status.REGULAR), any(Pageable.class))).thenReturn(expected);
+            when(employeeRepository.findAllByStatus(eq(EmploymentStatus.REGULAR), any(Pageable.class))).thenReturn(expected);
 
             Page<Employee> result = service.getAllEmployees(0, 10, null, null, "regular");
 
             assertThat(result).isEqualTo(expected);
-            verify(employeeRepository).findAllByStatus(eq(Status.REGULAR), any(Pageable.class));
+            verify(employeeRepository).findAllByStatus(eq(EmploymentStatus.REGULAR), any(Pageable.class));
         }
 
         @Test
@@ -508,9 +508,9 @@ class EmployeeServiceTest {
             when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
             when(employeeRepository.findAllBySupervisor_Id(1L)).thenReturn(List.of(subordinate));
 
-            service.deleteEmployeeById(1L, Status.TERMINATED);
+            service.deleteEmployeeById(1L, EmploymentStatus.TERMINATED);
 
-            assertThat(employee.getStatus()).isEqualTo(Status.TERMINATED);
+            assertThat(employee.getStatus()).isEqualTo(EmploymentStatus.TERMINATED);
             assertThat(employee.getDeletedAt()).isNotNull();
             assertThat(subordinate.getSupervisor()).isNull();
             verify(employeeRepository).save(employee);
@@ -523,9 +523,9 @@ class EmployeeServiceTest {
             when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
             when(employeeRepository.findAllBySupervisor_Id(1L)).thenReturn(Collections.emptyList());
 
-            service.deleteEmployeeById(1L, Status.RESIGNED);
+            service.deleteEmployeeById(1L, EmploymentStatus.RESIGNED);
 
-            assertThat(employee.getStatus()).isEqualTo(Status.RESIGNED);
+            assertThat(employee.getStatus()).isEqualTo(EmploymentStatus.RESIGNED);
             assertThat(employee.getDeletedAt()).isNotNull();
             verify(employeeRepository).save(employee);
         }
@@ -538,7 +538,7 @@ class EmployeeServiceTest {
             when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
 
             // Act & Assert
-            assertThatThrownBy(() -> service.deleteEmployeeById(1L, Status.TERMINATED))
+            assertThatThrownBy(() -> service.deleteEmployeeById(1L, EmploymentStatus.TERMINATED))
                     .isInstanceOf(ResponseStatusException.class)
                     .satisfies(ex -> {
                         ResponseStatusException rse = (ResponseStatusException) ex;
@@ -556,7 +556,7 @@ class EmployeeServiceTest {
             when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
 
             // Act & Assert
-            assertThatThrownBy(() -> service.deleteEmployeeById(1L, Status.PROBATIONARY))
+            assertThatThrownBy(() -> service.deleteEmployeeById(1L, EmploymentStatus.PROBATIONARY))
                     .isInstanceOf(ResponseStatusException.class)
                     .satisfies(ex -> {
                         ResponseStatusException rse = (ResponseStatusException) ex;
@@ -572,7 +572,7 @@ class EmployeeServiceTest {
             when(employeeRepository.findById(999L)).thenReturn(Optional.empty());
 
             // Act & Assert
-            assertThatThrownBy(() -> service.deleteEmployeeById(999L, Status.TERMINATED))
+            assertThatThrownBy(() -> service.deleteEmployeeById(999L, EmploymentStatus.TERMINATED))
                     .isInstanceOf(ResponseStatusException.class)
                     .extracting(e -> ((ResponseStatusException) e).getStatusCode())
                     .isEqualTo(HttpStatus.NOT_FOUND);

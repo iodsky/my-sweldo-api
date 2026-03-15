@@ -26,11 +26,10 @@ public class EmployeeDto {
     private String position;
     private String department;
     private String status;
+    private String type;
     private LocalTime startShift;
     private LocalTime endShift;
     private BigDecimal basicSalary;
-    private BigDecimal hourlyRate;
-    private BigDecimal semiMonthlyRate;
     private List<EmployeeBenefitDto> benefits;
 
 }

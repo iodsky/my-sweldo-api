@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.List;
 
 @Component
@@ -27,6 +26,7 @@ public class EmployeeMapper  {
                         .build())
                 .toList();
 
+        BigDecimal salary = employee.getSalary().getAmount() != null ? employee.getSalary().getAmount() : BigDecimal.ZERO;
         return EmployeeDto.builder()
                 .id(employee.getId())
                 .firstName(employee.getFirstName())
@@ -39,18 +39,16 @@ public class EmployeeMapper  {
                 .philhealthNumber((employee.getGovernmentId() == null ? null : employee.getGovernmentId().getPhilhealthNumber()))
                 .pagIbigNumber((employee.getGovernmentId() == null ? null : employee.getGovernmentId().getPagIbigNumber()))
                 .status(employee.getStatus().toString())
+                .type(employee.getType().toString())
                 .supervisor(supervisorName)
                 .department(employee.getDepartment().getTitle())
                 .position(employee.getPosition().getTitle())
                 .startShift(employee.getStartShift())
                 .endShift(employee.getEndShift())
-                .basicSalary(employee.getBasicSalary())
-                .hourlyRate(employee.getHourlyRate())
-                .semiMonthlyRate(employee.getSemiMonthlyRate())
+                .basicSalary(salary)
                 .benefits(benefits)
                 .build();
     }
-
 
     public Employee toEntity(EmployeeRequest request) {
         Employee employee = Employee.builder()
@@ -60,6 +58,7 @@ public class EmployeeMapper  {
                 .address(request.getAddress())
                 .phoneNumber(request.getPhoneNumber())
                 .status(request.getStatus())
+                .type(request.getType())
                 .startShift(request.getStartShift())
                 .endShift(request.getEndShift())
                 .build();
@@ -72,13 +71,11 @@ public class EmployeeMapper  {
                 .pagIbigNumber(request.getGovernmentId().getPagIbigNumber())
                 .build();
 
-        BigDecimal basicSalary = request.getBasicSalary();
-        BigDecimal semiMonthlyRate = basicSalary.divide(BigDecimal.valueOf(2), 2, RoundingMode.HALF_UP);
-        BigDecimal hourlyRate = basicSalary.divide(BigDecimal.valueOf(21.75).multiply(BigDecimal.valueOf(8)), 2, RoundingMode.HALF_UP);
-
-        employee.setBasicSalary(basicSalary);
-        employee.setSemiMonthlyRate(semiMonthlyRate);
-        employee.setHourlyRate(hourlyRate);
+        Salary salary = Salary.builder()
+                .employee(employee)
+                .type(SalaryType.MONTHLY)
+                .amount(request.getBasicSalary())
+                .build();
 
         List<EmployeeBenefit> benefits = request.getBenefits()
                 .stream()
@@ -93,6 +90,7 @@ public class EmployeeMapper  {
         benefits.forEach(b -> b.setEmployee(employee));
         employee.setBenefits(benefits);
 
+        employee.setSalary(salary);
         employee.setGovernmentId(governmentId);
 
         return employee;
@@ -124,13 +122,7 @@ public class EmployeeMapper  {
         existing.setStartShift(request.getStartShift());
         existing.setEndShift(request.getEndShift());
 
-        BigDecimal basicSalary = request.getBasicSalary();
-        BigDecimal semiMonthlyRate = basicSalary.divide(BigDecimal.valueOf(2), 2, RoundingMode.HALF_UP);
-        BigDecimal hourlyRate = basicSalary.divide(BigDecimal.valueOf(21.75).multiply(BigDecimal.valueOf(8)), 2, RoundingMode.HALF_UP);
-
-        existing.setBasicSalary(basicSalary);
-        existing.setSemiMonthlyRate(semiMonthlyRate);
-        existing.setHourlyRate(hourlyRate);
+        existing.getSalary().setAmount(request.getBasicSalary());
 
         List<EmployeeBenefit> benefits = request.getBenefits()
                 .stream()

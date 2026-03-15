@@ -11,7 +11,7 @@ import java.util.List;
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
-    Page<Employee> findAllByStatus(Status status, Pageable pageable);
+    Page<Employee> findAllByStatus(EmploymentStatus status, Pageable pageable);
 
     Page<Employee> findAllByDepartment_Id(String departmentId, Pageable pageable);
 
@@ -21,8 +21,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
         SELECT e.id
         FROM Employee e
         WHERE e.status NOT IN (
-        com.iodsky.mysweldo.employee.Status.RESIGNED,
-         com.iodsky.mysweldo.employee.Status.TERMINATED
+        com.iodsky.mysweldo.employee.EmploymentStatus.RESIGNED,
+         com.iodsky.mysweldo.employee.EmploymentStatus.TERMINATED
          )
        """)
     List<Long> findAllActiveEmployeeIds();
