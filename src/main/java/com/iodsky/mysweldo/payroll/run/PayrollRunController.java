@@ -5,7 +5,6 @@ import com.iodsky.mysweldo.common.response.PaginationMeta;
 import com.iodsky.mysweldo.common.response.ResponseFactory;
 import com.iodsky.mysweldo.payroll.core.PayrollItemDto;
 import com.iodsky.mysweldo.payroll.core.UpdatePayrollBenefitRequest;
-import com.iodsky.mysweldo.payroll.core.UpdatePayrollContributionRequest;
 import com.iodsky.mysweldo.payroll.core.UpdatePayrollDeductionRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -123,17 +122,6 @@ public class PayrollRunController {
             @Valid @RequestBody UpdatePayrollBenefitRequest request
     ) {
         PayrollItemDto payrollItemDto = service.updatePayrollBenefits(id, itemId, request);
-        return ResponseFactory.success("Payroll updated successfully", payrollItemDto);
-    }
-
-    @PatchMapping("/{id}/items/{itemId}/contributions")
-    @Operation(summary = "Update payroll contributions", description = "Update contributions for a specific payroll item")
-    public ApiResponse<PayrollItemDto> updatePayrollContributions(
-            @Parameter(description = "Payroll run ID") @PathVariable UUID id,
-            @Parameter(description = "Payroll item ID") @PathVariable UUID itemId,
-            @Valid @RequestBody UpdatePayrollContributionRequest request
-    ) {
-        PayrollItemDto payrollItemDto = service.updatePayrollContributions(id, itemId, request);
         return ResponseFactory.success("Payroll updated successfully", payrollItemDto);
     }
 

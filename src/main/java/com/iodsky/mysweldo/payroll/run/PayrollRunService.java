@@ -1,6 +1,5 @@
 package com.iodsky.mysweldo.payroll.run;
 
-import com.iodsky.mysweldo.contribution.Contribution;
 
 import com.iodsky.mysweldo.contribution.ContributionService;
 import com.iodsky.mysweldo.benefit.Benefit;
@@ -43,7 +42,6 @@ public class PayrollRunService {
     private final PayrollItemMapper payrollItemMapper;
     private final DeductionService deductionService;
     private final BenefitService benefitService;
-    private final ContributionService contributionService;
 
     public PayrollRunDto createPayrollRun(PayrollRunRequest request) {
 
@@ -263,43 +261,6 @@ public class PayrollRunService {
         return payrollItemMapper.toDto(updated);
     }
 
-    public PayrollItemDto updatePayrollContributions(UUID id, UUID itemId, UpdatePayrollContributionRequest request) {
-        PayrollRun run = findPayrollRun(id);
-
-        if (!run.getStatus().equals(PayrollRunStatus.DRAFT)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Payroll run " + id + " has been already " + run.getStatus());
-        }
-
-        PayrollItem item = findPayrollItem(id, itemId);
-
-        for (LineItemEntry entry : request.getContributions()) {
-            Optional<EmployerContribution> existing = item.getEmployerContributions().stream()
-                    .filter(c -> c.getContribution().getCode().equals(entry.getCode()))
-                    .findFirst();
-
-            if (existing.isPresent()) {
-                existing.get().setAmount(entry.getAmount());
-            } else {
-                Contribution contribution = contributionService.getContributionByCode(entry.getCode());
-
-                EmployerContribution newContribution = EmployerContribution.builder()
-                        .contribution(contribution)
-                        .amount(entry.getAmount())
-                        .payrollItem(item)
-                        .build();
-
-                item.getEmployerContributions().add(newContribution);
-            }
-        }
-
-        item.setTotalEmployerContributions(item.getEmployerContributions().stream()
-                .map(EmployerContribution::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add));
-
-        PayrollItem updated = payrollItemRepository.save(item);
-        return payrollItemMapper.toDto(updated);
-    }
-
     public PayrollRunDto updatePayrollRunStatus(UUID id, PayrollRunStatus status) {
         PayrollRun run = findPayrollRun(id);
 
@@ -358,7 +319,6 @@ public class PayrollRunService {
         run.setTotalBenefits(allItems.stream().map(PayrollItem::getTotalBenefits).reduce(BigDecimal.ZERO, BigDecimal::add));
         run.setTotalDeductions(allItems.stream().map(PayrollItem::getTotalDeductions).reduce(BigDecimal.ZERO, BigDecimal::add));
         run.setTotalNetPay(allItems.stream().map(PayrollItem::getNetPay).reduce(BigDecimal.ZERO, BigDecimal::add));
-        run.setTotalEmployerCost(allItems.stream().map(PayrollItem::getTotalEmployerContributions).reduce(BigDecimal.ZERO, BigDecimal::add));
     }
 
 }
