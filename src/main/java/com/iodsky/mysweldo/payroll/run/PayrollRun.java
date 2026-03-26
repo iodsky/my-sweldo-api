@@ -33,6 +33,9 @@ public class PayrollRun extends BaseModel {
     private PayrollRunType type;
 
     @Enumerated(EnumType.STRING)
+    private PayrollFrequency payrollFrequency;
+
+    @Enumerated(EnumType.STRING)
     private PayrollRunStatus status;
 
     @Column(name = "total_gross_pay")

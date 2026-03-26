@@ -4,12 +4,12 @@ import com.iodsky.mysweldo.attendance.AttendanceService;
 import com.iodsky.mysweldo.benefit.Benefit;
 import com.iodsky.mysweldo.payroll.core.PayrollConfiguration;
 import com.iodsky.mysweldo.benefit.BenefitService;
-import com.iodsky.mysweldo.contribution.Contribution;
-import com.iodsky.mysweldo.contribution.ContributionService;
 import com.iodsky.mysweldo.deduction.Deduction;
 import com.iodsky.mysweldo.deduction.DeductionService;
 import com.iodsky.mysweldo.employee.EmployeeService;
 import com.iodsky.mysweldo.payroll.core.*;
+import com.iodsky.mysweldo.payroll.strategy.PayrollComputationStrategy;
+import com.iodsky.mysweldo.payroll.strategy.PayrollStrategyFactory;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -72,7 +72,10 @@ class PayrollRunServiceTest {
     private BenefitService benefitService;
 
     @Mock
-    private ContributionService contributionService;
+    private PayrollStrategyFactory strategyFactory;
+
+    @Mock
+    private PayrollComputationStrategy payrollComputationStrategy;
 
     private PayrollRun draftRun(UUID id) {
         return PayrollRun.builder()
@@ -81,6 +84,7 @@ class PayrollRunServiceTest {
                 .periodStartDate(LocalDate.of(2025, 3, 1))
                 .periodEndDate(LocalDate.of(2025, 3, 31))
                 .type(PayrollRunType.REGULAR)
+                .payrollFrequency(PayrollFrequency.SEMI_MONTHLY)
                 .build();
     }
 
@@ -149,10 +153,10 @@ class PayrollRunServiceTest {
 
             PayrollItem item1 = PayrollItem.builder().grossPay(BigDecimal.valueOf(20000))
                     .totalBenefits(BigDecimal.ZERO).totalDeductions(BigDecimal.ZERO)
-                    .netPay(BigDecimal.valueOf(20000)).totalEmployerContributions(BigDecimal.ZERO).build();
+                    .netPay(BigDecimal.valueOf(20000)).build();
             PayrollItem item2 = PayrollItem.builder().grossPay(BigDecimal.valueOf(18000))
                     .totalBenefits(BigDecimal.ZERO).totalDeductions(BigDecimal.ZERO)
-                    .netPay(BigDecimal.valueOf(18000)).totalEmployerContributions(BigDecimal.ZERO).build();
+                    .netPay(BigDecimal.valueOf(18000)).build();
 
             PayrollRunDto expectedDto = PayrollRunDto.builder().id(runId).build();
 
@@ -161,6 +165,7 @@ class PayrollRunServiceTest {
             when(attendanceService.hasAttendance(eq(1L), any(), any())).thenReturn(true);
             when(attendanceService.hasAttendance(eq(2L), any(), any())).thenReturn(true);
             when(calculator.loadConfiguration(any())).thenReturn(configuration());
+            when(strategyFactory.getStrategy(PayrollFrequency.SEMI_MONTHLY)).thenReturn(payrollComputationStrategy);
             when(payrollBuilder.buildPayroll(eq(1L), eq(run), any())).thenReturn(item1);
             when(payrollBuilder.buildPayroll(eq(2L), eq(run), any())).thenReturn(item2);
             when(payrollItemRepository.findAllByPayrollRun_Id(runId)).thenReturn(List.of(item1, item2));
@@ -182,13 +187,14 @@ class PayrollRunServiceTest {
             List<Long> activeIds = List.of(10L);
             PayrollItem item = PayrollItem.builder().grossPay(BigDecimal.TEN)
                     .totalBenefits(BigDecimal.ZERO).totalDeductions(BigDecimal.ZERO)
-                    .netPay(BigDecimal.TEN).totalEmployerContributions(BigDecimal.ZERO).build();
+                    .netPay(BigDecimal.TEN).build();
 
             when(repository.findById(runId)).thenReturn(Optional.of(run));
             when(employeeService.getAllActiveEmployeeIds()).thenReturn(activeIds);
             when(payrollItemRepository.existsByPayrollRun_IdAndEmployee_Id(runId, 10L)).thenReturn(false);
             when(attendanceService.hasAttendance(eq(10L), any(), any())).thenReturn(true);
             when(calculator.loadConfiguration(any())).thenReturn(configuration());
+            when(strategyFactory.getStrategy(PayrollFrequency.SEMI_MONTHLY)).thenReturn(payrollComputationStrategy);
             when(payrollBuilder.buildPayroll(eq(10L), eq(run), any())).thenReturn(item);
             when(payrollItemRepository.findAllByPayrollRun_Id(runId)).thenReturn(List.of(item));
             when(mapper.toDto(run)).thenReturn(PayrollRunDto.builder().build());
@@ -207,13 +213,14 @@ class PayrollRunServiceTest {
             List<Long> activeIds = List.of(10L);
             PayrollItem item = PayrollItem.builder().grossPay(BigDecimal.TEN)
                     .totalBenefits(BigDecimal.ZERO).totalDeductions(BigDecimal.ZERO)
-                    .netPay(BigDecimal.TEN).totalEmployerContributions(BigDecimal.ZERO).build();
+                    .netPay(BigDecimal.TEN).build();
 
             when(repository.findById(runId)).thenReturn(Optional.of(run));
             when(employeeService.getAllActiveEmployeeIds()).thenReturn(activeIds);
             when(payrollItemRepository.existsByPayrollRun_IdAndEmployee_Id(runId, 10L)).thenReturn(false);
             when(attendanceService.hasAttendance(eq(10L), any(), any())).thenReturn(true);
             when(calculator.loadConfiguration(any())).thenReturn(configuration());
+            when(strategyFactory.getStrategy(PayrollFrequency.SEMI_MONTHLY)).thenReturn(payrollComputationStrategy);
             when(payrollBuilder.buildPayroll(eq(10L), eq(run), any())).thenReturn(item);
             when(payrollItemRepository.findAllByPayrollRun_Id(runId)).thenReturn(List.of(item));
             when(mapper.toDto(run)).thenReturn(PayrollRunDto.builder().build());
@@ -230,10 +237,11 @@ class PayrollRunServiceTest {
 
             PayrollItem item2 = PayrollItem.builder().grossPay(BigDecimal.valueOf(18000))
                     .totalBenefits(BigDecimal.ZERO).totalDeductions(BigDecimal.ZERO)
-                    .netPay(BigDecimal.valueOf(18000)).totalEmployerContributions(BigDecimal.ZERO).build();
+                    .netPay(BigDecimal.valueOf(18000)).build();
 
             when(repository.findById(runId)).thenReturn(Optional.of(run));
             when(calculator.loadConfiguration(any())).thenReturn(configuration());
+            when(strategyFactory.getStrategy(PayrollFrequency.SEMI_MONTHLY)).thenReturn(payrollComputationStrategy);
             when(payrollItemRepository.existsByPayrollRun_IdAndEmployee_Id(runId, 1L)).thenReturn(true);
             when(payrollItemRepository.existsByPayrollRun_IdAndEmployee_Id(runId, 2L)).thenReturn(false);
             when(attendanceService.hasAttendance(eq(2L), any(), any())).thenReturn(true);
@@ -256,6 +264,7 @@ class PayrollRunServiceTest {
 
             when(repository.findById(runId)).thenReturn(Optional.of(run));
             when(calculator.loadConfiguration(any())).thenReturn(configuration());
+            when(strategyFactory.getStrategy(PayrollFrequency.SEMI_MONTHLY)).thenReturn(payrollComputationStrategy);
             when(payrollItemRepository.existsByPayrollRun_IdAndEmployee_Id(runId, 1L)).thenReturn(false);
             when(attendanceService.hasAttendance(eq(1L), any(), any())).thenReturn(false);
             when(payrollItemRepository.findAllByPayrollRun_Id(runId)).thenReturn(Collections.emptyList());
@@ -278,11 +287,11 @@ class PayrollRunServiceTest {
                     .totalBenefits(BigDecimal.valueOf(1000))
                     .totalDeductions(BigDecimal.valueOf(2000))
                     .netPay(BigDecimal.valueOf(29000))
-                    .totalEmployerContributions(BigDecimal.valueOf(500))
                     .build();
 
             when(repository.findById(runId)).thenReturn(Optional.of(run));
             when(calculator.loadConfiguration(any())).thenReturn(configuration());
+            when(strategyFactory.getStrategy(PayrollFrequency.SEMI_MONTHLY)).thenReturn(payrollComputationStrategy);
             when(payrollItemRepository.existsByPayrollRun_IdAndEmployee_Id(runId, 1L)).thenReturn(false);
             when(attendanceService.hasAttendance(eq(1L), any(), any())).thenReturn(true);
             when(payrollBuilder.buildPayroll(eq(1L), eq(run), any())).thenReturn(item);
@@ -827,335 +836,5 @@ class PayrollRunServiceTest {
         }
     }
 
-    @Nested
-    class UpdatePayrollContributionsTests {
-
-        @Test
-        void shouldOverrideAmountWhenContributionCodeAlreadyExists() {
-            UUID runId = UUID.randomUUID();
-            UUID itemId = UUID.randomUUID();
-            PayrollRun run = draftRun(runId);
-
-            Contribution contribution = Contribution.builder().code("SSS").build();
-            EmployerContribution ec = EmployerContribution.builder().contribution(contribution).amount(BigDecimal.valueOf(500)).build();
-            PayrollItem item = PayrollItem.builder()
-                    .employerContributions(new ArrayList<>(List.of(ec)))
-                    .totalEmployerContributions(BigDecimal.valueOf(500))
-                    .build();
-
-            LineItemEntry entry = new LineItemEntry();
-            entry.setCode("SSS");
-            entry.setAmount(BigDecimal.valueOf(900));
-
-            UpdatePayrollContributionRequest request = new UpdatePayrollContributionRequest();
-            request.setContributions(List.of(entry));
-
-            when(repository.findById(runId)).thenReturn(Optional.of(run));
-            when(payrollItemRepository.findByPayrollRun_IdAndId(runId, itemId)).thenReturn(Optional.of(item));
-            when(payrollItemRepository.save(item)).thenReturn(item);
-            when(payrollItemMapper.toDto(item)).thenReturn(PayrollItemDto.builder().build());
-
-            service.updatePayrollContributions(runId, itemId, request);
-
-            assertEquals(BigDecimal.valueOf(900), item.getEmployerContributions().get(0).getAmount());
-        }
-
-        @Test
-        void shouldAddNewContributionWhenCodeDoesNotExist() {
-            UUID runId = UUID.randomUUID();
-            UUID itemId = UUID.randomUUID();
-            PayrollRun run = draftRun(runId);
-
-            PayrollItem item = PayrollItem.builder()
-                    .employerContributions(new ArrayList<>())
-                    .totalEmployerContributions(BigDecimal.ZERO)
-                    .build();
-
-            Contribution contribution = Contribution.builder().code("PHILHEALTH").build();
-
-            LineItemEntry entry = new LineItemEntry();
-            entry.setCode("PHILHEALTH");
-            entry.setAmount(BigDecimal.valueOf(400));
-
-            UpdatePayrollContributionRequest request = new UpdatePayrollContributionRequest();
-            request.setContributions(List.of(entry));
-
-            when(repository.findById(runId)).thenReturn(Optional.of(run));
-            when(payrollItemRepository.findByPayrollRun_IdAndId(runId, itemId)).thenReturn(Optional.of(item));
-            when(contributionService.getContributionByCode("PHILHEALTH")).thenReturn(contribution);
-            when(payrollItemRepository.save(item)).thenReturn(item);
-            when(payrollItemMapper.toDto(item)).thenReturn(PayrollItemDto.builder().build());
-
-            service.updatePayrollContributions(runId, itemId, request);
-
-            assertEquals(1, item.getEmployerContributions().size());
-            assertEquals("PHILHEALTH", item.getEmployerContributions().get(0).getContribution().getCode());
-        }
-
-        @Test
-        void shouldRecalculateTotalEmployerContributionsAfterUpdate() {
-            UUID runId = UUID.randomUUID();
-            UUID itemId = UUID.randomUUID();
-            PayrollRun run = draftRun(runId);
-
-            Contribution contribution = Contribution.builder().code("SSS").build();
-            EmployerContribution ec = EmployerContribution.builder().contribution(contribution).amount(BigDecimal.valueOf(500)).build();
-            PayrollItem item = PayrollItem.builder()
-                    .employerContributions(new ArrayList<>(List.of(ec)))
-                    .totalEmployerContributions(BigDecimal.valueOf(500))
-                    .build();
-
-            LineItemEntry entry = new LineItemEntry();
-            entry.setCode("SSS");
-            entry.setAmount(BigDecimal.valueOf(750));
-
-            UpdatePayrollContributionRequest request = new UpdatePayrollContributionRequest();
-            request.setContributions(List.of(entry));
-
-            when(repository.findById(runId)).thenReturn(Optional.of(run));
-            when(payrollItemRepository.findByPayrollRun_IdAndId(runId, itemId)).thenReturn(Optional.of(item));
-            when(payrollItemRepository.save(item)).thenReturn(item);
-            when(payrollItemMapper.toDto(item)).thenReturn(PayrollItemDto.builder().build());
-
-            service.updatePayrollContributions(runId, itemId, request);
-
-            assertEquals(BigDecimal.valueOf(750), item.getTotalEmployerContributions());
-        }
-
-        @Test
-        void shouldThrowNotFoundWhenPayrollRunDoesNotExistForContributionUpdate() {
-            UUID runId = UUID.randomUUID();
-            when(repository.findById(runId)).thenReturn(Optional.empty());
-
-            ResponseStatusException ex = assertThrows(
-                    ResponseStatusException.class,
-                    () -> service.updatePayrollContributions(runId, UUID.randomUUID(), new UpdatePayrollContributionRequest())
-            );
-
-            assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
-        }
-
-        @Test
-        void shouldThrowNotFoundWhenPayrollItemDoesNotExistForContributionUpdate() {
-            UUID runId = UUID.randomUUID();
-            UUID itemId = UUID.randomUUID();
-            PayrollRun run = draftRun(runId);
-
-            when(repository.findById(runId)).thenReturn(Optional.of(run));
-            when(payrollItemRepository.findByPayrollRun_IdAndId(runId, itemId)).thenReturn(Optional.empty());
-
-            ResponseStatusException ex = assertThrows(
-                    ResponseStatusException.class,
-                    () -> service.updatePayrollContributions(runId, itemId, new UpdatePayrollContributionRequest())
-            );
-
-            assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
-        }
-
-        @Test
-        void shouldThrowBadRequestWhenPayrollRunIsNotDraftForContributionUpdate() {
-            UUID runId = UUID.randomUUID();
-            PayrollRun run = draftRun(runId);
-            run.setStatus(PayrollRunStatus.APPROVED);
-
-            when(repository.findById(runId)).thenReturn(Optional.of(run));
-
-            ResponseStatusException ex = assertThrows(
-                    ResponseStatusException.class,
-                    () -> service.updatePayrollContributions(runId, UUID.randomUUID(), new UpdatePayrollContributionRequest())
-            );
-
-            assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
-        }
-    }
-
-    @Nested
-    class UpdatePayrollRunStatusTests {
-
-        @Test
-        void shouldTransitionFromDraftToApproved() {
-            UUID id = UUID.randomUUID();
-            PayrollRun run = draftRun(id);
-            when(repository.findById(id)).thenReturn(Optional.of(run));
-            when(mapper.toDto(run)).thenReturn(PayrollRunDto.builder().status(PayrollRunStatus.APPROVED).build());
-
-            PayrollRunDto result = service.updatePayrollRunStatus(id, PayrollRunStatus.APPROVED);
-
-            assertEquals(PayrollRunStatus.APPROVED, result.getStatus());
-        }
-
-        @Test
-        void shouldTransitionFromApprovedToProcessed() {
-            UUID id = UUID.randomUUID();
-            PayrollRun run = draftRun(id);
-            run.setStatus(PayrollRunStatus.APPROVED);
-
-            when(repository.findById(id)).thenReturn(Optional.of(run));
-            when(mapper.toDto(run)).thenReturn(PayrollRunDto.builder().status(PayrollRunStatus.PROCESSED).build());
-
-            PayrollRunDto result = service.updatePayrollRunStatus(id, PayrollRunStatus.PROCESSED);
-
-            assertEquals(PayrollRunStatus.PROCESSED, result.getStatus());
-        }
-
-        @Test
-        void shouldThrowBadRequestWhenRunIsAlreadyProcessed() {
-            UUID id = UUID.randomUUID();
-            PayrollRun run = draftRun(id);
-            run.setStatus(PayrollRunStatus.PROCESSED);
-
-            when(repository.findById(id)).thenReturn(Optional.of(run));
-
-            ResponseStatusException ex = assertThrows(
-                    ResponseStatusException.class,
-                    () -> service.updatePayrollRunStatus(id, PayrollRunStatus.APPROVED)
-            );
-
-            assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
-        }
-
-        @Test
-        void shouldThrowBadRequestWhenSkippingApprovedStepFromDraft() {
-            UUID id = UUID.randomUUID();
-            PayrollRun run = draftRun(id);
-
-            when(repository.findById(id)).thenReturn(Optional.of(run));
-
-            ResponseStatusException ex = assertThrows(
-                    ResponseStatusException.class,
-                    () -> service.updatePayrollRunStatus(id, PayrollRunStatus.PROCESSED)
-            );
-
-            assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
-        }
-
-        @Test
-        void shouldThrowBadRequestWhenRegressingFromApprovedToDraft() {
-            UUID id = UUID.randomUUID();
-            PayrollRun run = draftRun(id);
-            run.setStatus(PayrollRunStatus.APPROVED);
-
-            when(repository.findById(id)).thenReturn(Optional.of(run));
-
-            ResponseStatusException ex = assertThrows(
-                    ResponseStatusException.class,
-                    () -> service.updatePayrollRunStatus(id, PayrollRunStatus.DRAFT)
-            );
-
-            assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
-        }
-
-        @Test
-        void shouldThrowNotFoundWhenPayrollRunDoesNotExistForStatusUpdate() {
-            UUID id = UUID.randomUUID();
-            when(repository.findById(id)).thenReturn(Optional.empty());
-
-            ResponseStatusException ex = assertThrows(
-                    ResponseStatusException.class,
-                    () -> service.updatePayrollRunStatus(id, PayrollRunStatus.APPROVED)
-            );
-
-            assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
-        }
-    }
-
-    @Nested
-    class DeletePayrollItemTests {
-
-        @Test
-        void shouldDeletePayrollItemFromDraftRunAndRecomputeRunTotals() {
-            UUID runId = UUID.randomUUID();
-            UUID itemId = UUID.randomUUID();
-            PayrollRun run = draftRun(runId);
-
-            PayrollItem item = PayrollItem.builder().id(itemId).build();
-
-            PayrollItem remaining = PayrollItem.builder()
-                    .grossPay(BigDecimal.valueOf(15000))
-                    .totalBenefits(BigDecimal.valueOf(500))
-                    .totalDeductions(BigDecimal.valueOf(1000))
-                    .netPay(BigDecimal.valueOf(14500))
-                    .totalEmployerContributions(BigDecimal.valueOf(300))
-                    .build();
-
-            when(repository.findById(runId)).thenReturn(Optional.of(run));
-            when(payrollItemRepository.findByPayrollRun_IdAndId(runId, itemId)).thenReturn(Optional.of(item));
-            when(payrollItemRepository.findAllByPayrollRun_Id(runId)).thenReturn(List.of(remaining));
-
-            service.deletePayrollItem(runId, itemId);
-
-            verify(payrollItemRepository).delete(item);
-            assertEquals(BigDecimal.valueOf(15000), run.getTotalGrossPay());
-            assertEquals(BigDecimal.valueOf(14500), run.getTotalNetPay());
-            verify(repository).save(run);
-        }
-
-        @Test
-        void shouldRecomputeZeroTotalsWhenLastItemIsDeleted() {
-            UUID runId = UUID.randomUUID();
-            UUID itemId = UUID.randomUUID();
-            PayrollRun run = draftRun(runId);
-            PayrollItem item = PayrollItem.builder().id(itemId).build();
-
-            when(repository.findById(runId)).thenReturn(Optional.of(run));
-            when(payrollItemRepository.findByPayrollRun_IdAndId(runId, itemId)).thenReturn(Optional.of(item));
-            when(payrollItemRepository.findAllByPayrollRun_Id(runId)).thenReturn(Collections.emptyList());
-
-            service.deletePayrollItem(runId, itemId);
-
-            assertEquals(BigDecimal.ZERO, run.getTotalGrossPay());
-            assertEquals(BigDecimal.ZERO, run.getTotalNetPay());
-            assertEquals(BigDecimal.ZERO, run.getTotalDeductions());
-            assertEquals(BigDecimal.ZERO, run.getTotalBenefits());
-            assertEquals(BigDecimal.ZERO, run.getTotalEmployerCost());
-        }
-
-        @Test
-        void shouldThrowBadRequestWhenPayrollRunIsNotDraftForDeletion() {
-            UUID runId = UUID.randomUUID();
-            PayrollRun run = draftRun(runId);
-            run.setStatus(PayrollRunStatus.APPROVED);
-
-            when(repository.findById(runId)).thenReturn(Optional.of(run));
-
-            ResponseStatusException ex = assertThrows(
-                    ResponseStatusException.class,
-                    () -> service.deletePayrollItem(runId, UUID.randomUUID())
-            );
-
-            assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
-        }
-
-        @Test
-        void shouldThrowNotFoundWhenPayrollRunDoesNotExistForDeletion() {
-            UUID runId = UUID.randomUUID();
-            when(repository.findById(runId)).thenReturn(Optional.empty());
-
-            ResponseStatusException ex = assertThrows(
-                    ResponseStatusException.class,
-                    () -> service.deletePayrollItem(runId, UUID.randomUUID())
-            );
-
-            assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
-        }
-
-        @Test
-        void shouldThrowNotFoundWhenPayrollItemDoesNotExistForDeletion() {
-            UUID runId = UUID.randomUUID();
-            UUID itemId = UUID.randomUUID();
-            PayrollRun run = draftRun(runId);
-
-            when(repository.findById(runId)).thenReturn(Optional.of(run));
-            when(payrollItemRepository.findByPayrollRun_IdAndId(runId, itemId)).thenReturn(Optional.empty());
-
-            ResponseStatusException ex = assertThrows(
-                    ResponseStatusException.class,
-                    () -> service.deletePayrollItem(runId, itemId)
-            );
-
-            assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
-        }
-    }
 }
-
 

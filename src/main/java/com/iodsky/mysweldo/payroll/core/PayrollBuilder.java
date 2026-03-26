@@ -1,110 +1,63 @@
 package com.iodsky.mysweldo.payroll.core;
 
-import com.iodsky.mysweldo.attendance.Attendance;
-import com.iodsky.mysweldo.attendance.AttendanceService;
 import com.iodsky.mysweldo.contribution.ContributionService;
 import com.iodsky.mysweldo.deduction.DeductionService;
 import com.iodsky.mysweldo.employee.Employee;
 import com.iodsky.mysweldo.employee.EmployeeService;
 import com.iodsky.mysweldo.employee.EmployeeBenefit;
-import com.iodsky.mysweldo.overtime.OvertimeRequestService;
+import com.iodsky.mysweldo.payroll.strategy.PayrollComputationStrategy;
 import com.iodsky.mysweldo.payroll.run.PayrollRun;
+import com.iodsky.mysweldo.payroll.strategy.PayrollStrategyFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * PayrollBuilder is the orchestrator that coordinates the payroll computation process.
+ *
+ * Responsibilities:
+ * 1. Fetch employee data
+ * 2. Delegate calculations to an appropriate PayrollComputationStrategy
+ * 3. Construct PayrollContext from computed values
+ * 4. Build final PayrollItem entity with all related entities
+ *
+ * This design separates application logic (data orchestration) from business logic (calculations).
+ */
 @Component
 @RequiredArgsConstructor
 public class PayrollBuilder {
 
     private final EmployeeService employeeService;
-    private final AttendanceService attendanceService;
-    private final OvertimeRequestService overtimeRequestService;
     private final DeductionService deductionService;
     private final ContributionService contributionService;
-    private final PayrollCalculator payrollCalculator;
+    private final PayrollStrategyFactory strategyFactory;
 
+    /**
+     * Builds a complete PayrollItem for an employee within a payroll run.
+     *
+     * @param employeeId ID of the employee
+     * @param run The payroll run
+     * @param config Payroll configuration (rates, tax brackets)
+     * @return A complete PayrollItem with all deductions, benefits, and contributions
+     */
     public PayrollItem buildPayroll(Long employeeId, PayrollRun run, PayrollConfiguration config) {
-        PayrollContext context = buildContext(employeeId, run, config);
+        Employee employee = employeeService.getEmployeeById(employeeId);
+        PayrollComputationStrategy strategy = strategyFactory.getStrategy(run.getPayrollFrequency());
+        PayrollContext context = strategy.compute(employee, run, config);
         return buildPayrollFromContext(context, run);
     }
 
-    private PayrollContext buildContext(Long employeeId, PayrollRun run, PayrollConfiguration config) {
-        Employee employee = employeeService.getEmployeeById(employeeId);
-        List<Attendance> attendances = attendanceService.getEmployeeAttendances(employeeId, run.getPeriodStartDate(), run.getPeriodEndDate());
-        List<EmployeeBenefit> benefits = employee.getBenefits();
-
-        BigDecimal basicSalary = employee.getBasicSalary();
-        BigDecimal hourlyRate = employee.getHourlyRate();
-
-        // Calculate hours
-        BigDecimal totalHours = attendanceService.calculateTotalHoursByEmployeeId(employeeId, run.getPeriodStartDate(), run.getPeriodEndDate());
-        BigDecimal approvedOvertimeHours = overtimeRequestService.calculateApprovedOvertimeHours(employeeId, run.getPeriodStartDate(), run.getPeriodEndDate());
-        BigDecimal standardHours = BigDecimal.valueOf(attendances.size()).multiply(BigDecimal.valueOf(8));
-        BigDecimal regularHours = totalHours.subtract(approvedOvertimeHours).min(standardHours);
-
-        // Calculate pay
-        BigDecimal regularPay = payrollCalculator.calculateRegularPay(hourlyRate, regularHours);
-        BigDecimal overtimePay = payrollCalculator.calculateOvertimePay(hourlyRate, approvedOvertimeHours);
-        BigDecimal grossPay = payrollCalculator.calculateGrossPay(regularPay, overtimePay);
-
-        // Calculate benefits
-        BigDecimal totalBenefits = payrollCalculator.calculateTotalBenefits(benefits);
-
-        // Calculate statutory deductions using preloaded configuration
-        BigDecimal sss = payrollCalculator.calculateSssDeduction(basicSalary, config.getSssRateTable());
-        BigDecimal philhealth = payrollCalculator.calculatePhilhealthDeduction(basicSalary, config.getPhilhealthRateTable());
-        BigDecimal pagibig = payrollCalculator.calculatePagibigDeduction(basicSalary, config.getPagibigRateTable());
-
-        // Calculate employer contributions using preloaded configuration
-        BigDecimal sssEr = payrollCalculator.calculateSssEmployerContribution(basicSalary, config.getSssRateTable());
-        BigDecimal philhealthEr = payrollCalculator.calculatePhilhealthEmployerContribution(basicSalary, config.getPhilhealthRateTable());
-        BigDecimal pagibigEr = payrollCalculator.calculatePagibigEmployerContribution(basicSalary, config.getPagibigRateTable());
-        BigDecimal totalEmployerContributions = payrollCalculator.calculateTotalEmployerContributions(sssEr, philhealthEr, pagibigEr);
-
-        // Calculate tax using preloaded configuration
-        BigDecimal statutoryDeductions = payrollCalculator.calculateTotalStatutoryDeductions(sss, philhealth, pagibig);
-        BigDecimal taxableIncome = payrollCalculator.calculateTaxableIncome(grossPay, statutoryDeductions);
-        BigDecimal withholdingTax = payrollCalculator.calculateWithholdingTax(taxableIncome, config.getIncomeTaxBrackets());
-        BigDecimal totalDeductions = withholdingTax.add(statutoryDeductions).setScale(2, RoundingMode.HALF_UP);
-
-        // Calculate net pay
-        BigDecimal netPay = payrollCalculator.calculateNetPay(grossPay, totalBenefits, statutoryDeductions, withholdingTax);
-
-        return PayrollContext.builder()
-                .employee(employee)
-                .attendances(attendances)
-                .employeeBenefits(benefits)
-                .hourlyRate(hourlyRate)
-                .basicSalary(basicSalary)
-                .totalHours(totalHours)
-                .overtimeHours(approvedOvertimeHours)
-                .regularHours(regularHours)
-                .regularPay(regularPay)
-                .overtimePay(overtimePay)
-                .grossPay(grossPay)
-                .totalBenefits(totalBenefits)
-                .sss(sss)
-                .philhealth(philhealth)
-                .pagibig(pagibig)
-                .sssEr(sssEr)
-                .philhealthEr(philhealthEr)
-                .pagibigEr(pagibigEr)
-                .totalEmployerContributions(totalEmployerContributions)
-                .taxableIncome(taxableIncome)
-                .withholdingTax(withholdingTax)
-                .totalDeductions(totalDeductions)
-                .netPay(netPay)
-                .build();
-    }
-
+    /**
+     * Transforms a PayrollContext into a persistable PayrollItem entity.
+     *
+     * @param context The computation snapshot containing all calculated values
+     * @param payrollRun The associated payroll run
+     * @return A complete PayrollItem with all related entities
+     */
     private PayrollItem buildPayrollFromContext(PayrollContext context, PayrollRun payrollRun) {
-        BigDecimal dailyRate = payrollCalculator.calculateDailyRate(context.getHourlyRate());
-
         List<PayrollDeduction> deductions = buildDeductions(context);
         List<PayrollBenefit> payrollBenefits = buildPayrollBenefits(context.getEmployeeBenefits());
         List<EmployerContribution> employerContributions = buildEmployerContributions(context);
@@ -112,22 +65,22 @@ public class PayrollBuilder {
         PayrollItem payroll = PayrollItem.builder()
                 .payrollRun(payrollRun)
                 .employee(context.getEmployee())
-                .monthlyRate(context.getBasicSalary())
-                .dailyRate(dailyRate)
-                .daysWorked(context.getAttendances().size())
-                .overtime(context.getOvertimeHours())
+                .monthlyRate(context.getMonthlyRate())
+                .semiMonthlyRate(context.getSemiMonthlyRate())
+                .dailyRate(context.getDailyRate())
+                .hourlyRate(context.getHourlyRate())
+                .daysWorked(BigDecimal.valueOf(context.getAttendances().size()))
                 .grossPay(context.getGrossPay())
                 .benefits(payrollBenefits)
                 .totalBenefits(context.getTotalBenefits())
                 .deductions(deductions)
                 .totalDeductions(context.getTotalDeductions())
                 .employerContributions(employerContributions)
-                .totalEmployerContributions(context.getTotalEmployerContributions())
                 .netPay(context.getNetPay())
                 .build();
 
-        deductions.forEach(d -> d.setPayroll(payroll));
-        payrollBenefits.forEach(b -> b.setPayroll(payroll));
+        deductions.forEach(d -> d.setPayrollItem(payroll));
+        payrollBenefits.forEach(b -> b.setPayrollItem(payroll));
         employerContributions.forEach(c -> c.setPayrollItem(payroll));
 
         return payroll;

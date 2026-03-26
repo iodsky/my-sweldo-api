@@ -9,5 +9,6 @@ public class PayrollRunRequest {
     private LocalDate periodStartDate;
     private LocalDate periodEndDate;
     private PayrollRunType type;
+    private PayrollFrequency payrollFrequency;
     private String notes;
 }

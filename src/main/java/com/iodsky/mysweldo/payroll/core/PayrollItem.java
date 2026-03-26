@@ -3,7 +3,7 @@ package com.iodsky.mysweldo.payroll.core;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.iodsky.mysweldo.common.BaseModel;
 import com.iodsky.mysweldo.employee.Employee;
-import com.iodsky.mysweldo.employee.SalaryType;
+import com.iodsky.mysweldo.employee.PayType;
 import com.iodsky.mysweldo.payroll.run.PayrollRun;
 import jakarta.persistence.*;
 import lombok.*;
@@ -33,11 +33,11 @@ public class PayrollItem extends BaseModel {
     private UUID id;
 
     @ManyToOne
-    @JoinColumn(name = "payroll_run_id")
+    @JoinColumn(name = "payroll_run_id", nullable = false)
     private PayrollRun payrollRun;
 
     @ManyToOne
-    @JoinColumn(name = "employee_id")
+    @JoinColumn(name = "employee_id", nullable = false)
     @JsonIgnore
     private Employee employee;
 
@@ -57,8 +57,8 @@ public class PayrollItem extends BaseModel {
     private BigDecimal hourlyRate;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "salary_type")
-    private SalaryType salaryType;
+    @Column(name = "pay_type")
+    private PayType payType;
 
     private BigDecimal absences;
 
@@ -74,7 +74,7 @@ public class PayrollItem extends BaseModel {
     @Column(name = "ovetime_pay")
     private BigDecimal overtimePay;
 
-    @OneToMany(mappedBy = "payroll", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "payrollItem", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<PayrollBenefit> benefits;
 
@@ -84,12 +84,16 @@ public class PayrollItem extends BaseModel {
     @Column(name = "gross_pay")
     private BigDecimal grossPay;
 
-    @OneToMany(mappedBy = "payroll", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "payrollItem", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<PayrollDeduction> deductions;
 
     @Column(name = "total_deductions")
     private BigDecimal totalDeductions;
+
+    @OneToMany(mappedBy = "payrollItem", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<EmployerContribution> employerContributions;
 
     @Column(name = "net_pay")
     private BigDecimal netPay;

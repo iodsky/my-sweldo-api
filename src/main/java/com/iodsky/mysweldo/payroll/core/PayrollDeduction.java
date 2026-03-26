@@ -27,7 +27,7 @@ public class PayrollDeduction extends BaseModel {
     @ManyToOne
     @JoinColumn(name = "payroll_item_id")
     @JsonIgnore
-    private PayrollItem payroll;
+    private PayrollItem payrollItem;
 
     @ManyToOne
     @JoinColumn(name = "deduction_code")

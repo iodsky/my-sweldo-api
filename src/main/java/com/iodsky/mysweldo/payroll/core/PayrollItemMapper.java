@@ -1,5 +1,7 @@
 package com.iodsky.mysweldo.payroll.core;
 
+import com.iodsky.mysweldo.employee.Employee;
+import com.iodsky.mysweldo.payroll.run.PayrollRun;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -10,11 +12,18 @@ public class PayrollItemMapper {
     public PayrollItemDto toDto(PayrollItem payroll) {
         if (payroll == null) return null;
 
+        Employee employee = payroll.getEmployee();
+        String employeeName = employee.getFirstName() + " " +employee.getLastName();
+
+        PayrollRun payrollRun = payroll.getPayrollRun();
+
         return PayrollItemDto.builder()
                 .id(payroll.getId())
-                .employeeId(payroll.getEmployee() != null ? payroll.getEmployee().getId() : null)
-                .periodStartDate(payroll.getPayrollRun() != null ? payroll.getPayrollRun().getPeriodStartDate() : null)
-                .periodEndDate(payroll.getPayrollRun() != null ? payroll.getPayrollRun().getPeriodEndDate() : null)
+                .employeeId(employee.getId())
+                .employeeName(employeeName)
+                .designation(employee.getPosition().getTitle())
+                .periodStartDate(payrollRun.getPeriodStartDate())
+                .periodEndDate(payrollRun.getPeriodEndDate())
 
                 // Work & time
                 .daysWorked(payroll.getDaysWorked())
@@ -29,7 +38,6 @@ public class PayrollItemMapper {
                 .semiMonthlyRate(payroll.getSemiMonthlyRate())
                 .dailyRate(payroll.getDailyRate())
                 .hourlyRate(payroll.getHourlyRate())
-                .salaryType(payroll.getSalaryType())
 
                 // Payroll amounts
                 .totalBenefits(payroll.getTotalBenefits())

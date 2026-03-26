@@ -1,6 +1,6 @@
 package com.iodsky.mysweldo.payroll.core;
 
-import com.iodsky.mysweldo.employee.SalaryType;
+import com.iodsky.mysweldo.employee.PayType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -40,7 +40,6 @@ public class PayrollItemDto {
     private BigDecimal semiMonthlyRate;
     private BigDecimal dailyRate;
     private BigDecimal hourlyRate;
-    private SalaryType salaryType;
 
     // Payroll amounts
     private BigDecimal totalBenefits;

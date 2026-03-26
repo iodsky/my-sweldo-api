@@ -54,6 +54,7 @@ public class PayrollRunService {
                 .periodStartDate(request.getPeriodStartDate())
                 .periodEndDate(request.getPeriodEndDate())
                 .type(request.getType())
+                .payrollFrequency(request.getPayrollFrequency())
                 .status(PayrollRunStatus.DRAFT)
                 .notes(request.getNotes())
                 .build();
@@ -63,7 +64,6 @@ public class PayrollRunService {
     }
 
     public GeneratePayrollResponse generatePayroll(UUID id, GeneratePayrollRequest request) {
-
         // 1. FETCH & VALIDATE PAYROLL RUN
         PayrollRun run = findPayrollRun(id);
 
@@ -86,16 +86,18 @@ public class PayrollRunService {
         }
 
         // 3. PRELOAD PAYROLL CONFIGURATION (rate tables, tax brackets)
+        //    This snapshot is reused across all employees to avoid repeated database queries
         PayrollConfiguration configuration = calculator.loadConfiguration(run.getPeriodEndDate());
 
-        // 4. FOR EACH employeeId in request.employeeIds:
+        // 4. FOR EACH employeeId, compute payroll using the appropriate strategy:
+        //    - PayrollBuilder now uses PayrollStrategyFactory to resolve the correct
+        //      PayrollComputationStrategy based on the payroll frequency
+        //    - This design allows for extensibility (e.g., DAILY, HOURLY payroll types)
         List<PayrollItem> payrollItems = new ArrayList<>();
         List<Long> skippedIds = new ArrayList<>();
         for (Long employeeId: employeeIds) {
-            //
             //    a. SKIP DUPLICATES
-            //       - if payrollRepository.existsByPayrollRun_IdAndEmployee_Id(id, employeeId)
-            //         → skip (or collect into a "skipped" list to report back)
+            //       - if payroll already exists for this employee in this run
             if (payrollItemRepository.existsByPayrollRun_IdAndEmployee_Id(run.getId(), employeeId)) {
                 log.warn("Payroll exists for employee: {} run: {}", employeeId, run.getId());
                 skippedIds.add(employeeId);
@@ -110,9 +112,11 @@ public class PayrollRunService {
             }
 
             //    c. BUILD PAYROLL ITEM
+            //       PayrollBuilder delegates to PayrollComputationStrategy (via factory)
+            //       Strategy orchestrates data fetching, calculations, and context building
             PayrollItem payrollItem = payrollBuilder.buildPayroll(employeeId, run, configuration);
 
-            //    d. COLLECT into a List<PayrollItem> items
+            //    d. COLLECT into a List<PayrollItem>
             payrollItems.add(payrollItem);
         }
 
@@ -201,7 +205,7 @@ public class PayrollRunService {
                 PayrollDeduction newDeduction = PayrollDeduction.builder()
                         .deduction(deduction)
                         .amount(entry.getAmount())
-                        .payroll(item)
+                        .payrollItem(item)
                         .build();
 
                 item.getDeductions().add(newDeduction);
@@ -242,7 +246,7 @@ public class PayrollRunService {
                 PayrollBenefit newBenefit = PayrollBenefit.builder()
                         .benefit(benefit)
                         .amount(entry.getAmount())
-                        .payroll(item)
+                        .payrollItem(item)
                         .build();
 
                 item.getBenefits().add(newBenefit);

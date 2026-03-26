@@ -27,10 +27,8 @@ public class PayrollCalculator {
     private final SssRateRepository sssRateTableRepository;
     private final TaxBracketRepository incomeTaxBracketRepository;
 
-    private static final BigDecimal SEMI_MONTHLY_DIVISOR = BigDecimal.valueOf(2);
+    private static final BigDecimal SEMI_MONTHLY_PERIODS_PER_MONTH = BigDecimal.valueOf(2);
     private static final BigDecimal OVERTIME_MULTIPLIER = BigDecimal.valueOf(1.25);
-    private static final BigDecimal STANDARD_WORK_HOURS = BigDecimal.valueOf(8);
-    private static final BigDecimal PAY_PERIODS_PER_YEAR = BigDecimal.valueOf(24);
 
     public PayrollConfiguration loadConfiguration(LocalDate payrollDate) {
         PhilhealthRate philhealth = philhealthRateTableRepository
@@ -68,14 +66,6 @@ public class PayrollCalculator {
                 .build();
     }
 
-    public BigDecimal calculateDailyRate(BigDecimal hourlyRate) {
-        return hourlyRate.multiply(STANDARD_WORK_HOURS);
-    }
-
-    public BigDecimal calculateRegularPay(BigDecimal hourlyRate, BigDecimal regularHours) {
-        return hourlyRate.multiply(regularHours);
-    }
-
     public BigDecimal calculateOvertimePay(BigDecimal hourlyRate, BigDecimal overtimeHours) {
         return hourlyRate
                 .multiply(overtimeHours)
@@ -92,11 +82,10 @@ public class PayrollCalculator {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-
     public BigDecimal calculatePhilhealthDeduction(BigDecimal basicSalary, PhilhealthRate config) {
         if (basicSalary.compareTo(config.getMinSalaryFloor()) <= 0) {
             BigDecimal employeeShare = config.getFixedContribution().divide(BigDecimal.valueOf(2), 2, RoundingMode.HALF_UP);
-            return employeeShare.divide(SEMI_MONTHLY_DIVISOR, 2, RoundingMode.HALF_UP);
+            return employeeShare.divide(SEMI_MONTHLY_PERIODS_PER_MONTH, 2, RoundingMode.HALF_UP);
         }
 
         BigDecimal cappedSalary = basicSalary.min(config.getMaxSalaryCap());
@@ -105,7 +94,7 @@ public class PayrollCalculator {
 
         BigDecimal employeeShare = monthlyPremium.divide(BigDecimal.valueOf(2), 2, RoundingMode.HALF_UP);
 
-        return employeeShare.divide(SEMI_MONTHLY_DIVISOR, 2, RoundingMode.HALF_UP);
+        return employeeShare.divide(SEMI_MONTHLY_PERIODS_PER_MONTH, 2, RoundingMode.HALF_UP);
     }
 
     public BigDecimal calculatePagibigDeduction(BigDecimal basicSalary, PagibigRate config) {
@@ -119,7 +108,7 @@ public class PayrollCalculator {
         }
 
         BigDecimal monthlyContribution = monthlySalary.multiply(rate);
-        return monthlyContribution.divide(SEMI_MONTHLY_DIVISOR, 2, RoundingMode.HALF_UP);
+        return monthlyContribution.divide(SEMI_MONTHLY_PERIODS_PER_MONTH, 2, RoundingMode.HALF_UP);
     }
 
     public BigDecimal calculateSssDeduction(BigDecimal basicSalary, SssRate sssRateTable) {
@@ -130,68 +119,43 @@ public class PayrollCalculator {
         BigDecimal monthlyContribution = bracket.getMsc().multiply(sssRateTable.getEmployeeRate());
 
         // Divide by 2 for semi-monthly payroll
-        return monthlyContribution.divide(SEMI_MONTHLY_DIVISOR, 2, RoundingMode.HALF_UP);
+        return monthlyContribution.divide(SEMI_MONTHLY_PERIODS_PER_MONTH, 2, RoundingMode.HALF_UP);
     }
 
-    public BigDecimal calculateWithholdingTax(
-            BigDecimal semiMonthlyTaxableIncome,
-            List<TaxBracket> taxBrackets) {
-        BigDecimal annualTaxableIncome =
-                semiMonthlyTaxableIncome.multiply(PAY_PERIODS_PER_YEAR);
+    public BigDecimal calculateWithholdingTax(BigDecimal semiMonthlyTaxableIncome, List<TaxBracket> taxBrackets) {
+
+        BigDecimal monthlyTaxableIncome = semiMonthlyTaxableIncome.multiply(SEMI_MONTHLY_PERIODS_PER_MONTH);
 
         TaxBracket bracket = taxBrackets.stream()
-                .filter(b -> annualTaxableIncome.compareTo(b.getMinIncome()) >= 0
+                .filter(b -> monthlyTaxableIncome.compareTo(b.getMinIncome()) >= 0
                         && (b.getMaxIncome() == null
-                        || annualTaxableIncome.compareTo(b.getMaxIncome()) <= 0))
+                        || monthlyTaxableIncome.compareTo(b.getMaxIncome()) <= 0))
                 .findFirst()
                 .orElseThrow(() -> new PayrollRunException(
-                        "Income tax bracket not found for annual income: " + annualTaxableIncome
+                        "Income tax bracket not found for monthly income: " + monthlyTaxableIncome
                 ));
 
         return calculateWithholdingTaxFromBracket(
-                annualTaxableIncome,
+                monthlyTaxableIncome,
                 bracket
         );
     }
 
-    private BigDecimal calculateWithholdingTaxFromBracket(
-            BigDecimal annualTaxableIncome,
-            TaxBracket annualBracket) {
-
-        BigDecimal excessAmount =
-                annualTaxableIncome
-                        .subtract(annualBracket.getThreshold())
+    private BigDecimal calculateWithholdingTaxFromBracket(BigDecimal monthlyEquivalent,  TaxBracket bracket) {
+        BigDecimal excessAmount = monthlyEquivalent
+                        .subtract(bracket.getThreshold())
                         .max(BigDecimal.ZERO);
 
-        BigDecimal annualTax =
-                annualBracket.getBaseTax()
-                        .add(excessAmount.multiply(annualBracket.getMarginalRate()));
+        BigDecimal monthlyTax = bracket.getBaseTax()
+                        .add(excessAmount.multiply(bracket.getMarginalRate()));
 
-        return annualTax.divide(PAY_PERIODS_PER_YEAR, 2, RoundingMode.HALF_UP);
-    }
-
-    public BigDecimal calculateSssEmployerContribution(BigDecimal basicSalary, LocalDate payrollDate) {
-        SssRate config = sssRateTableRepository
-                .findLatestByEffectiveDate(payrollDate)
-                .orElseThrow(() -> new PayrollRunException(
-                        "SSS rate table not found for date: " + payrollDate
-                ));
-        return calculateSssEmployerContribution(basicSalary, config);
+        return monthlyTax.divide(SEMI_MONTHLY_PERIODS_PER_MONTH, 2, RoundingMode.HALF_UP);
     }
 
     public BigDecimal calculateSssEmployerContribution(BigDecimal basicSalary, SssRate config) {
         SssRate.SalaryBracket bracket = config.findBracket(basicSalary);
         BigDecimal monthlyContribution = bracket.getMsc().multiply(config.getEmployerRate());
-        return monthlyContribution.divide(SEMI_MONTHLY_DIVISOR, 2, RoundingMode.HALF_UP);
-    }
-
-    public BigDecimal calculatePhilhealthEmployerContribution(BigDecimal basicSalary, LocalDate payrollDate) {
-        PhilhealthRate config = philhealthRateTableRepository
-                .findLatestByEffectiveDate(payrollDate)
-                .orElseThrow(() -> new PayrollRunException(
-                        "PhilHealth rate table not found for date: " + payrollDate
-                ));
-        return calculatePhilhealthEmployerContribution(basicSalary, config);
+        return monthlyContribution.divide(SEMI_MONTHLY_PERIODS_PER_MONTH, 2, RoundingMode.HALF_UP);
     }
 
     public BigDecimal calculatePhilhealthEmployerContribution(BigDecimal basicSalary, PhilhealthRate config) {
@@ -203,7 +167,7 @@ public class PayrollCalculator {
         // Employer always uses the flat employer_rate regardless of income tier
         BigDecimal monthlySalary = basicSalary.min(config.getMaxSalaryCap());
         BigDecimal monthlyContribution = monthlySalary.multiply(config.getEmployerRate());
-        return monthlyContribution.divide(SEMI_MONTHLY_DIVISOR, 2, RoundingMode.HALF_UP);
+        return monthlyContribution.divide(SEMI_MONTHLY_PERIODS_PER_MONTH, 2, RoundingMode.HALF_UP);
     }
 
     public BigDecimal calculateTotalEmployerContributions(
@@ -220,9 +184,7 @@ public class PayrollCalculator {
         return grossPay.subtract(statutoryDeductions).setScale(2, RoundingMode.HALF_UP);
     }
 
-    public BigDecimal calculateNetPay(
-            BigDecimal grossPay, BigDecimal totalBenefits,
-            BigDecimal statutoryDeductions, BigDecimal withholdingTax) {
+    public BigDecimal calculateNetPay( BigDecimal grossPay, BigDecimal totalBenefits, BigDecimal statutoryDeductions, BigDecimal withholdingTax) {
         return grossPay.add(totalBenefits)
                 .subtract(statutoryDeductions)
                 .subtract(withholdingTax)

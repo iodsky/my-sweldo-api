@@ -16,8 +16,10 @@ public class PayrollContext {
     private List<Attendance> attendances;
     private List<EmployeeBenefit> employeeBenefits;
 
+    private BigDecimal monthlyRate;
+    private BigDecimal semiMonthlyRate;
+    private BigDecimal dailyRate;
     private BigDecimal hourlyRate;
-    private BigDecimal basicSalary;
 
     private BigDecimal totalHours;
     private BigDecimal overtimeHours;
