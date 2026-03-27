@@ -71,7 +71,7 @@ public class PayrollItem extends BaseModel {
     @Column(name = "overtime_minutes")
     private Integer overtimeMinutes;
 
-    @Column(name = "ovetime_pay")
+    @Column(name = "overtime_pay")
     private BigDecimal overtimePay;
 
     @OneToMany(mappedBy = "payrollItem", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)

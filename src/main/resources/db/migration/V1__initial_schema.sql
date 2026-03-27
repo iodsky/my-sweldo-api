@@ -314,7 +314,7 @@ CREATE TABLE IF NOT EXISTS payroll_item (
     undertime_minutes INTEGER,
     overtime_minutes INTEGER,
 
-    ovetime_pay NUMERIC(19, 2),
+    overtime_pay NUMERIC(19, 2),
     total_benefits NUMERIC(19, 2),
     gross_pay NUMERIC(19, 2),
 
