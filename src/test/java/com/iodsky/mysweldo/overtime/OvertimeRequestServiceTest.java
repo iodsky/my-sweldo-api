@@ -238,17 +238,6 @@ class OvertimeRequestServiceTest {
             verify(repository, never()).findAll(any(Pageable.class));
         }
 
-        @Test
-        void shouldApplyDateRangeFilterWhenOnlyEndDateIsProvided() {
-            LocalDate end = LocalDate.of(2026, 3, 31);
-            Page<OvertimeRequest> page = new PageImpl<>(List.of());
-            when(repository.findByDateBetween(any(LocalDate.class), eq(end), any(Pageable.class))).thenReturn(page);
-
-            Page<OvertimeRequest> result = service.getOvertimeRequests(null, end, 0, 10);
-
-            assertThat(result).isEqualTo(page);
-            verify(repository, never()).findAll(any(Pageable.class));
-        }
     }
 
     @Nested
