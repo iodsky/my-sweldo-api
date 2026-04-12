@@ -6,14 +6,11 @@ import com.iodsky.mysweldo.security.jwt.JwtCookieProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
@@ -27,20 +24,27 @@ public class AuthenticationController {
     @PostMapping("/login")
     @Operation(summary = "Login to get JWT token", description = "Authenticate with email and password to receive a JWT token in a secure HTTP-only cookie for accessing protected endpoints")
     @SecurityRequirements()
-    public ApiResponse<LoginResponse> authenticate(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
-        LoginResponse loginResponse = service.authenticate(request);
+    public ApiResponse<AuthResponse> authenticate(@Valid @RequestBody AuthRequest request, HttpServletResponse response) {
+        AuthResponse authResponse = service.authenticate(request);
 
-        String token = service.generateToken(loginResponse.getEmail());
+        String token = service.generateToken(authResponse.getEmail());
         jwtCookieProvider.addJwtCookie(token, response);
 
-        return ResponseFactory.success("Login successful", loginResponse);
+        return ResponseFactory.success("Authentication successful", authResponse);
     }
 
     @PostMapping("/logout")
     @Operation(summary = "Logout and clear JWT token", description = "Logout from the system and clear the JWT token cookie")
     public ApiResponse<Void> logout(HttpServletResponse response) {
         jwtCookieProvider.clearJwtCookie(response);
-        return ResponseFactory.success("Logout successful", null);
+        return ResponseFactory.success("Logout success", null);
+    }
+
+    @GetMapping("/me")
+    @Operation(summary = "Get authenticated user", description = "Retrieve the current authenticated user's information from the JWT token")
+    public ApiResponse<AuthResponse> getAuthenticatedUser(HttpServletRequest request) {
+        AuthResponse authResponse = service.getAuthenticatedUser(request);
+        return ResponseFactory.success("Authentication success", authResponse);
     }
 
 }

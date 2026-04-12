@@ -7,7 +7,7 @@ import java.util.UUID;
 
 @Data
 @AllArgsConstructor
-public class LoginResponse {
+public class AuthResponse {
     private UUID userId;
     private String email;
     private String role;

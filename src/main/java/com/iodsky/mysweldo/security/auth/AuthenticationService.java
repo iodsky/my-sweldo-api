@@ -1,8 +1,10 @@
 package com.iodsky.mysweldo.security.auth;
 
+import com.iodsky.mysweldo.security.jwt.JwtCookieProvider;
 import com.iodsky.mysweldo.security.jwt.JwtUtil;
 import com.iodsky.mysweldo.security.user.User;
 import com.iodsky.mysweldo.security.user.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,8 +23,9 @@ public class AuthenticationService {
     private final UserService userService;
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
+    private final JwtCookieProvider jwtCookieProvider;
 
-    public LoginResponse authenticate(LoginRequest request) {
+    public AuthResponse authenticate(AuthRequest request) {
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -41,7 +44,26 @@ public class AuthenticationService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid access for this account");
         }
 
-        return new LoginResponse(
+        return new AuthResponse(
+                user.getId(),
+                user.getEmail(),
+                user.getRole().getName(),
+                user.getEmployee().getId()
+        );
+    }
+
+    public AuthResponse getAuthenticatedUser(HttpServletRequest request) {
+        String token = jwtCookieProvider.getTokenFromCookie(request);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(jwtUtil.extractUserEmail(token));
+
+        if (token == null || !jwtUtil.isTokenValid(token, userDetails)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or missing token");
+        }
+
+        String email = jwtUtil.extractUserEmail(token);
+        User user = userService.getUserByEmail(email);
+
+        return new AuthResponse(
                 user.getId(),
                 user.getEmail(),
                 user.getRole().getName(),
