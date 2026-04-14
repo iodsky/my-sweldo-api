@@ -10,6 +10,8 @@ import java.util.UUID;
 public class AuthResponse {
     private UUID userId;
     private String email;
+    private String accessType;
     private String role;
     private Long employeeId;
+    private String token;
 }

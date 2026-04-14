@@ -1,7 +1,7 @@
 package com.iodsky.mysweldo.security.auth;
 
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 
@@ -9,13 +9,13 @@ import lombok.Data;
 @Builder
 public class AuthRequest {
 
-    @NotBlank
+    @NotNull
     @Email
     private String email;
 
-    @NotBlank
+    @NotNull
     private String password;
 
-    @NotBlank
-    private String role;
+    @NotNull
+    private AccessType accessType;
 }

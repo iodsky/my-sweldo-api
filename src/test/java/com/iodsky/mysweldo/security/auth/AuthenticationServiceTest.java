@@ -1,12 +1,9 @@
 package com.iodsky.mysweldo.security.auth;
 
 import com.iodsky.mysweldo.employee.Employee;
-import com.iodsky.mysweldo.security.jwt.JwtCookieProvider;
-import com.iodsky.mysweldo.security.jwt.JwtUtil;
 import com.iodsky.mysweldo.security.role.Role;
 import com.iodsky.mysweldo.security.user.User;
 import com.iodsky.mysweldo.security.user.UserService;
-import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -20,15 +17,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,15 +38,6 @@ class AuthenticationServiceTest {
     @Mock
     private UserService userService;
 
-    @Mock
-    private JwtUtil jwtUtil;
-
-    @Mock
-    private UserDetailsService userDetailsService;
-
-    @Mock
-    private JwtCookieProvider jwtCookieProvider;
-
     private AuthRequest validLoginRequest;
     private User validUser;
     private Role employeeRole;
@@ -66,7 +51,7 @@ class AuthenticationServiceTest {
         validLoginRequest = AuthRequest.builder()
                 .email("john@example.com")
                 .password("secret123")
-                .role("EMPLOYEE")
+                .accessType(AccessType.EMPLOYEE)
                 .build();
 
         validUser = User.builder()
@@ -98,7 +83,7 @@ class AuthenticationServiceTest {
             AuthRequest invalidLoginRequest = AuthRequest.builder()
                     .email("john@example.com")
                     .password("wrongpassword")
-                    .role("EMPLOYEE")
+                    .accessType(AccessType.EMPLOYEE)
                     .build();
 
             when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
@@ -126,7 +111,7 @@ class AuthenticationServiceTest {
             AuthRequest adminLoginRequest = AuthRequest.builder()
                     .email("john@example.com")
                     .password("secret123")
-                    .role("ADMIN")
+                    .accessType(AccessType.ADMIN)
                     .build();
 
             when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
@@ -142,115 +127,5 @@ class AuthenticationServiceTest {
         }
     }
 
-    @Nested
-    class GenerateTokenTests {
-
-        @Test
-        void shouldGenerateTokenForValidEmail() {
-            String email = "john@example.com";
-            UserDetails userDetails = org.springframework.security.core.userdetails.User
-                    .withUsername(email)
-                    .password("encoded")
-                    .build();
-
-            when(userDetailsService.loadUserByUsername(email)).thenReturn(userDetails);
-            when(jwtUtil.generateToken(userDetails)).thenReturn("mocked.jwt.token");
-
-            String token = authenticationService.generateToken(email);
-
-            assertNotNull(token);
-            assertEquals("mocked.jwt.token", token);
-        }
-    }
-
-    @Nested
-    class GetAuthenticatedUserTests {
-
-        private HttpServletRequest mockRequest;
-        private String validToken;
-
-        @BeforeEach
-        void setUp() {
-            mockRequest = org.mockito.Mockito.mock(HttpServletRequest.class);
-            validToken = "valid.jwt.token";
-        }
-
-        @Test
-        void shouldReturnAuthResponseWhenTokenIsValid() {
-            UserDetails userDetails = org.springframework.security.core.userdetails.User
-                    .withUsername("john@example.com")
-                    .password("encoded")
-                    .build();
-
-            when(jwtCookieProvider.getTokenFromCookie(mockRequest)).thenReturn(validToken);
-            when(jwtUtil.extractUserEmail(validToken)).thenReturn("john@example.com");
-            when(userDetailsService.loadUserByUsername("john@example.com")).thenReturn(userDetails);
-            when(jwtUtil.isTokenValid(any(), any())).thenReturn(true);
-            when(userService.getUserByEmail("john@example.com")).thenReturn(validUser);
-
-            AuthResponse response = authenticationService.getAuthenticatedUser(mockRequest);
-
-            assertNotNull(response);
-            assertEquals("john@example.com", response.getEmail());
-            assertEquals("EMPLOYEE", response.getRole());
-        }
-
-        @Test
-        void shouldThrowUnauthorizedExceptionWhenTokenIsInvalid() {
-            UserDetails userDetails = org.springframework.security.core.userdetails.User
-                    .withUsername("john@example.com")
-                    .password("encoded")
-                    .build();
-
-            when(jwtCookieProvider.getTokenFromCookie(mockRequest)).thenReturn(validToken);
-            when(jwtUtil.extractUserEmail(validToken)).thenReturn("john@example.com");
-            when(userDetailsService.loadUserByUsername("john@example.com")).thenReturn(userDetails);
-            when(jwtUtil.isTokenValid(any(), any())).thenReturn(false);
-
-            ResponseStatusException exception = assertThrows(
-                    ResponseStatusException.class,
-                    () -> authenticationService.getAuthenticatedUser(mockRequest)
-            );
-
-            assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
-        }
-
-        @Test
-        void shouldThrowUnauthorizedExceptionWhenTokenIsNull() {
-            when(jwtCookieProvider.getTokenFromCookie(mockRequest)).thenReturn(null);
-            when(jwtUtil.extractUserEmail(null)).thenThrow(new IllegalArgumentException("Token cannot be null"));
-
-            assertThrows(
-                    Exception.class,
-                    () -> authenticationService.getAuthenticatedUser(mockRequest)
-            );
-        }
-
-        @Test
-        void shouldReturnCorrectUserDataFromDatabase() {
-            User adminUser = User.builder()
-                    .id(UUID.randomUUID())
-                    .employee(Employee.builder().id(20000L).build())
-                    .email("admin@example.com")
-                    .role(Role.builder().name("ADMIN").build())
-                    .build();
-
-            UserDetails adminUserDetails = org.springframework.security.core.userdetails.User
-                    .withUsername("admin@example.com")
-                    .password("encoded")
-                    .build();
-
-            when(jwtCookieProvider.getTokenFromCookie(mockRequest)).thenReturn(validToken);
-            when(jwtUtil.extractUserEmail(validToken)).thenReturn("admin@example.com");
-            when(userDetailsService.loadUserByUsername("admin@example.com")).thenReturn(adminUserDetails);
-            when(jwtUtil.isTokenValid(any(), any())).thenReturn(true);
-            when(userService.getUserByEmail("admin@example.com")).thenReturn(adminUser);
-
-            AuthResponse response = authenticationService.getAuthenticatedUser(mockRequest);
-
-            assertEquals("admin@example.com", response.getEmail());
-            assertEquals("ADMIN", response.getRole());
-        }
-    }
 }
 

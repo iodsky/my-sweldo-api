@@ -1,10 +1,10 @@
 package com.iodsky.mysweldo.security.auth;
 
-import com.iodsky.mysweldo.security.jwt.JwtCookieProvider;
-import com.iodsky.mysweldo.security.jwt.JwtUtil;
+import com.iodsky.mysweldo.security.jwt.JwtService;
 import com.iodsky.mysweldo.security.user.User;
 import com.iodsky.mysweldo.security.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,14 +16,16 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final UserService userService;
-    private final JwtUtil jwtUtil;
+    private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
-    private final JwtCookieProvider jwtCookieProvider;
 
     public AuthResponse authenticate(AuthRequest request) {
         try {
@@ -40,39 +42,65 @@ public class AuthenticationService {
         User user = userService.getUserByEmail(request.getEmail());
         String userRole = user.getRole().getName();
 
-        if ("ADMIN".equals(request.getRole()) && "EMPLOYEE".equals(userRole)) {
+        // Validate that user can access the requested access type
+        if (AccessType.ADMIN.equals(request.getAccessType()) && "EMPLOYEE".equals(userRole)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid access for this account");
         }
 
+        String accessToken = generateAccessToken(user.getEmail(), request.getAccessType());
+
         return new AuthResponse(
                 user.getId(),
                 user.getEmail(),
+                request.getAccessType().name(),
                 user.getRole().getName(),
-                user.getEmployee().getId()
+                user.getEmployee().getId(),
+                accessToken
         );
     }
 
-    public AuthResponse getAuthenticatedUser(HttpServletRequest request) {
-        String token = jwtCookieProvider.getTokenFromCookie(request);
-        UserDetails userDetails = userDetailsService.loadUserByUsername(jwtUtil.extractUserEmail(token));
+    public String generateAccessToken(String email, AccessType accessType) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("accessType", accessType.name());
+        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+        return jwtService.generateAccessToken(claims, userDetails);
+    }
 
-        if (token == null || !jwtUtil.isTokenValid(token, userDetails)) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or missing token");
+    public String generateAccessToken(HttpServletRequest request) {
+        String refreshToken = jwtService.getTokenFromCookie(request);
+
+        if (refreshToken == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or missing refresh token");
         }
 
-        String email = jwtUtil.extractUserEmail(token);
-        User user = userService.getUserByEmail(email);
-
-        return new AuthResponse(
-                user.getId(),
-                user.getEmail(),
-                user.getRole().getName(),
-                user.getEmployee().getId()
-        );
-    }
-
-    public String generateToken(String email) {
+        String email = jwtService.extractUserEmail(refreshToken);
+        String accessType = jwtService.extractAccessType(refreshToken);
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-        return jwtUtil.generateToken(userDetails);
+
+        if (!jwtService.isTokenValid(refreshToken, userDetails)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token. Please reauthenticate");
+        }
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("accessType", accessType);
+
+        return jwtService.generateAccessToken(claims, userDetails);
     }
+
+    public String generateRefreshToken(String email, AccessType accessType) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("accessType", accessType.name());
+        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+        return jwtService.generateRefreshToken(claims, userDetails);
+    }
+
+    // Cookie Management Abstraction
+    public void addRefreshTokenCookie(String token, HttpServletResponse response) {
+        jwtService.addTokenToCookie(token, response);
+    }
+
+    public void clearRefreshTokenCookie(HttpServletResponse response) {
+        jwtService.clearJwtCookie(response);
+    }
+
 }
