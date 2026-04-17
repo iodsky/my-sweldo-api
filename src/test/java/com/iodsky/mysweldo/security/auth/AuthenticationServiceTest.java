@@ -4,6 +4,8 @@ import com.iodsky.mysweldo.employee.Employee;
 import com.iodsky.mysweldo.security.jwt.JwtService;
 import com.iodsky.mysweldo.security.role.Role;
 import com.iodsky.mysweldo.security.user.User;
+import com.iodsky.mysweldo.security.user.UserDto;
+import com.iodsky.mysweldo.security.user.UserMapper;
 import com.iodsky.mysweldo.security.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -12,8 +14,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -29,7 +29,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class AuthenticationServiceTest {
 
     @InjectMocks
@@ -47,15 +46,17 @@ class AuthenticationServiceTest {
     @Mock
     private UserDetailsService userDetailsService;
 
+    @Mock
+    private UserMapper userMapper;
+
     private AuthRequest validLoginRequest;
     private User validUser;
-    private Role employeeRole;
-    private Employee employee;
+    private UserDto validUserDto;
 
     @BeforeEach
     void setUp() {
-        employee = Employee.builder().id(10000L).build();
-        employeeRole = Role.builder().name("EMPLOYEE").build();
+        Employee employee = Employee.builder().id(10000L).build();
+        Role employeeRole = Role.builder().name("EMPLOYEE").build();
 
         validLoginRequest = AuthRequest.builder()
                 .email("john@example.com")
@@ -68,6 +69,13 @@ class AuthenticationServiceTest {
                 .employee(employee)
                 .email("john@example.com")
                 .role(employeeRole)
+                .build();
+
+        validUserDto = UserDto.builder()
+                .id(validUser.getId())
+                .email("john@example.com")
+                .employeeId(10000L)
+                .role("EMPLOYEE")
                 .build();
     }
 
@@ -84,15 +92,15 @@ class AuthenticationServiceTest {
             when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                     .thenReturn(null);
             when(userService.getUserByEmail("john@example.com")).thenReturn(validUser);
-            when(userDetailsService.loadUserByUsername("john@example.com")).thenReturn(userDetails);
             when(jwtService.generateAccessToken(any(), any()))
                     .thenReturn("mocked.access.token");
+            when(userMapper.toDto(validUser)).thenReturn(validUserDto);
 
-            AuthResponse response = authenticationService.authenticate(validLoginRequest);
+            AuthSession response = authenticationService.authenticate(validLoginRequest);
 
             assertNotNull(response);
-            assertEquals("john@example.com", response.getEmail());
-            assertEquals("EMPLOYEE", response.getRole());
+            assertEquals("john@example.com", response.getUser().getEmail());
+            assertEquals("EMPLOYEE", response.getUser().getRole());
             assertEquals("mocked.access.token", response.getToken());
         }
 
@@ -126,10 +134,11 @@ class AuthenticationServiceTest {
             when(userDetailsService.loadUserByUsername("john@example.com")).thenReturn(userDetails);
             when(jwtService.generateAccessToken(any(), any()))
                     .thenReturn("mocked.access.token");
+            when(userMapper.toDto(validUser)).thenReturn(validUserDto);
 
-            AuthResponse response = authenticationService.authenticate(validLoginRequest);
+            AuthSession response = authenticationService.authenticate(validLoginRequest);
 
-            assertEquals("john@example.com", response.getEmail());
+            assertEquals("john@example.com", response.getUser().getEmail());
         }
 
         @Test

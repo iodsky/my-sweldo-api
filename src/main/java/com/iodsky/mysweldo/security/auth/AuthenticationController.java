@@ -22,10 +22,10 @@ public class AuthenticationController {
     @PostMapping("/login")
     @Operation(summary = "Login to get JWT token", description = "Authenticate with email and password to receive a token for accessing protected endpoints")
     @SecurityRequirements()
-    public ApiResponse<AuthResponse> authenticate(@Valid @RequestBody AuthRequest request, HttpServletResponse response) {
-        AuthResponse authResponse = service.authenticate(request);
+    public ApiResponse<AuthSession> authenticate(@Valid @RequestBody AuthRequest request, HttpServletResponse response) {
+        AuthSession authResponse = service.authenticate(request);
 
-        String refreshToken = service.generateRefreshToken(authResponse.getEmail(), request.getAccessType());
+        String refreshToken = service.generateRefreshToken(authResponse.getUser().getEmail(), request.getAccessType());
         service.addRefreshTokenCookie(refreshToken, response);
 
         return ResponseFactory.success("Authentication successful", authResponse);
@@ -40,9 +40,16 @@ public class AuthenticationController {
 
     @PostMapping("/refresh")
     @Operation(summary = "Refresh access token", description = "Use the refresh token from cookie to get a new short-lived access token")
-    public ApiResponse<RefreshResponse> refresh(HttpServletRequest request) {
+    public ApiResponse<AccessToken> refresh(HttpServletRequest request) {
         String accessToken = service.generateAccessToken(request);
-        return ResponseFactory.success("Refresh success", new RefreshResponse(accessToken));
+        return ResponseFactory.success("Refresh success", new AccessToken(accessToken));
+    }
+
+    @GetMapping("/me")
+    @Operation(summary = "Get current authenticated user", description = "Retrieve the details of the currently authenticated user")
+    public ApiResponse<AuthenticatedUser> me(HttpServletRequest request) {
+        AuthenticatedUser response = service.getAuthenticatedUser(request);
+        return ResponseFactory.success("Authenticated user fetched", response);
     }
 
 }

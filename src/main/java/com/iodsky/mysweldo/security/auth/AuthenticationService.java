@@ -2,6 +2,8 @@ package com.iodsky.mysweldo.security.auth;
 
 import com.iodsky.mysweldo.security.jwt.JwtService;
 import com.iodsky.mysweldo.security.user.User;
+import com.iodsky.mysweldo.security.user.UserDto;
+import com.iodsky.mysweldo.security.user.UserMapper;
 import com.iodsky.mysweldo.security.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -26,8 +28,9 @@ public class AuthenticationService {
     private final UserService userService;
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final UserMapper userMapper;
 
-    public AuthResponse authenticate(AuthRequest request) {
+    public AuthSession authenticate(AuthRequest request) {
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -49,14 +52,38 @@ public class AuthenticationService {
 
         String accessToken = generateAccessToken(user.getEmail(), request.getAccessType());
 
-        return new AuthResponse(
-                user.getId(),
-                user.getEmail(),
-                request.getAccessType().name(),
-                user.getRole().getName(),
-                user.getEmployee().getId(),
+        UserDto userDto = userMapper.toDto(user);
+        return new AuthSession(
+                userDto,
+                request.getAccessType(),
                 accessToken
         );
+    }
+
+    public AuthenticatedUser getAuthenticatedUser(HttpServletRequest request) {
+        String authorizationHeader = request.getHeader("Authorization");
+
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or missing token");
+        }
+
+        String token = authorizationHeader.substring(7);
+
+        if (token.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or missing token");
+        }
+
+        String userEmail = jwtService.extractUserEmail(token);
+        User user = (User) userDetailsService.loadUserByUsername(userEmail);
+
+        if ( !jwtService.isTokenValid(token, user)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid  or expired token");
+        }
+
+        AccessType accessType = AccessType.valueOf(jwtService.extractAccessType(token));
+        UserDto userDto = userMapper.toDto(user);
+
+        return new AuthenticatedUser(userDto, accessType);
     }
 
     public String generateAccessToken(String email, AccessType accessType) {
@@ -94,7 +121,6 @@ public class AuthenticationService {
         return jwtService.generateRefreshToken(claims, userDetails);
     }
 
-    // Cookie Management Abstraction
     public void addRefreshTokenCookie(String token, HttpServletResponse response) {
         jwtService.addTokenToCookie(token, response);
     }
