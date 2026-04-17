@@ -19,7 +19,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.UUID;
@@ -42,9 +41,6 @@ class AuthenticationServiceTest {
 
     @Mock
     private JwtService jwtService;
-
-    @Mock
-    private UserDetailsService userDetailsService;
 
     @Mock
     private UserMapper userMapper;
@@ -131,7 +127,6 @@ class AuthenticationServiceTest {
             when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                     .thenReturn(null);
             when(userService.getUserByEmail("john@example.com")).thenReturn(validUser);
-            when(userDetailsService.loadUserByUsername("john@example.com")).thenReturn(userDetails);
             when(jwtService.generateAccessToken(any(), any()))
                     .thenReturn("mocked.access.token");
             when(userMapper.toDto(validUser)).thenReturn(validUserDto);
