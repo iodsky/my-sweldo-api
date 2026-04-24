@@ -26,7 +26,9 @@ public class EmployeeMapper  {
                         .build())
                 .toList();
 
-        BigDecimal salary = employee.getSalary().getRate() != null ? employee.getSalary().getRate() : BigDecimal.ZERO;
+        BigDecimal salary = employee.getSalary() != null && employee.getSalary().getRate() != null
+                ? employee.getSalary().getRate()
+                : BigDecimal.ZERO;
         return EmployeeDto.builder()
                 .id(employee.getId())
                 .firstName(employee.getFirstName())
