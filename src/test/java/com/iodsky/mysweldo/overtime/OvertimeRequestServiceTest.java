@@ -536,6 +536,38 @@ class OvertimeRequestServiceTest {
                     .extracting(e -> ((ResponseStatusException) e).getStatusCode())
                     .isEqualTo(HttpStatus.BAD_REQUEST);
         }
+
+        @Test
+        void shouldThrow403WhenNonOwnerAttemptsToUpdateRequest() {
+            UUID id = UUID.randomUUID();
+            OvertimeRequest existing = OvertimeRequest.builder()
+                    .id(id)
+                    .employee(otherEmployee)
+                    .date(DATE)
+                    .status(RequestStatus.PENDING)
+                    .build();
+
+            UpdateOvertimeRequest request = UpdateOvertimeRequest.builder()
+                    .date(DATE)
+                    .reason("Updated reason")
+                    .build();
+
+            Employee unrelatedEmployee = Employee.builder().id(3L).supervisor(null).build();
+            Role role = new Role("EMPLOYEE");
+            User unrelatedUser = User.builder()
+                    .id(UUID.randomUUID())
+                    .employee(unrelatedEmployee)
+                    .role(role)
+                    .build();
+
+            when(userService.getAuthenticatedUser()).thenReturn(unrelatedUser);
+            when(repository.findById(id)).thenReturn(Optional.of(existing));
+
+            assertThatThrownBy(() -> service.updateOvertimeRequest(id, request))
+                    .isInstanceOf(ResponseStatusException.class)
+                    .extracting(e -> ((ResponseStatusException) e).getStatusCode())
+                    .isEqualTo(HttpStatus.FORBIDDEN);
+        }
     }
 
     @Nested
@@ -708,6 +740,32 @@ class OvertimeRequestServiceTest {
                     .isInstanceOf(ResponseStatusException.class)
                     .extracting(e -> ((ResponseStatusException) e).getStatusCode())
                     .isEqualTo(HttpStatus.BAD_REQUEST);
+        }
+
+        @Test
+        void shouldThrow403WhenNonOwnerAttemptsToDeleteRequest() {
+            UUID id = UUID.randomUUID();
+            OvertimeRequest existing = OvertimeRequest.builder()
+                    .id(id)
+                    .employee(otherEmployee)
+                    .status(RequestStatus.PENDING)
+                    .build();
+
+            Employee unrelatedEmployee = Employee.builder().id(3L).supervisor(null).build();
+            Role role = new Role("EMPLOYEE");
+            User unrelatedUser = User.builder()
+                    .id(UUID.randomUUID())
+                    .employee(unrelatedEmployee)
+                    .role(role)
+                    .build();
+
+            when(userService.getAuthenticatedUser()).thenReturn(unrelatedUser);
+            when(repository.findById(id)).thenReturn(Optional.of(existing));
+
+            assertThatThrownBy(() -> service.deleteOvertimeRequest(id))
+                    .isInstanceOf(ResponseStatusException.class)
+                    .extracting(e -> ((ResponseStatusException) e).getStatusCode())
+                    .isEqualTo(HttpStatus.FORBIDDEN);
         }
     }
 

@@ -116,7 +116,12 @@ public class OvertimeRequestService {
 
     @Transactional
     public OvertimeRequest updateOvertimeRequest(UUID id, UpdateOvertimeRequest request) {
+        User authenticatedUser = userService.getAuthenticatedUser();
         OvertimeRequest existing = getOvertimeRequestById(id);
+
+        if (!existing.getEmployee().getId().equals(authenticatedUser.getEmployee().getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You don't have the permission to access this resource");
+        }
 
         if (existing.getStatus() != RequestStatus.PENDING) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -164,7 +169,12 @@ public class OvertimeRequestService {
     }
 
     public void deleteOvertimeRequest(UUID id) {
+        User authenticatedUser = userService.getAuthenticatedUser();
         OvertimeRequest existing = getOvertimeRequestById(id);
+
+        if (!existing.getEmployee().getId().equals(authenticatedUser.getEmployee().getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You don't have the permissions to access this resource");
+        }
 
         if (!existing.getStatus().equals(RequestStatus.PENDING)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
