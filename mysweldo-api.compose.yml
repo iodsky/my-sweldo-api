@@ -8,16 +8,16 @@ services:
     env_file:
       - .env
     labels:
-      - "traefik.http.routers.mysweldo-api.rule=Host(`mysweldo.iodsky.com`)"
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+      - "traefik.http.routers.mysweldo-api.rule=Host(`mysweldo-api.iodsky.com`)"
       - "traefik.http.routers.mysweldo-api.entrypoints=websecure"
-      - "traefik.http.routers.mysweldo-api.tls.certresolver=myresolver"
+      - "traefik.http.routers.mysweldo-api.tls=true"
+      - "traefik.http.routers.mysweldo-api.tls.certresolver=le"
       - "traefik.http.services.mysweldo-api.loadbalancer.server.port=8001"
     networks:
       - mysweldo-network
       - traefik
-volumes:
-  mysweldo-postgres-data:
-
 networks:
   mysweldo-network:
   traefik:
