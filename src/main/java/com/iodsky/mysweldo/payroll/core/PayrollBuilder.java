@@ -11,6 +11,8 @@ import com.iodsky.mysweldo.payroll.strategy.PayrollStrategyFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,6 +63,8 @@ public class PayrollBuilder {
         List<PayrollBenefit> payrollBenefits = buildPayrollBenefits(context.getEmployeeBenefits());
         List<EmployerContribution> employerContributions = buildEmployerContributions(context);
 
+        int overtimeMinutes = context.getOvertimeHours().multiply(BigDecimal.valueOf(60)).setScale(2, RoundingMode.HALF_UP).intValue();
+
         PayrollItem payroll = PayrollItem.builder()
                 .payrollRun(payrollRun)
                 .employee(context.getEmployee())
@@ -72,6 +76,8 @@ public class PayrollBuilder {
                 .absences(context.getAbsenceDays())
                 .tardinessMinutes(context.getTardinessMinutes())
                 .undertimeMinutes(context.getUndertimeMinutes())
+                .overtimeMinutes(overtimeMinutes)
+                .overtimePay(context.getOvertimePay())
                 .grossPay(context.getGrossPay())
                 .benefits(payrollBenefits)
                 .totalBenefits(context.getTotalBenefits())

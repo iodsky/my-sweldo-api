@@ -112,14 +112,20 @@ public class PayrollCalculator {
 
     public BigDecimal calculatePhilhealthDeduction(BigDecimal basicSalary, PhilhealthRate config) {
         if (basicSalary.compareTo(config.getMinSalaryFloor()) <= 0) {
-            return config.getFixedContribution().divide(SEMI_MONTHLY_PERIODS_PER_MONTH, 2, RoundingMode.HALF_UP);
+            // Fixed contribution is equally shared: divide by 2 for employee share, then by 2 for semi-monthly
+            return config.getFixedContribution()
+                    .divide(BigDecimal.valueOf(2), 2, RoundingMode.HALF_UP)
+                    .divide(SEMI_MONTHLY_PERIODS_PER_MONTH, 2, RoundingMode.HALF_UP);
         }
 
         BigDecimal cappedSalary = basicSalary.min(config.getMaxSalaryCap());
 
         BigDecimal monthlyPremium = cappedSalary.multiply(config.getPremiumRate());
 
-        return monthlyPremium.divide(SEMI_MONTHLY_PERIODS_PER_MONTH, 2, RoundingMode.HALF_UP);
+        // Premium is equally shared: divide by 2 for employee share, then by 2 for semi-monthly
+        return monthlyPremium
+                .divide(BigDecimal.valueOf(2), 2, RoundingMode.HALF_UP)
+                .divide(SEMI_MONTHLY_PERIODS_PER_MONTH, 2, RoundingMode.HALF_UP);
     }
 
     public BigDecimal calculatePagibigDeduction(BigDecimal basicSalary, PagibigRate config) {
@@ -192,7 +198,8 @@ public class PayrollCalculator {
     }
 
     public BigDecimal calculatePhilhealthEmployerContribution(BigDecimal basicSalary, PhilhealthRate config) {
-        // PhilHealth is a split equally,  employer share equals employee share
+        // PhilHealth premium is equally shared between employer and employee
+        // Employer contribution equals employee deduction
         return calculatePhilhealthDeduction(basicSalary, config);
     }
 
