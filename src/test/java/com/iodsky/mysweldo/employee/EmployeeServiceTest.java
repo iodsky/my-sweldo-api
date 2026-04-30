@@ -243,10 +243,11 @@ class EmployeeServiceTest {
 
         @Test
         void shouldReturnEmployeesFilteredByDepartmentIdWhenDepartmentIdIsProvided() {
-            Page<Employee> expected = new PageImpl<>(List.of(savedEmployee));
+            EmployeeBasicDto basicDto = EmployeeBasicDto.builder().id(1L).firstName("John").lastName("Doe").build();
+            Page<EmployeeBasicDto> expected = new PageImpl<>(List.of(basicDto));
             when(employeeRepository.findAllByDepartment_Id(eq("DEPT-001"), any(Pageable.class))).thenReturn(expected);
 
-            Page<Employee> result = service.getAllEmployees(0, 10, "DEPT-001", null, null);
+            Page<EmployeeBasicDto> result = service.getAllEmployees(0, 10, "DEPT-001", null, null);
 
             assertThat(result).isEqualTo(expected);
             verify(employeeRepository).findAllByDepartment_Id(eq("DEPT-001"), any(Pageable.class));
@@ -255,10 +256,11 @@ class EmployeeServiceTest {
 
         @Test
         void shouldReturnEmployeesFilteredBySupervisorIdWhenSupervisorIdIsProvidedAndDepartmentIdIsNull() {
-            Page<Employee> expected = new PageImpl<>(List.of(savedEmployee));
+            EmployeeBasicDto basicDto = EmployeeBasicDto.builder().id(1L).firstName("John").lastName("Doe").build();
+            Page<EmployeeBasicDto> expected = new PageImpl<>(List.of(basicDto));
             when(employeeRepository.findAllBySupervisor_Id(eq(2L), any(Pageable.class))).thenReturn(expected);
 
-            Page<Employee> result = service.getAllEmployees(0, 10, null, 2L, null);
+            Page<EmployeeBasicDto> result = service.getAllEmployees(0, 10, null, 2L, null);
 
             assertThat(result).isEqualTo(expected);
             verify(employeeRepository).findAllBySupervisor_Id(eq(2L), any(Pageable.class));
@@ -266,10 +268,11 @@ class EmployeeServiceTest {
 
         @Test
         void shouldReturnEmployeesFilteredByStatusWhenStatusIsProvidedAndOtherFiltersAreNull() {
-            Page<Employee> expected = new PageImpl<>(List.of(savedEmployee));
+            EmployeeBasicDto basicDto = EmployeeBasicDto.builder().id(1L).firstName("John").lastName("Doe").status(EmploymentStatus.REGULAR).build();
+            Page<EmployeeBasicDto> expected = new PageImpl<>(List.of(basicDto));
             when(employeeRepository.findAllByStatus(eq(EmploymentStatus.REGULAR), any(Pageable.class))).thenReturn(expected);
 
-            Page<Employee> result = service.getAllEmployees(0, 10, null, null, "REGULAR");
+            Page<EmployeeBasicDto> result = service.getAllEmployees(0, 10, null, null, "REGULAR");
 
             assertThat(result).isEqualTo(expected);
             verify(employeeRepository).findAllByStatus(eq(EmploymentStatus.REGULAR), any(Pageable.class));
@@ -277,21 +280,23 @@ class EmployeeServiceTest {
 
         @Test
         void shouldReturnAllEmployeesWhenNoFiltersAreProvided() {
-            Page<Employee> expected = new PageImpl<>(List.of(savedEmployee));
-            when(employeeRepository.findAll(any(Pageable.class))).thenReturn(expected);
+            EmployeeBasicDto basicDto = EmployeeBasicDto.builder().id(1L).firstName("John").lastName("Doe").build();
+            Page<EmployeeBasicDto> expected = new PageImpl<>(List.of(basicDto));
+            when(employeeRepository.findAllBasicEmployees(any(Pageable.class))).thenReturn(expected);
 
-            Page<Employee> result = service.getAllEmployees(0, 10, null, null, null);
+            Page<EmployeeBasicDto> result = service.getAllEmployees(0, 10, null, null, null);
 
             assertThat(result).isEqualTo(expected);
-            verify(employeeRepository).findAll(any(Pageable.class));
+            verify(employeeRepository).findAllBasicEmployees(any(Pageable.class));
         }
 
         @Test
         void shouldFilterByDepartmentIdWhenBothDepartmentIdAndSupervisorIdAreProvided() {
-            Page<Employee> expected = new PageImpl<>(List.of(savedEmployee));
+            EmployeeBasicDto basicDto = EmployeeBasicDto.builder().id(1L).firstName("John").lastName("Doe").build();
+            Page<EmployeeBasicDto> expected = new PageImpl<>(List.of(basicDto));
             when(employeeRepository.findAllByDepartment_Id(eq("DEPT-001"), any(Pageable.class))).thenReturn(expected);
 
-            Page<Employee> result = service.getAllEmployees(0, 10, "DEPT-001", 2L, null);
+            Page<EmployeeBasicDto> result = service.getAllEmployees(0, 10, "DEPT-001", 2L, null);
 
             assertThat(result).isEqualTo(expected);
             verify(employeeRepository).findAllByDepartment_Id(eq("DEPT-001"), any(Pageable.class));
@@ -300,10 +305,11 @@ class EmployeeServiceTest {
 
         @Test
         void shouldFilterBySupervisorIdWhenBothSupervisorIdAndStatusAreProvidedAndDepartmentIdIsNull() {
-            Page<Employee> expected = new PageImpl<>(List.of(savedEmployee));
+            EmployeeBasicDto basicDto = EmployeeBasicDto.builder().id(1L).firstName("John").lastName("Doe").build();
+            Page<EmployeeBasicDto> expected = new PageImpl<>(List.of(basicDto));
             when(employeeRepository.findAllBySupervisor_Id(eq(2L), any(Pageable.class))).thenReturn(expected);
 
-            Page<Employee> result = service.getAllEmployees(0, 10, null, 2L, "REGULAR");
+            Page<EmployeeBasicDto> result = service.getAllEmployees(0, 10, null, 2L, "REGULAR");
 
             assertThat(result).isEqualTo(expected);
             verify(employeeRepository).findAllBySupervisor_Id(eq(2L), any(Pageable.class));
@@ -312,10 +318,11 @@ class EmployeeServiceTest {
 
         @Test
         void shouldResolveStatusCaseInsensitivelyWhenLowercaseStatusIsProvided() {
-            Page<Employee> expected = new PageImpl<>(List.of(savedEmployee));
+            EmployeeBasicDto basicDto = EmployeeBasicDto.builder().id(1L).firstName("John").lastName("Doe").status(EmploymentStatus.REGULAR).build();
+            Page<EmployeeBasicDto> expected = new PageImpl<>(List.of(basicDto));
             when(employeeRepository.findAllByStatus(eq(EmploymentStatus.REGULAR), any(Pageable.class))).thenReturn(expected);
 
-            Page<Employee> result = service.getAllEmployees(0, 10, null, null, "regular");
+            Page<EmployeeBasicDto> result = service.getAllEmployees(0, 10, null, null, "regular");
 
             assertThat(result).isEqualTo(expected);
             verify(employeeRepository).findAllByStatus(eq(EmploymentStatus.REGULAR), any(Pageable.class));

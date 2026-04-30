@@ -8,7 +8,6 @@ import java.time.Instant;
 @Data
 @Builder
 public class PositionDto {
-
     private String id;
     private String departmentId;
     private String departmentTitle;

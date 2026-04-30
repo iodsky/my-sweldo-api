@@ -55,7 +55,7 @@ public class EmployeeService {
             return employeeRepository.save(employee);
     }
 
-    public Page<Employee> getAllEmployees(int page, int limit, String departmentId, Long supervisorId, String status) {
+    public Page<EmployeeBasicDto> getAllEmployees(int page, int limit, String departmentId, Long supervisorId, String status) {
 
         Pageable pageable = PageRequest.of(page, limit);
 
@@ -67,7 +67,7 @@ public class EmployeeService {
             return  employeeRepository.findAllByStatus(EmploymentStatus.valueOf(status.toUpperCase()), pageable);
         }
 
-        return employeeRepository.findAll(pageable);
+        return employeeRepository.findAllBasicEmployees(pageable);
     }
 
     public Employee getAuthenticatedEmployee() {

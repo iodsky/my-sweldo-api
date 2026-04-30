@@ -11,7 +11,6 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -44,20 +43,18 @@ public class EmployeeController {
     @PreAuthorize("hasAnyRole('HR', 'IT', 'PAYROLL', 'SUPERUSER')")
     @GetMapping
     @Operation(summary = "Get all employees", description = "Retrieve a paginated list of employees with optional filters. Requires HR, IT, or PAYROLL role.")
-    public ApiResponse<List<EmployeeDto>> getAllEmployees(
+    public ApiResponse<List<EmployeeBasicDto>> getAllEmployees(
             @Parameter(description = "Page number (0-indexed)") @RequestParam(defaultValue = "0") @Min(0) int pageNo,
             @Parameter(description = "Number of items per page (1-100)") @RequestParam(defaultValue = "10") @Min(1) @Max(100) int limit,
             @Parameter(description = "Filter by department") @RequestParam(required = false) String department,
             @Parameter(description = "Filter by supervisor ID") @RequestParam(required = false) @Positive Long supervisor,
             @Parameter(description = "Filter by employment status") @RequestParam(required = false) String status
     ) {
-        Page<Employee> page = service.getAllEmployees(pageNo, limit, department, supervisor, status);
-
-        List<EmployeeDto> employees = page.getContent().stream().map(mapper::toDto).toList();
+        Page<EmployeeBasicDto> page = service.getAllEmployees(pageNo, limit, department, supervisor, status);
 
         return ResponseFactory.success(
                 "Employees retrieved successfully",
-                employees,
+                page.getContent(),
                 PaginationMeta.of(page)
         );
 

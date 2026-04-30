@@ -8,7 +8,6 @@ import java.time.Instant;
 @Data
 @Builder
 public class DepartmentDto {
-
     private String id;
     private String title;
     private Instant createdAt;

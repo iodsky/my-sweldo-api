@@ -3,7 +3,6 @@ package com.iodsky.mysweldo.employee;
 import lombok.Builder;
 import lombok.Data;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -22,14 +21,14 @@ public class EmployeeDto {
     private String tinNumber;
     private String philhealthNumber;
     private String pagIbigNumber;
-    private String supervisor;
-    private String position;
-    private String department;
+    private EmployeeBasicDto supervisor;
+    private PositionBasicDto position;
+    private DepartmentBasicDto department;
     private String status;
     private String type;
     private LocalTime startShift;
     private LocalTime endShift;
-    private BigDecimal basicSalary;
+    private SalaryDto salary;
     private List<EmployeeBenefitDto> benefits;
 
 }

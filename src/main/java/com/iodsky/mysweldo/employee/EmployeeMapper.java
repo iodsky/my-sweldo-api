@@ -4,7 +4,6 @@ package com.iodsky.mysweldo.employee;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Component
@@ -15,8 +14,25 @@ public class EmployeeMapper  {
 
     public EmployeeDto toDto(Employee employee) {
 
+        EmployeeBasicDto supervisorDto = null;
         Employee supervisor = employee.getSupervisor();
-        String supervisorName = supervisor != null ? supervisor.getFirstName() + " " + supervisor.getLastName() : "N/A";
+        if (supervisor != null) {
+            supervisorDto = EmployeeBasicDto.builder()
+                    .id(supervisor.getId())
+                    .firstName(supervisor.getFirstName())
+                    .lastName(supervisor.getLastName())
+                    .position(PositionBasicDto.builder()
+                            .id(supervisor.getPosition().getId())
+                            .title(supervisor.getPosition().getTitle())
+                            .build())
+                    .department(DepartmentBasicDto.builder()
+                            .id(supervisor.getDepartment().getId())
+                            .title(supervisor.getDepartment().getTitle())
+                            .build())
+                    .status(supervisor.getStatus())
+                    .type(supervisor.getType())
+                    .build();
+        }
 
         List<EmployeeBenefitDto> benefits = employee.getBenefits()
                 .stream()
@@ -26,9 +42,12 @@ public class EmployeeMapper  {
                         .build())
                 .toList();
 
-        BigDecimal salary = employee.getSalary() != null && employee.getSalary().getRate() != null
-                ? employee.getSalary().getRate()
-                : BigDecimal.ZERO;
+        SalaryDto salary = employee.getSalary() == null ? null : SalaryDto.builder()
+                .rate(employee.getSalary().getRate())
+                .payType(employee.getSalary().getPayType())
+                .payFrequency(employee.getSalary().getPayrollFrequency())
+                .build();
+
         return EmployeeDto.builder()
                 .id(employee.getId())
                 .firstName(employee.getFirstName())
@@ -42,12 +61,18 @@ public class EmployeeMapper  {
                 .pagIbigNumber((employee.getGovernmentId() == null ? null : employee.getGovernmentId().getPagIbigNumber()))
                 .status(employee.getStatus().toString())
                 .type(employee.getType().toString())
-                .supervisor(supervisorName)
-                .department(employee.getDepartment().getTitle())
-                .position(employee.getPosition().getTitle())
+                .supervisor(supervisorDto)
+                .position(PositionBasicDto.builder()
+                        .id(employee.getPosition().getId())
+                        .title(employee.getPosition().getTitle())
+                        .build())
+                .department(DepartmentBasicDto.builder()
+                        .id(employee.getDepartment().getId())
+                        .title(employee.getDepartment().getTitle())
+                        .build())
                 .startShift(employee.getStartShift())
                 .endShift(employee.getEndShift())
-                .basicSalary(salary)
+                .salary(salary)
                 .benefits(benefits)
                 .build();
     }
