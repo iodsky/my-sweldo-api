@@ -77,6 +77,29 @@ public class EmployeeMapper  {
                 .build();
     }
 
+    public EmployeeBasicDto toBasicDto(EmployeeBasic employee) {
+
+        DepartmentBasicDto deparment = DepartmentBasicDto.builder()
+                .id(employee.getDepartment_Id())
+                .title(employee.getDepartment_Title())
+                .build();
+
+        PositionBasicDto position = PositionBasicDto.builder()
+                .id(employee.getPosition_Id())
+                .title(employee.getPosition_Title())
+                .build();
+
+        return EmployeeBasicDto.builder()
+                .id(employee.getId())
+                .firstName(employee.getFirstName())
+                .lastName(employee.getLastName())
+                .status(employee.getStatus())
+                .type(employee.getType())
+                .department(deparment)
+                .position(position)
+                .build();
+    }
+
     public Employee toEntity(EmployeeRequest request) {
         Employee employee = Employee.builder()
                 .firstName(request.getFirstName())
