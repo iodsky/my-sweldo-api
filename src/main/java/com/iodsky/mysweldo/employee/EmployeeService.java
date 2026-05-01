@@ -27,7 +27,6 @@ public class EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final DepartmentService departmentService;
     private final PositionService positionService;
-//    private final EmployeeBenefitService benefitService;
     private final BenefitService benefitService;
 
     @Transactional
@@ -56,18 +55,20 @@ public class EmployeeService {
     }
 
     public Page<EmployeeBasicDto> getAllEmployees(int page, int limit, String departmentId, Long supervisorId, String status) {
-
         Pageable pageable = PageRequest.of(page, limit);
+        Page<EmployeeBasic> result;
 
         if (departmentId != null) {
-            return employeeRepository.findAllByDepartment_Id(departmentId, pageable);
+            result =  employeeRepository.findAllByDepartment_Id(departmentId, pageable);
         } else if (supervisorId != null) {
-            return employeeRepository.findAllBySupervisor_Id(supervisorId, pageable);
+            result = employeeRepository.findAllBySupervisor_Id(supervisorId, pageable);
         } else if (status != null) {
-            return  employeeRepository.findAllByStatus(EmploymentStatus.valueOf(status.toUpperCase()), pageable);
+            result = employeeRepository.findAllByStatus(EmploymentStatus.valueOf(status.toUpperCase()), pageable);
+        } else {
+            result = employeeRepository.findAllBy(pageable);
         }
 
-        return employeeRepository.findAllBasicEmployees(pageable);
+        return result.map(employeeMapper::toBasicDto);
     }
 
     public Employee getAuthenticatedEmployee() {
