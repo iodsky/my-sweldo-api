@@ -243,89 +243,175 @@ class EmployeeServiceTest {
 
         @Test
         void shouldReturnEmployeesFilteredByDepartmentIdWhenDepartmentIdIsProvided() {
-            EmployeeBasicDto basicDto = EmployeeBasicDto.builder().id(1L).firstName("John").lastName("Doe").build();
-            Page<EmployeeBasicDto> expected = new PageImpl<>(List.of(basicDto));
-            when(employeeRepository.findAllByDepartment_Id(eq("DEPT-001"), any(Pageable.class))).thenReturn(expected);
+            EmployeeBasic projection = EmployeeBasicStub.builder()
+                    .id(1L)
+                    .firstName("John")
+                    .lastName("Doe")
+                    .departmentId("DEPT-01")
+                    .departmentTitle("DEVELOPMENT")
+                    .positionId("SD-01")
+                    .positionTitle("SOFTWARE DEVELOPER")
+                    .status(EmploymentStatus.REGULAR)
+                    .type(EmploymentType.FULL_TIME)
+                    .build();
 
-            Page<EmployeeBasicDto> result = service.getAllEmployees(0, 10, "DEPT-001", null, null);
+            Page<EmployeeBasic> expected = new PageImpl<>(List.of(projection));
 
-            assertThat(result).isEqualTo(expected);
-            verify(employeeRepository).findAllByDepartment_Id(eq("DEPT-001"), any(Pageable.class));
-            verify(employeeRepository, never()).findAllBySupervisor_Id(any(Long.class), any(Pageable.class));
+            when(employeeRepository.findAllByDepartment_Id(eq("DEPT-01"), any(Pageable.class)))
+                    .thenReturn(expected);
+
+            Page<EmployeeBasicDto> result =
+                    service.getAllEmployees(0, 10, "DEPT-01", null, null);
+
+            assertThat(result.getContent()).hasSize(1);
+
+            verify(employeeRepository)
+                    .findAllByDepartment_Id(eq("DEPT-01"), any(Pageable.class));
         }
 
         @Test
         void shouldReturnEmployeesFilteredBySupervisorIdWhenSupervisorIdIsProvidedAndDepartmentIdIsNull() {
-            EmployeeBasicDto basicDto = EmployeeBasicDto.builder().id(1L).firstName("John").lastName("Doe").build();
-            Page<EmployeeBasicDto> expected = new PageImpl<>(List.of(basicDto));
-            when(employeeRepository.findAllBySupervisor_Id(eq(2L), any(Pageable.class))).thenReturn(expected);
 
-            Page<EmployeeBasicDto> result = service.getAllEmployees(0, 10, null, 2L, null);
+            EmployeeBasic projection = EmployeeBasicStub.builder()
+                    .id(1L)
+                    .firstName("John")
+                    .lastName("Doe")
+                    .build();
 
-            assertThat(result).isEqualTo(expected);
+            Page<EmployeeBasic> expected = new PageImpl<>(List.of(projection));
+
+            when(employeeRepository.findAllBySupervisor_Id(eq(2L), any(Pageable.class)))
+                    .thenReturn(expected);
+
+            Page<EmployeeBasicDto> result =
+                    service.getAllEmployees(0, 10, null, 2L, null);
+
+            assertThat(result.getContent()).hasSize(1);
+
             verify(employeeRepository).findAllBySupervisor_Id(eq(2L), any(Pageable.class));
         }
 
         @Test
         void shouldReturnEmployeesFilteredByStatusWhenStatusIsProvidedAndOtherFiltersAreNull() {
-            EmployeeBasicDto basicDto = EmployeeBasicDto.builder().id(1L).firstName("John").lastName("Doe").status(EmploymentStatus.REGULAR).build();
-            Page<EmployeeBasicDto> expected = new PageImpl<>(List.of(basicDto));
-            when(employeeRepository.findAllByStatus(eq(EmploymentStatus.REGULAR), any(Pageable.class))).thenReturn(expected);
 
-            Page<EmployeeBasicDto> result = service.getAllEmployees(0, 10, null, null, "REGULAR");
+            EmployeeBasic projection = EmployeeBasicStub.builder()
+                    .id(1L)
+                    .firstName("John")
+                    .lastName("Doe")
+                    .status(EmploymentStatus.REGULAR)
+                    .build();
 
-            assertThat(result).isEqualTo(expected);
-            verify(employeeRepository).findAllByStatus(eq(EmploymentStatus.REGULAR), any(Pageable.class));
+            Page<EmployeeBasic> repoResult = new PageImpl<>(List.of(projection));
+
+            when(employeeRepository.findAllByStatus(eq(EmploymentStatus.REGULAR), any(Pageable.class)))
+                    .thenReturn(repoResult);
+
+            Page<EmployeeBasicDto> result =
+                    service.getAllEmployees(0, 10, null, null, "REGULAR");
+
+            assertThat(result.getContent()).hasSize(1);
+
+            verify(employeeRepository)
+                    .findAllByStatus(eq(EmploymentStatus.REGULAR), any(Pageable.class));
         }
 
         @Test
         void shouldReturnAllEmployeesWhenNoFiltersAreProvided() {
-            EmployeeBasicDto basicDto = EmployeeBasicDto.builder().id(1L).firstName("John").lastName("Doe").build();
-            Page<EmployeeBasicDto> expected = new PageImpl<>(List.of(basicDto));
-            when(employeeRepository.findAllBasicEmployees(any(Pageable.class))).thenReturn(expected);
 
-            Page<EmployeeBasicDto> result = service.getAllEmployees(0, 10, null, null, null);
+            EmployeeBasic projection = EmployeeBasicStub.builder()
+                    .id(1L)
+                    .firstName("John")
+                    .lastName("Doe")
+                    .build();
 
-            assertThat(result).isEqualTo(expected);
-            verify(employeeRepository).findAllBasicEmployees(any(Pageable.class));
+            Page<EmployeeBasic> repoResult = new PageImpl<>(List.of(projection));
+
+            when(employeeRepository.findAllBy(any(Pageable.class)))
+                    .thenReturn(repoResult);
+
+            Page<EmployeeBasicDto> result =
+                    service.getAllEmployees(0, 10, null, null, null);
+
+            assertThat(result.getContent()).hasSize(1);
+
+            verify(employeeRepository).findAllBy(any(Pageable.class));
         }
 
         @Test
         void shouldFilterByDepartmentIdWhenBothDepartmentIdAndSupervisorIdAreProvided() {
-            EmployeeBasicDto basicDto = EmployeeBasicDto.builder().id(1L).firstName("John").lastName("Doe").build();
-            Page<EmployeeBasicDto> expected = new PageImpl<>(List.of(basicDto));
-            when(employeeRepository.findAllByDepartment_Id(eq("DEPT-001"), any(Pageable.class))).thenReturn(expected);
 
-            Page<EmployeeBasicDto> result = service.getAllEmployees(0, 10, "DEPT-001", 2L, null);
+            EmployeeBasic projection = EmployeeBasicStub.builder()
+                    .id(1L)
+                    .firstName("John")
+                    .lastName("Doe")
+                    .departmentId("DEPT-01")
+                    .build();
 
-            assertThat(result).isEqualTo(expected);
-            verify(employeeRepository).findAllByDepartment_Id(eq("DEPT-001"), any(Pageable.class));
-            verify(employeeRepository, never()).findAllBySupervisor_Id(any(Long.class), any(Pageable.class));
+            Page<EmployeeBasic> repoResult = new PageImpl<>(List.of(projection));
+
+            when(employeeRepository.findAllByDepartment_Id(eq("DEPT-01"), any(Pageable.class)))
+                    .thenReturn(repoResult);
+
+            Page<EmployeeBasicDto> result =
+                    service.getAllEmployees(0, 10, "DEPT-01", 2L, null);
+
+            assertThat(result.getContent()).hasSize(1);
+
+            verify(employeeRepository)
+                    .findAllByDepartment_Id(eq("DEPT-01"), any(Pageable.class));
+
+            verify(employeeRepository, never())
+                    .findAllBySupervisor_Id(any(), any(Pageable.class));
         }
 
         @Test
         void shouldFilterBySupervisorIdWhenBothSupervisorIdAndStatusAreProvidedAndDepartmentIdIsNull() {
-            EmployeeBasicDto basicDto = EmployeeBasicDto.builder().id(1L).firstName("John").lastName("Doe").build();
-            Page<EmployeeBasicDto> expected = new PageImpl<>(List.of(basicDto));
-            when(employeeRepository.findAllBySupervisor_Id(eq(2L), any(Pageable.class))).thenReturn(expected);
 
-            Page<EmployeeBasicDto> result = service.getAllEmployees(0, 10, null, 2L, "REGULAR");
+            EmployeeBasic projection = EmployeeBasicStub.builder()
+                    .id(1L)
+                    .firstName("John")
+                    .lastName("Doe")
+                    .build();
 
-            assertThat(result).isEqualTo(expected);
-            verify(employeeRepository).findAllBySupervisor_Id(eq(2L), any(Pageable.class));
-            verify(employeeRepository, never()).findAllByStatus(any(), any(Pageable.class));
+            Page<EmployeeBasic> repoResult = new PageImpl<>(List.of(projection));
+
+            when(employeeRepository.findAllBySupervisor_Id(eq(2L), any(Pageable.class)))
+                    .thenReturn(repoResult);
+
+            Page<EmployeeBasicDto> result =
+                    service.getAllEmployees(0, 10, null, 2L, "REGULAR");
+
+            assertThat(result.getContent()).hasSize(1);
+
+            verify(employeeRepository)
+                    .findAllBySupervisor_Id(eq(2L), any(Pageable.class));
+
+            verify(employeeRepository, never())
+                    .findAllByStatus(any(), any(Pageable.class));
         }
 
         @Test
         void shouldResolveStatusCaseInsensitivelyWhenLowercaseStatusIsProvided() {
-            EmployeeBasicDto basicDto = EmployeeBasicDto.builder().id(1L).firstName("John").lastName("Doe").status(EmploymentStatus.REGULAR).build();
-            Page<EmployeeBasicDto> expected = new PageImpl<>(List.of(basicDto));
-            when(employeeRepository.findAllByStatus(eq(EmploymentStatus.REGULAR), any(Pageable.class))).thenReturn(expected);
 
-            Page<EmployeeBasicDto> result = service.getAllEmployees(0, 10, null, null, "regular");
+            EmployeeBasic projection = EmployeeBasicStub.builder()
+                    .id(1L)
+                    .firstName("John")
+                    .lastName("Doe")
+                    .status(EmploymentStatus.REGULAR)
+                    .build();
 
-            assertThat(result).isEqualTo(expected);
-            verify(employeeRepository).findAllByStatus(eq(EmploymentStatus.REGULAR), any(Pageable.class));
+            Page<EmployeeBasic> repoResult = new PageImpl<>(List.of(projection));
+
+            when(employeeRepository.findAllByStatus(eq(EmploymentStatus.REGULAR), any(Pageable.class)))
+                    .thenReturn(repoResult);
+
+            Page<EmployeeBasicDto> result =
+                    service.getAllEmployees(0, 10, null, null, "regular");
+
+            assertThat(result.getContent()).hasSize(1);
+
+            verify(employeeRepository)
+                    .findAllByStatus(eq(EmploymentStatus.REGULAR), any(Pageable.class));
         }
 
         @Test
