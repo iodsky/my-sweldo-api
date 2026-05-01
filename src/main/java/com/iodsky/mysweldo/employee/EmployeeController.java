@@ -84,10 +84,10 @@ public class EmployeeController {
     }
 
     @PreAuthorize("hasRole('HR')")
-    @DeleteMapping("/{id}")
+    @PatchMapping("/{id}/status")
     @Operation(summary = "Delete employee", description = "Delete or deactivate an employee. Requires HR role.")
-    public ApiResponse<Void> deleteEmployee(@Parameter(description = "Employee ID") @PathVariable long id, @Parameter(description = "Status to set (INACTIVE or TERMINATED)") @RequestParam EmploymentStatus status) {
-        service.deleteEmployeeById(id, status);
+    public ApiResponse<Void> updateEmployeeStatus(@Parameter(description = "Employee ID") @PathVariable long id, @Parameter(description = "Status to set (INACTIVE or TERMINATED)") @RequestParam EmploymentStatus status) {
+        service.updateEmployeeStatus(id, status);
         return ResponseFactory.success("Employee deleted successfully");
     }
 }

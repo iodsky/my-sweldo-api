@@ -107,7 +107,7 @@ public class EmployeeService {
     }
 
     @Transactional
-    public void deleteEmployeeById(Long id, EmploymentStatus finalStatus) {
+    public void updateEmployeeStatus(Long id, EmploymentStatus finalStatus) {
         Employee employee = getEmployeeById(id);
         if (employee.isDeleted()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Employee already deleted");
