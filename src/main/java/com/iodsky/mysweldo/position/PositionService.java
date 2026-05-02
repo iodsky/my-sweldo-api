@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +33,10 @@ public class PositionService {
         position.setDepartment(department);
 
         return repository.save(position);
+    }
+
+    public List<Position> getAllPositions() {
+        return repository.findAll();
     }
 
     public Page<Position> getAllPositions(int pageNo, int limit) {

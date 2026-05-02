@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +36,10 @@ public class DepartmentService {
     public Page<Department> getAllDepartments(int pageNo, int limit) {
         Pageable pageable = PageRequest.of(pageNo, limit, Sort.by("title").ascending());
         return repository.findAll(pageable);
+    }
+
+    public List<Department> getAllDepartments() {
+        return repository.findAll();
     }
 
     public Department getDepartmentById(String id) {

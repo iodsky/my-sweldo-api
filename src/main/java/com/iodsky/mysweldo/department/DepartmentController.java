@@ -58,6 +58,20 @@ public class DepartmentController {
         );
     }
 
+    @GetMapping("/options")
+    @Operation(summary = "Get all departments", description = "Retrieve list of departments. Requires HR role.")
+    public ApiResponse<List<DepartmentDto>> getAllDepartments(
+    ) {
+        List<DepartmentDto> departments = service.getAllDepartments().stream()
+                .map(mapper::toDto)
+                .toList();
+
+        return ResponseFactory.success(
+                "Departments retrieved successfully",
+                departments
+        );
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Get department by ID", description = "Retrieve a specific department by its ID. Requires HR role.")
     public ApiResponse<DepartmentDto> getDepartmentById(

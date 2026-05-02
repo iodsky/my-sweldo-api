@@ -58,6 +58,18 @@ public class PositionController {
         );
     }
 
+    @GetMapping("/options")
+    @Operation(summary = "Get all positions", description = "Retrieve list of positions. Requires HR role.")
+    public ApiResponse<List<PositionDto>> getAllPositions(
+    ) {
+        List<PositionDto> positions= service.getAllPositions().stream().map(mapper::toDto).toList();
+
+        return ResponseFactory.success(
+                "Positions retrieved successfully",
+                positions
+        );
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Get position by ID", description = "Retrieve a specific position by its ID. Requires HR role.")
     public ApiResponse<PositionDto> getPositionById(
