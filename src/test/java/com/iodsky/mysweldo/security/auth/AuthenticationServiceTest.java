@@ -119,11 +119,6 @@ class AuthenticationServiceTest {
 
         @Test
         void shouldReturnResponseBelongingToAuthenticatedUser() {
-            UserDetails userDetails = org.springframework.security.core.userdetails.User
-                    .withUsername("john@example.com")
-                    .password("encoded")
-                    .build();
-
             when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                     .thenReturn(null);
             when(userService.getUserByEmail("john@example.com")).thenReturn(validUser);
