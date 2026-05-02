@@ -125,7 +125,7 @@ public class EmployeeMapper  {
                 .employee(employee)
                 .rate(request.getSalaryRequest().getRate())
                 .payType(request.getSalaryRequest().getPayType())
-                .payrollFrequency(request.getSalaryRequest().getPayrollFrequency())
+                .payrollFrequency(request.getSalaryRequest().getPayFrequency())
                 .build();
 
         List<EmployeeBenefit> benefits = request.getBenefits()
@@ -176,7 +176,7 @@ public class EmployeeMapper  {
         Salary salary = existing.getSalary();
         salary.setRate(request.getSalaryRequest().getRate());
         salary.setPayType(request.getSalaryRequest().getPayType());
-        salary.setPayrollFrequency(request.getSalaryRequest().getPayrollFrequency());
+        salary.setPayrollFrequency(request.getSalaryRequest().getPayFrequency());
 
         List<EmployeeBenefit> benefits = request.getBenefits()
                 .stream()

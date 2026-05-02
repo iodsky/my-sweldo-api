@@ -18,6 +18,6 @@ public class SalaryRequest {
     private PayType payType;
 
     @NotNull(message = "Payroll frequency is required")
-    private PayrollFrequency payrollFrequency;
+    private PayrollFrequency payFrequency;
 
 }
