@@ -181,12 +181,12 @@ public class AttendanceService {
         Pageable pageable = PageRequest.of(page, limit, sort);
 
         if (startDate == null && endDate == null) {
-            Page<Attendance> attendances = repository.findAll(pageable);
+            Page<AttendanceView> attendances = repository.findAllBy(pageable);
             return attendances.map(attendanceMapper::toDto);
         }
 
         DateRange dateRange = new DateRange(startDate, endDate);
-        Page<Attendance> attendances = repository.findAllByDateBetween(dateRange.startDate(), dateRange.endDate(), pageable);
+        Page<AttendanceView> attendances = repository.findAllByDateBetween(dateRange.startDate(), dateRange.endDate(), pageable);
         return attendances.map(attendanceMapper::toDto);
     }
 

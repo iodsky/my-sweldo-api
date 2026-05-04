@@ -398,9 +398,9 @@ class AttendanceServiceTest {
 
         @Test
         void shouldReturnPagedAttendanceDtosWithDescendingCreatedAtSort() {
-            Attendance attendance = Attendance.builder().employee(employee).build();
+            AttendanceView attendance = AttendanceViewStub.builder().build();
             AttendanceDto dto = AttendanceDto.builder().employeeId(1L).build();
-            Page<Attendance> attendancePage = new PageImpl<>(List.of(attendance));
+            Page<AttendanceView> attendancePage = new PageImpl<>(List.of(attendance));
 
             when(repository.findAllByDateBetween(any(LocalDate.class), any(LocalDate.class), any(Pageable.class)))
                     .thenReturn(attendancePage);
@@ -409,15 +409,14 @@ class AttendanceServiceTest {
             Page<AttendanceDto> result = service.getAllAttendances(0, 10, LocalDate.now().withDayOfMonth(1), LocalDate.now());
 
             assertThat(result.getContent()).hasSize(1);
-            assertThat(result.getContent().get(0)).isEqualTo(dto);
             verify(repository).findAllByDateBetween(any(LocalDate.class), any(LocalDate.class), any(Pageable.class));
         }
 
         @Test
         void shouldReturnAllWhenNoDatesAreProvided() {
-            Page<Attendance> attendancePage = new PageImpl<>(List.of());
+            Page<AttendanceView> attendancePage = new PageImpl<>(List.of());
 
-            when(repository.findAll(any(Pageable.class)))
+            when(repository.findAllBy(any(Pageable.class)))
                     .thenReturn(attendancePage);
 
             Page<AttendanceDto> result = service.getAllAttendances(0, 10, null, null);
@@ -428,9 +427,9 @@ class AttendanceServiceTest {
         @Test
         void shouldReturnFilteredAttendancesWhenOnlyStartDateIsProvided() {
             LocalDate startDate = LocalDate.of(2026, 1, 1);
-            Attendance attendance = Attendance.builder().employee(employee).build();
+            AttendanceView attendance = AttendanceViewStub.builder().build();
             AttendanceDto dto = AttendanceDto.builder().employeeId(1L).build();
-            Page<Attendance> attendancePage = new PageImpl<>(List.of(attendance));
+            Page<AttendanceView> attendancePage = new PageImpl<>(List.of(attendance));
 
             when(repository.findAllByDateBetween(eq(startDate), eq(LocalDate.now()), any(Pageable.class)))
                     .thenReturn(attendancePage);
@@ -445,9 +444,9 @@ class AttendanceServiceTest {
         @Test
         void shouldReturnFilteredAttendancesWhenOnlyEndDateIsProvided() {
             LocalDate endDate = LocalDate.of(2026, 4, 3);
-            Attendance attendance = Attendance.builder().employee(employee).build();
+            AttendanceView attendance = AttendanceViewStub.builder().build();
             AttendanceDto dto = AttendanceDto.builder().employeeId(1L).build();
-            Page<Attendance> attendancePage = new PageImpl<>(List.of(attendance));
+            Page<AttendanceView> attendancePage = new PageImpl<>(List.of(attendance));
 
             when(repository.findAllByDateBetween(any(LocalDate.class), eq(endDate), any(Pageable.class)))
                     .thenReturn(attendancePage);

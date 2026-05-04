@@ -20,4 +20,21 @@ public class AttendanceMapper {
                 .overtimeHours(attendance.getOvertime())
                 .build();
     }
+
+    public AttendanceDto toDto(AttendanceView attendance) {
+        if (attendance == null) {
+            return null;
+        }
+
+        return AttendanceDto.builder()
+                .id(attendance.getId())
+                .employeeFirstName(attendance.getEmployee_FirstName())
+                .employeeLastName(attendance.getEmployee_LastName())
+                .date(attendance.getDate())
+                .timeIn(attendance.getTimeIn())
+                .timeOut(attendance.getTimeOut())
+                .totalHours(attendance.getTotalHours())
+                .overtimeHours(attendance.getOvertime())
+                .build();
+    }
 }

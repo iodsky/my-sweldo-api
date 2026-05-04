@@ -17,13 +17,15 @@ public interface AttendanceRepository extends JpaRepository<Attendance, UUID> {
 
     Optional<Attendance> findByEmployee_IdAndDate(Long employeeId, LocalDate date);
 
-    Page<Attendance> findAllByDateBetween(LocalDate startDate, LocalDate endDate, Pageable pageable);
+    Page<AttendanceView> findAllByDateBetween(LocalDate startDate, LocalDate endDate, Pageable pageable);
 
     Page<Attendance> findAllByEmployee_Id(Long employeeId, Pageable pageable);
 
     Page<Attendance> findByEmployee_IdAndDateBetween(Long employeeId, LocalDate startDate, LocalDate endDate, Pageable pageable);
 
     List<Attendance> findByEmployee_IdAndDateBetween(Long employeeId, LocalDate startDate, LocalDate endDate);
+
+    Page<AttendanceView> findAllBy (Pageable pageable);
 
     @Query("""
     SELECT COALESCE(SUM(a.totalHours), 0)

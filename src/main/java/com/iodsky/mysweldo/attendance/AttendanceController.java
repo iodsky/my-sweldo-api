@@ -52,7 +52,7 @@ public class AttendanceController {
             @Parameter(description = "Filter by start date") @RequestParam(required = false) LocalDate startDate,
             @Parameter(description = "Filter by end date") @RequestParam(required = false) LocalDate endDate
     ) {
-        Page<AttendanceDto> page = service.getAllAttendances(pageNo, limit, startDate, endDate);
+        Page<AttendanceDto> page  = service.getAllAttendances(pageNo, limit, startDate, endDate);
         List<AttendanceDto> data = page.getContent();
 
         return ResponseFactory.success("Attendances retrieved successfully", data, PaginationMeta.of(page));
