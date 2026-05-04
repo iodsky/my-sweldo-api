@@ -210,7 +210,7 @@ public class AttendanceService {
 
         // Case 1: No date filters - return all attendances
         if (startDate == null && endDate == null) {
-            Page<Attendance> attendances = repository.findAllByEmployee_Id(employeeId, pageable);
+            Page<AttendanceView> attendances = repository.findAllByEmployee_Id(employeeId, pageable);
             return attendances.map(attendanceMapper::toDto);
         }
 
@@ -220,7 +220,7 @@ public class AttendanceService {
         // - If both: return attendances within the range
         DateRange dateRange = new DateRange(startDate, endDate);
 
-        Page<Attendance> attendances = repository.findByEmployee_IdAndDateBetween(employeeId, dateRange.startDate(), dateRange.endDate(), pageable);
+        Page<AttendanceView> attendances = repository.findByEmployee_IdAndDateBetween(employeeId, dateRange.startDate(), dateRange.endDate(), pageable);
         return attendances.map(attendanceMapper::toDto);
     }
 

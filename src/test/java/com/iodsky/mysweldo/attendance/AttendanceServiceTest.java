@@ -62,6 +62,8 @@ class AttendanceServiceTest {
 
         employee = Employee.builder()
                 .id(1L)
+                .firstName("John")
+                .lastName("Doe")
                 .startShift(LocalTime.of(9, 0))
                 .endShift(LocalTime.of(18, 0))
                 .build();
@@ -464,9 +466,12 @@ class AttendanceServiceTest {
 
         @Test
         void shouldReturnOwnAttendancesWhenEmployeeIdIsNull() {
-            Attendance attendance = Attendance.builder().employee(hrUser.getEmployee()).build();
+            AttendanceView attendance = AttendanceViewStub.builder()
+                    .Employee_FirstName(employee.getFirstName())
+                    .Employee_LastName(employee.getLastName())
+                    .build();
             AttendanceDto dto = AttendanceDto.builder().employeeId(1L).build();
-            Page<Attendance> attendancePage = new PageImpl<>(List.of(attendance));
+            Page<AttendanceView> attendancePage = new PageImpl<>(List.of(attendance));
 
             when(userService.getAuthenticatedUser()).thenReturn(hrUser);
             when(repository.findAllByEmployee_Id(eq(1L), any(Pageable.class)))
@@ -476,14 +481,14 @@ class AttendanceServiceTest {
             Page<AttendanceDto> result = service.getEmployeeAttendances(0, 10, null, null, null);
 
             assertThat(result.getContent()).hasSize(1);
-            assertThat(result.getContent().get(0)).isEqualTo(dto);
+            assertThat(result.getContent().getFirst().getEmployeeFirstName()).isEqualTo(dto.getEmployeeFirstName());
         }
 
         @Test
         void shouldAllowHrToReadAnotherEmployeesAttendances() {
-            Attendance attendance = Attendance.builder().employee(employee).build();
-            AttendanceDto dto = AttendanceDto.builder().employeeId(5L).build();
-            Page<Attendance> attendancePage = new PageImpl<>(List.of(attendance));
+            AttendanceView attendance = AttendanceViewStub.builder().build();
+            AttendanceDto dto = AttendanceDto.builder().build();
+            Page<AttendanceView> attendancePage = new PageImpl<>(List.of(attendance));
 
             when(userService.getAuthenticatedUser()).thenReturn(hrUser);
             when(repository.findAllByEmployee_Id(eq(5L), any(Pageable.class)))
@@ -503,9 +508,9 @@ class AttendanceServiceTest {
                     .role(payrollRole)
                     .build();
 
-            Attendance attendance = Attendance.builder().employee(employee).build();
+            AttendanceView attendance = AttendanceViewStub.builder().build();
             AttendanceDto dto = AttendanceDto.builder().employeeId(5L).build();
-            Page<Attendance> attendancePage = new PageImpl<>(List.of(attendance));
+            Page<AttendanceView> attendancePage = new PageImpl<>(List.of(attendance));
 
             when(userService.getAuthenticatedUser()).thenReturn(payrollUser);
             when(repository.findAllByEmployee_Id(eq(5L), any(Pageable.class)))
@@ -526,9 +531,9 @@ class AttendanceServiceTest {
                     .role(new Role("EMPLOYEE"))
                     .build();
 
-            Attendance attendance = Attendance.builder().employee(otherEmployee).build();
-            AttendanceDto dto = AttendanceDto.builder().employeeId(2L).build();
-            Page<Attendance> attendancePage = new PageImpl<>(List.of(attendance));
+            AttendanceView attendance = AttendanceViewStub.builder().build();
+            AttendanceDto dto = AttendanceDto.builder().build();
+            Page<AttendanceView> attendancePage = new PageImpl<>(List.of(attendance));
 
             when(userService.getAuthenticatedUser()).thenReturn(employeeUser);
             when(repository.findAllByEmployee_Id(eq(2L), any(Pageable.class)))
@@ -554,9 +559,11 @@ class AttendanceServiceTest {
         void shouldReturnFilteredAttendancesWhenBothStartAndEndDatesAreProvided() {
             LocalDate startDate = LocalDate.of(2026, 1, 1);
             LocalDate endDate = LocalDate.of(2026, 4, 20);
-            Attendance attendance = Attendance.builder().employee(employee).build();
-            AttendanceDto dto = AttendanceDto.builder().employeeId(1L).build();
-            Page<Attendance> attendancePage = new PageImpl<>(List.of(attendance));
+            AttendanceView attendance = AttendanceViewStub.builder()
+                    .Employee_FirstName(employee.getFirstName())
+                    .build();
+            AttendanceDto dto = AttendanceDto.builder().employeeFirstName(employee.getFirstName()).build();
+            Page<AttendanceView> attendancePage = new PageImpl<>(List.of(attendance));
 
             when(userService.getAuthenticatedUser()).thenReturn(hrUser);
             when(repository.findByEmployee_IdAndDateBetween(eq(1L), eq(startDate), eq(endDate), any(Pageable.class)))
@@ -566,16 +573,16 @@ class AttendanceServiceTest {
             Page<AttendanceDto> result = service.getEmployeeAttendances(0, 10, 1L, startDate, endDate);
 
             assertThat(result.getContent()).hasSize(1);
-            assertThat(result.getContent().get(0)).isEqualTo(dto);
+            assertThat(result.getContent().getFirst()).isEqualTo(dto);
             verify(repository).findByEmployee_IdAndDateBetween(eq(1L), eq(startDate), eq(endDate), any(Pageable.class));
         }
 
         @Test
         void shouldReturnFilteredAttendancesWhenOnlyStartDateIsProvided() {
             LocalDate startDate = LocalDate.of(2026, 1, 1);
-            Attendance attendance = Attendance.builder().employee(employee).build();
+            AttendanceView attendance = AttendanceViewStub.builder().build();
             AttendanceDto dto = AttendanceDto.builder().employeeId(1L).build();
-            Page<Attendance> attendancePage = new PageImpl<>(List.of(attendance));
+            Page<AttendanceView> attendancePage = new PageImpl<>(List.of(attendance));
 
             when(userService.getAuthenticatedUser()).thenReturn(hrUser);
             // When only startDate is provided, endDate defaults to today (2026-04-20)
@@ -592,9 +599,9 @@ class AttendanceServiceTest {
         @Test
         void shouldReturnFilteredAttendancesWhenOnlyEndDateIsProvided() {
             LocalDate endDate = LocalDate.of(2026, 4, 3);
-            Attendance attendance = Attendance.builder().employee(employee).build();
+            AttendanceView attendance = AttendanceViewStub.builder().build();
             AttendanceDto dto = AttendanceDto.builder().employeeId(1L).build();
-            Page<Attendance> attendancePage = new PageImpl<>(List.of(attendance));
+            Page<AttendanceView> attendancePage = new PageImpl<>(List.of(attendance));
 
             when(userService.getAuthenticatedUser()).thenReturn(hrUser);
             // When only endDate is provided, startDate defaults to 1900-01-01
@@ -610,9 +617,9 @@ class AttendanceServiceTest {
 
         @Test
         void shouldReturnAllAttendancesWhenNoDatesAreProvided() {
-            Attendance attendance = Attendance.builder().employee(employee).build();
+            AttendanceView attendance = AttendanceViewStub.builder().build();
             AttendanceDto dto = AttendanceDto.builder().employeeId(1L).build();
-            Page<Attendance> attendancePage = new PageImpl<>(List.of(attendance));
+            Page<AttendanceView> attendancePage = new PageImpl<>(List.of(attendance));
 
             when(userService.getAuthenticatedUser()).thenReturn(hrUser);
             when(repository.findAllByEmployee_Id(eq(1L), any(Pageable.class)))
